@@ -3,7 +3,9 @@ Option Explicit
 
 
 Public Sub Main()
-       
+    
+    Dim strTemp As String
+    
     '主窗体CommandBars的ID值初始化
     With gID
         .Sys = 1000
@@ -199,6 +201,14 @@ Public Sub Main()
         .RegKeyUserLast = "LastLoginUser"
         .RegKeyUserList = "LoginUserList"
         
+        .RegSectionSettings = "Settings"
+        .RegKeyCommandBars = "cbs"
+        .RegKeyWindowHeight = "WindowHeight"
+        .RegKeyWindowLeft = "WindowLeft"
+        .RegKeyWindowTop = "WindowTop"
+        .RegKeyWindowWidth = "WindowWidth"
+        
+        
         .AppPath = App.Path & IIf(Right(App.Path, 1) = "\", "", "\")
         
         .FolderNameBin = .AppPath & "Bin\"
@@ -217,14 +227,25 @@ Public Sub Main()
         .FuncForm = "窗口"
         .FuncMainMenu = "主菜单"
         
+        .WindowHeight = 8700
+        .WindowWidth = 15800
+        
         '''*****在注册表中保存服务器地址、访问的账号与密码****
-        .ConSource = gfCheckIP(GetSetting(.RegAppName, .RegSectionServer, .RegKeyServerIP))
-        .ConUserID = gfDecryptSimple(GetSetting(.RegAppName, .RegSectionServer, .RegKeyServerAccount, ""))
-        .ConPassword = gfDecryptSimple(GetSetting(.RegAppName, .RegSectionServer, .RegKeyServerPassword, ""))
+        strTemp = GetSetting(.RegAppName, .RegSectionServer, .RegKeyServerIP)
+        .ConSource = gfCheckIP(strTemp)
+        
+        strTemp = GetSetting(.RegAppName, .RegSectionServer, .RegKeyServerAccount, "")
+        If Len(strTemp) > 0 Then strTemp = gfDecryptSimple(strTemp)
+        .ConUserID = strTemp
+        
+        strTemp = GetSetting(.RegAppName, .RegSectionServer, .RegKeyServerPassword, "")
+        If Len(strTemp) > 0 Then strTemp = gfDecryptSimple(strTemp)
+        .ConPassword = strTemp
+        
         .ConDatabase = "db_Test"    '暂仅限连接SQLServer2008 OR 2012 数据库
-        .ConString = "Provider=SQLOLEDB.1;Persist Security Info=False;Data Source=" & .ConSource & _
-                    ";User ID=" & .ConUserID & ";Password=" & .ConPassword & _
-                    ";Initial Catalog=" & .ConDatabase & ";"   '''在64位系统上Data Source中间要空格隔开才能建立连接
+        .ConString = "Provider=SQLOLEDB;Persist Security Info=False;Data Source=" & .ConSource & _
+                    ";UID=" & .ConUserID & ";PWD=" & .ConPassword & _
+                    ";DataBase=" & .ConDatabase & ";"   '''在64位系统上Data Source中间要空格隔开才能建立连接
         
     End With
     
@@ -368,6 +389,43 @@ Public Sub gsFormScrollBar(ByRef frmCur As Form, ByRef ctlMv As Control, _
 '    Call Vsb_Change
 'End Sub
 
+End Sub
+
+Public Sub gsFormSizeLoad(ByRef frmLoad As Form)
+    '从注册表中加载窗口的位置与大小信息
+    Dim Left As Long, Top As Long, Width As Long, Height As Long
+    
+    Left = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyWindowLeft, 0))
+    If Left < 0 Or Left > Screen.Width Then Left = 0
+    Top = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyWindowTop, 0))
+    If Top < 0 Or Left > Screen.Height Then Top = 0
+    Width = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyWindowWidth, gVar.WindowWidth))
+    If Width <= 0 Or Width > Screen.Width Then Width = gVar.WindowWidth
+    Height = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyWindowHeight, gVar.WindowHeight))
+    If Height <= 0 Or Height > Screen.Height Then Height = gVar.WindowHeight
+    frmLoad.Move Left, Top, Width, Height
+    
+End Sub
+
+Public Sub gsFormSizeSave(ByRef frmSave As Form)
+    '保存窗口的位置与大小信息至注册表中
+    Dim Left As Long, Top As Long, Width As Long, Height As Long
+    
+    With frmSave
+        Left = .Left
+        Top = .Top
+        Width = .Width
+        Height = .Height
+        If Left < 0 Or Left > Screen.Width Then Left = 0
+        If Top < 0 Or Top > Screen.Height Then Top = 0
+        If Width > Screen.Width Then Width = gVar.WindowWidth
+        If Height > Screen.Height Then Height = gVar.WindowHeight
+    End With
+    Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyWindowLeft, CStr(Left))
+    Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyWindowTop, CStr(Top))
+    Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyWindowWidth, CStr(Width))
+    Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyWindowHeight, CStr(Height))
+    
 End Sub
 
 Public Sub gsGridPageSet()

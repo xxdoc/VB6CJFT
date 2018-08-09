@@ -264,9 +264,17 @@ Public Type gtypeCommonVariant
     RegKeyServerAccount As String   '数据库服务器连接账号
     RegKeyServerPassword As String  '数据库服务器连接密码
         
-    RegSectionUser As String    '用户信息
+    RegSectionUser As String    'Section_用户信息
     RegKeyUserLast As String    '最后登陆用户名
     RegKeyUserList As String    '曾经登陆过年用户名列表
+    
+    RegSectionSettings As String    'Section_Settings区
+    RegKeyCommandBars As String 'SaveCommandBars参数RegistryKey
+    RegKeyWindowLeft As String  'Key_窗口Left值
+    RegKeyWindowTop As String   '
+    RegKeyWindowWidth As String '
+    RegKeyWindowHeight As String    '
+    
     
     AppPath As String           'App路径，确保最后字符为"\"
     FolderNameTemp As String    '文件夹名称：Temp
@@ -301,6 +309,9 @@ Public Type gtypeCommonVariant
     FuncForm As String      '功能类别：窗口
     FuncControl As String   '功能类别：其它控件
     FuncMainMenu As String  '功能类别：主菜单
+    
+    WindowWidth As Long     '窗口默认宽度
+    WindowHeight As Long    '窗口默认高度
     
 End Type
 

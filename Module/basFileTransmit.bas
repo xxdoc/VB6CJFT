@@ -123,29 +123,33 @@ Public Function gfLoadSkin(ByRef frmCur As Form, ByRef skFRM As XtremeSkinFramew
     '加载主题
     Dim lngReg As Long, strRes As String, strIni As String
     
-    lngReg = GetSetting(gVar.RegAppName, gVar.RegSkinSection, gVar.RegSkinKeyFile, 0)
+    lngReg = GetSetting(gVar.RegAppName, gVar.RegSectionSkin, gVar.RegKeySkinFile, 0)
     If blnFromReg Then  '如果从注册表中获取资源文件，则按注册表中值修改lngResource的值
-        If lngReg > 2 Then lngReg = 0
+        If lngReg > sMSO10 Or lngReg < sNone Then lngReg = sNone
         lngResource = lngReg
     End If
     
     Select Case lngResource '选择窗口风格资源文件
-        Case 1
-            strRes = gVar.AppPath & "bin\ftsmsvst.dll"
+        Case sMSO7
+            strRes = gVar.FolderNameBin & "cjstylesO7.dll"
+            strIni = "NormalBlue.ini"   'NormalBlue LightBlue NormalBlack NormalSilver NormalAqua
+        Case sMSO10
+            strRes = gVar.FolderNameBin & "cjstylesO10.dll"
             strIni = "NormalBlue.ini"   'NormalBlue NormalBlack NormalSilver
-        Case 2
-            strRes = gVar.AppPath & "bin\ftsms07.dll"
-            strIni = "NormalBlue.ini"
+        Case sMSVst
+            strRes = gVar.FolderNameBin & "cjstylesOvst.dll"
+            strIni = "NormalBlue.ini"   'NormalBlue NormalBlack NormalSilver NormalBlack2
         Case Else
     End Select
     
     With skFRM
         .LoadSkin strRes, strIni
-        .ApplyOptions = .ApplyOptions Or xtpSkinApplyMetrics Or xtpSkinApplyMenus
+'''        .ApplyOptions = .ApplyOptions Or xtpSkinApplyMetrics Or xtpSkinApplyMenus   '全部应用
+        .ApplyOptions = xtpSkinApplyMenus Or xtpSkinApplyColors Or xtpSkinApplyMetrics  '如果添加xtpSkinApplyFrame，鼠标滚轮不能控制FC表格滚动条
         .ApplyWindow frmCur.hwnd
     End With
     
-    If lngReg <> lngResource Then Call SaveSetting(gVar.RegAppName, gVar.RegSkinSection, gVar.RegSkinKeyFile, lngResource)
+    If lngReg <> lngResource Then Call SaveSetting(gVar.RegAppName, gVar.RegSectionSkin, gVar.RegKeySkinFile, lngResource)
     
 End Function
 
