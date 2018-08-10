@@ -274,7 +274,11 @@ Public Type gtypeCommonVariant
     RegKeyWindowTop As String   '
     RegKeyWindowWidth As String '
     RegKeyWindowHeight As String    '
+    RegKeyCommandbarsTheme As String    '
     
+    RegTrailPath As String  '注册表中HKEY_CURRENT_USER下SOFTWARE路径
+    RegTrailKey As String   '试用信息-Key值
+    TrailPeriod As Long     '试用期周期
     
     AppPath As String           'App路径，确保最后字符为"\"
     FolderNameTemp As String    '文件夹名称：Temp
@@ -452,8 +456,13 @@ Public Type gtypeCommandBarID
     StatusBarPaneProgress As Long       '状态栏中进度条
     StatusBarPaneProgressText As Long   '状态栏中进度百分值
     StatusBarPaneUserInfo As Long       '状态栏中用户信息
-    StatusBarPaneTime As Long           '状态中时间
-       
+    StatusBarPaneTime As Long           '状态栏中时间
+    StatusBarPaneConnectState As Long   '状态栏中连接状态-Client
+    StatusBarPaneConnectButton As Long  '状态栏中连接按钮-Client
+    StatusBarPaneServerState As Long    '状态栏中服务器服务状态-Server
+    StatusBarPaneServerButton As Long   '状态栏中服务器开启/断开服务按钮-Server
+    
+    
 End Type
 
 Public Type gtypeValueAndErr    '用于返回布尔值的过程，顺便返回异常代号

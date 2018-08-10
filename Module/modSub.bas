@@ -25,9 +25,9 @@ Public Sub Main()
         .SysExportToWord = 1204
         .SysExportToXML = 1205
         
-        .SysPrint = 1301
-        .SysPrintPageSet = 1302
-        .SysPrintPreview = 1303
+        .SysPrint = 1303
+        .SysPrintPageSet = 1301
+        .SysPrintPreview = 1302
         
         .SysSearch = 1400
         .SysSearch1Label = 1401
@@ -113,7 +113,7 @@ Public Sub Main()
         .TestWindowMDB = 4105
         
         
-        '''***请将所有【菜单】的CommandBrs的ID值设置在20000以下*******************
+        '''***请将所有菜单栏中的【菜单】的CommandBrs的ID值设置在20000以下*******************
         
         
         .Pane = 21000
@@ -129,10 +129,14 @@ Public Sub Main()
         
         .StatusBarPane = 22000
         
-        .StatusBarPaneProgress = 22101
-        .StatusBarPaneProgressText = 22102
-        .StatusBarPaneTime = 22103
-        .StatusBarPaneUserInfo = 22104
+        .StatusBarPaneConnectButton = 22101
+        .StatusBarPaneConnectState = 22102
+        .StatusBarPaneProgress = 22103
+        .StatusBarPaneProgressText = 22104
+        .StatusBarPaneServerButton = 22105
+        .StatusBarPaneServerState = 22106
+        .StatusBarPaneTime = 22107
+        .StatusBarPaneUserInfo = 22108
         
     End With
     
@@ -207,7 +211,11 @@ Public Sub Main()
         .RegKeyWindowLeft = "WindowLeft"
         .RegKeyWindowTop = "WindowTop"
         .RegKeyWindowWidth = "WindowWidth"
+        .RegKeyCommandbarsTheme = "cbsTheme"
         
+        .RegTrailPath = "SoftWare\Common\Section"   'HKEY_CURRENT_USER\SoftWare\……
+        .RegTrailKey = "Key"
+        .TrailPeriod = 15
         
         .AppPath = App.Path & IIf(Right(App.Path, 1) = "\", "", "\")
         
@@ -248,13 +256,6 @@ Public Sub Main()
                     ";DataBase=" & .ConDatabase & ";"   '''在64位系统上Data Source中间要空格隔开才能建立连接
         
     End With
-    
-    '设置窗口主题
-'    gMain.skinFW.ApplyOptions = xtpSkinApplyColors Or xtpSkinApplyFrame Or xtpSkinApplyMenus Or xtpSkinApplyMetrics
-'    gMain.skinFW.ApplyWindow gMain.hwnd
-'    gMain.SkinPath = GetSetting(gMain.Name, gID.OtherSaveSettings, gID.OtherSaveSkinPath, "")
-'    gMain.SkinIni = GetSetting(gMain.Name, gID.OtherSaveSettings, gID.OtherSaveSkinIni, "")
-'    Call gMain.gmsThemeSkinSet(gID.SkinPath, gID.SkinIni)
     
 End Sub
 
@@ -433,24 +434,16 @@ Public Sub gsGridPageSet()
     
     Dim gridControl As Control
     Dim blnFlexCell As Boolean
-    Dim blnVSGrid As Boolean
     
-    If gmdi.ActiveForm Is Nothing Then GoTo LineBreak
-    If gmdi.ActiveForm.ActiveControl Is Nothing Then GoTo LineBreak
+    If Screen.ActiveForm Is Nothing Then GoTo LineBreak
+    If Screen.ActiveForm.ActiveControl Is Nothing Then GoTo LineBreak
     
-    Set gridControl = gmdi.ActiveForm.ActiveControl
+    Set gridControl = Screen.ActiveForm.ActiveControl
     If TypeOf gridControl Is FlexCell.Grid Then blnFlexCell = True
-    If TypeOf gridControl Is VSFlex8Ctl.VSFlexGrid Then blnVSGrid = True
     
-    If blnFlexCell Or blnVSGrid Then
+    If blnFlexCell Then
 '''        frmSysPageSet.Show vbModal   '内容较多暂不设置
-        If blnFlexCell Then
-            gridControl.PrintDialog
-        Else
-            gID.VSPrintPageSet = True   '与VS表格的页面设置功能配合使用，结束后设为False
-            frmSysVSPreview.Show vbModal
-            gID.VSPrintPageSet = False  '防打印时也弹出这个设置
-        End If
+        gridControl.PrintDialog
     Else
         GoTo LineBreak
     End If
@@ -474,15 +467,13 @@ Public Sub gsGridPrintPreview()
     
     Dim gridControl As Control
     Dim blnFlexCell As Boolean
-    Dim blnVSGrid As Boolean
     
-    If gmdi.ActiveForm Is Nothing Then GoTo LineBreak
-    If gmdi.ActiveForm.ActiveControl Is Nothing Then GoTo LineBreak
+    If Screen.ActiveForm Is Nothing Then GoTo LineBreak
+    If Screen.ActiveForm.ActiveControl Is Nothing Then GoTo LineBreak
     
-    Set gridControl = gmdi.ActiveForm.ActiveControl
+    Set gridControl = Screen.ActiveForm.ActiveControl
     If TypeOf gridControl Is FlexCell.Grid Then blnFlexCell = True
-    If TypeOf gridControl Is VSFlex8Ctl.VSFlexGrid Then blnVSGrid = True
-    
+
     If blnFlexCell Then
         With gridControl
             With .PageSetup
@@ -494,8 +485,6 @@ Public Sub gsGridPrintPreview()
             End With
             .PrintPreview
         End With
-    ElseIf blnVSGrid Then
-        frmSysVSPreview.Show vbModal
     Else
         GoTo LineBreak
     End If
@@ -581,7 +570,7 @@ Public Sub gsGridToText(ByRef gridControl As Control)
     For I = 1 To 8
         strFileName = strFileName & gfBackOneChar(udNumber + udUpperCase) '文件名中的8个随机字符，不含小写字母
     Next
-    strFileName = gID.FolderData & Format(Now, "yyyyMMddHHmmss_") & strFileName & ".txt"
+    strFileName = gVar.FolderNameData & Format(Now, "yyyyMMddHHmmss_") & strFileName & ".txt"
     If Not gfFileRepair(strFileName) Then
         MsgBox "创建文件失败，请重试！", vbExclamation, "文件生成警告"
         Exit Sub
@@ -599,14 +588,6 @@ Public Sub gsGridToText(ByRef gridControl As Control)
                 strTxt = ""
                 For J = 0 To C
                     strTxt = strTxt & .Cell(I, J).Text & vbTab
-                Next
-                Print #intFree, strTxt
-            Next
-        Else
-            For I = 0 To R
-                strTxt = ""
-                For J = 0 To C
-                    strTxt = strTxt & .TextMatrix(I, J) & vbTab
                 Next
                 Print #intFree, strTxt
             Next
@@ -700,6 +681,41 @@ Public Sub gsLoadAuthority(ByRef frmCur As Form, ByRef ctlCur As Control)
     
 End Sub
 
+Public Sub gsLoadSkin(ByRef frmCur As Form, ByRef skFRM As XtremeSkinFramework.SkinFramework, _
+    Optional ByVal lngResource As genumSkinResChoose, Optional ByVal blnFromReg As Boolean)
+    '加载主题
+    Dim lngReg As Long, strRes As String, strIni As String
+    
+    lngReg = GetSetting(gVar.RegAppName, gVar.RegSectionSkin, gVar.RegKeySkinFile, 0)
+    If blnFromReg Then  '如果从注册表中获取资源文件，则按注册表中值修改lngResource的值
+        If lngReg > sMSO10 Or lngReg < sNone Then lngReg = sNone
+        lngResource = lngReg
+    End If
+    
+    Select Case lngResource '选择窗口风格资源文件
+        Case sMSO7
+            strRes = gVar.FolderNameBin & "cjstylesO7.dll"
+            strIni = "NormalBlue.ini"   'NormalBlue LightBlue NormalBlack NormalSilver NormalAqua
+        Case sMSO10
+            strRes = gVar.FolderNameBin & "cjstylesO10.dll"
+            strIni = "NormalBlue.ini"   'NormalBlue NormalBlack NormalSilver
+        Case sMSVst
+            strRes = gVar.FolderNameBin & "cjstylesOvst.dll"
+            strIni = "NormalBlue.ini"   'NormalBlue NormalBlack NormalSilver NormalBlack2
+        Case Else
+    End Select
+    
+    With skFRM
+        .LoadSkin strRes, strIni
+'''        .ApplyOptions = .ApplyOptions Or xtpSkinApplyMetrics Or xtpSkinApplyMenus   '全部应用
+        .ApplyOptions = xtpSkinApplyMenus Or xtpSkinApplyColors Or xtpSkinApplyMetrics  '如果添加xtpSkinApplyFrame，鼠标滚轮不能控制FC表格滚动条
+        .ApplyWindow frmCur.hwnd
+    End With
+    
+    If lngReg <> lngResource Then Call SaveSetting(gVar.RegAppName, gVar.RegSectionSkin, gVar.RegKeySkinFile, lngResource)
+    
+End Sub
+
 Public Sub gsLogAdd(ByRef frmCur As Form, Optional ByVal LogType As genumLogType = udSelect, _
     Optional ByVal strTable As String = "", Optional ByVal strContent As String = "")
     '添加操作日志
@@ -718,7 +734,6 @@ Public Sub gsLogAdd(ByRef frmCur As Form, Optional ByVal LogType As genumLogType
     Set rsLog = Nothing
     
 End Sub
-
 
 Public Sub gsNodeCheckCascade(ByRef nodeCheck As MSComctlLib.Node, Optional ByVal blnCheck As Boolean)
     '结点的Checked属性级联变化
@@ -795,6 +810,62 @@ Public Sub gsOpenTheWindow(ByVal strFormName As String, _
         
 End Sub
 
+Public Sub gsSaveCommandbarsTheme(ByRef cbsBars As XtremeCommandBars.CommandBars)
+    '保存CommandBars的风格主题
+    Dim lngID As Long
+    
+    For lngID = gID.WndThemeCommandBarsOffice2000 To gID.WndThemeCommandBarsWinXP
+        If cbsBars.Actions(lngID).Checked Then Exit For
+    Next
+    If lngID > gID.WndThemeCommandBarsWinXP Then lngID = gID.WndThemeCommandBarsRibbon
+    Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyCommandbarsTheme, lngID)
+    
+End Sub
+
+Public Sub gsThemeCommandBar(ByVal CID As Long, ByRef cbsBars As XtremeCommandBars.CommandBars)
+    'CommandBars风格设置
+    Dim lngTheme As Long, lngID As Long
+    Dim blnChangeSkin As Boolean
+    
+    Select Case CID
+        Case gID.WndThemeCommandBarsOffice2000
+            lngTheme = xtpThemeOffice2000
+        Case gID.WndThemeCommandBarsOffice2003
+            lngTheme = xtpThemeOffice2003
+            blnChangeSkin = True
+        Case gID.WndThemeCommandBarsOfficeXp
+            lngTheme = xtpThemeOfficeXP
+        Case gID.WndThemeCommandBarsResource
+            lngTheme = xtpThemeResource
+            blnChangeSkin = True
+        Case gID.WndThemeCommandBarsRibbon
+            lngTheme = xtpThemeRibbon: blnChangeSkin = True
+        Case gID.WndThemeCommandBarsVS2008
+            lngTheme = xtpThemeVisualStudio2008
+        Case gID.WndThemeCommandBarsVS2010
+            lngTheme = xtpThemeVisualStudio2010
+        Case gID.WndThemeCommandBarsVS6
+            lngTheme = xtpThemeVisualStudio6
+        Case gID.WndThemeCommandBarsWhidbey
+            lngTheme = xtpThemeWhidbey
+        Case Else   'gID.WndThemeCommandBarsWinXP
+            lngTheme = xtpThemeNativeWinXP
+    End Select
+    
+    cbsBars.VisualTheme = lngTheme
+    
+    For lngID = gID.WndThemeCommandBarsOffice2000 To gID.WndThemeCommandBarsWinXP
+        cbsBars.Actions(lngID).Checked = False
+    Next
+    cbsBars.Actions(CID).Checked = True
+    
+    If blnChangeSkin Then   '更改对应窗口主题使颜色统一
+        Call gsLoadSkin(gWind, gWind.SkinFramework1, sMSO7)
+    Else
+        Call gsLoadSkin(gWind, gWind.SkinFramework1, sMSVst)
+    End If
+    
+End Sub
 
 Public Sub gsUnCheckedAction(ByVal strFormName As String)
     '当窗口关闭时，去掉主窗体中cBS控件中被勾选的对应Action
