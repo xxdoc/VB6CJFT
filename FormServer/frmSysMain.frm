@@ -24,6 +24,7 @@ Begin VB.Form frmSysMain
       _Version        =   393216
    End
    Begin VB.Timer Timer1 
+      Index           =   0
       Left            =   1440
       Top             =   3840
    End
@@ -41,7 +42,7 @@ Begin VB.Form frmSysMain
    End
    Begin MSComctlLib.ImageList ImageList1 
       Left            =   3240
-      Top             =   3840
+      Top             =   3720
       _ExtentX        =   1005
       _ExtentY        =   1005
       BackColor       =   -2147483643
@@ -405,8 +406,8 @@ Attribute VB_Exposed = False
 Option Explicit
 
 Dim mlngID As Long  '循环变量ID
-Dim WithEvents StatuBar As XtremeCommandBars.StatusBar
-Attribute StatuBar.VB_VarHelpID = -1
+Dim WithEvents XtrStatusBar As XtremeCommandBars.StatusBar
+Attribute XtrStatusBar.VB_VarHelpID = -1
 
 
 
@@ -462,7 +463,14 @@ Private Sub msAddAction(ByRef cbsBars As XtremeCommandBars.CommandBars)
         .Add gID.StatusBarPaneServerButton, "服务开启/断开按钮", "", "", ""
         .Add gID.StatusBarPaneServerState, "服务状态", "", "", ""
         .Add gID.StatusBarPaneTime, "系统时间", "", "", ""
+        
+        .Add gID.IconPopupMenu, "托盘图标菜单", "", "", ""
+        .Add gID.IconPopupMenuMaxWindow, "最大化窗口", "", "", ""
+        .Add gID.IconPopupMenuMinWindow, "最小化窗口", "", "", ""
+        .Add gID.IconPopupMenuShowWindow, "显示窗口", "", "", ""
+        
 '        .Add gID, "", "", "", ""
+        
     End With
     
     '填充cbsActions的其它属性ToolTipText、DescriptionText、Key、Category
@@ -574,16 +582,16 @@ Private Sub msAddMenu(ByRef cbsBars As XtremeCommandBars.CommandBars)
     
 End Sub
 
-Private Sub msAddStatuBar(ByRef cbsBars As XtremeCommandBars.CommandBars)
+Private Sub msAddXtrStatusBar(ByRef cbsBars As XtremeCommandBars.CommandBars)
     '创建状态栏
     
-'    Dim StatuBar As XtremeCommandBars.StatusBar
+'    Dim XtrStatusBar As XtremeCommandBars.StatusBar
     Dim cbsActions As XtremeCommandBars.CommandBarActions  'cbs控件Actions集合的引用
     Dim BarPane As XtremeCommandBars.StatusBarPane
     
     Set cbsActions = cbsBars.Actions
-    Set StatuBar = cbsBars.StatusBar
-    With StatuBar
+    Set XtrStatusBar = cbsBars.StatusBar
+    With XtrStatusBar
         .AddPane 0      '系统Pane，显示CommandBarActions的Description
         .SetPaneStyle 0, SBPS_STRETCH
         
@@ -620,10 +628,24 @@ Private Sub msAddStatuBar(ByRef cbsBars As XtremeCommandBars.CommandBars)
         .EnableCustomization True
     End With
     
-    For Each BarPane In StatuBar     '设置ToolTip属性为Caption
+    For Each BarPane In XtrStatusBar     '设置ToolTip属性为Caption
         BarPane.ToolTip = BarPane.Caption
     Next
     
+End Sub
+
+Private Sub msAddPopupMenu(ByRef cbsBars As XtremeCommandBars.CommandBars)
+    '创建托盘图标右键弹出式菜单
+    Dim cbsPopupIcon As XtremeCommandBars.CommandBar
+    
+    Set cbsPopupIcon = cbsBars.Add(cbsBars.Actions(gID.IconPopupMenu).Caption, xtpBarPopup)
+    With cbsPopupIcon.Controls
+        .Add xtpControlButton, gID.IconPopupMenuMaxWindow, ""
+        .Add xtpControlButton, gID.IconPopupMenuMinWindow, ""
+        .Add xtpControlButton, gID.IconPopupMenuShowWindow, ""
+        .Add xtpControlButton, gID.SysLoginAgain, ""
+        .Add xtpControlButton, gID.SysLoginOut, ""
+    End With
 End Sub
 
 Private Sub msAddToolBar(ByRef cbsBars As XtremeCommandBars.CommandBars)
@@ -634,6 +656,7 @@ Private Sub msAddToolBar(ByRef cbsBars As XtremeCommandBars.CommandBars)
     Dim cbsActions As XtremeCommandBars.CommandBarActions  'cbs控件Actions集合的引用
     
     Set cbsActions = cbsBars.Actions
+    
     '系统操作工具栏
     Set cbsBar = cbsBars.Add(cbsActions(gID.Sys).Caption, xtpBarTop)
     With cbsBar.Controls
@@ -758,6 +781,7 @@ Private Sub msResetLayout(ByRef cbsBars As XtremeCommandBars.CommandBars)
     Dim L As Long, T As Long, R As Long, B As Long
 
     For Each cBar In cbsBars
+Debug.Print cBar.BarID, cBar.Title, cBar.Type
         cBar.Reset
         cBar.Visible = True
     Next
@@ -788,36 +812,90 @@ End Sub
 Private Sub Form_Load()
     '窗体加载
     
-    Call Main   '初始化变量
-    Set gWind = Me
-    
+    Timer1.Item(0).Interval = 1000  '计时器循环时间
+    Call Main   '初始化全局公用变量
+    Set gWind = Me  '指定主窗体给全局引用对象
     XtremeCommandBars.CommandBarsGlobalSettings.App = App '一个默认设置
     
-    Call msAddAction(CommandBars1)        '创建Actions集合
-    Call msAddMenu(CommandBars1)          '创建菜单栏
-    Call msAddToolBar(CommandBars1)       '创建工具栏
-    Call msAddStatuBar(CommandBars1)      '创建状态栏
-    Call msAddKeyBindings(CommandBars1)   '添加快捷键,放到LoadCommandBars方法后面才能生效？？？
-    Call msAddDesignerControls(CommandBars1)  'CommandBars自定义对话框中使用的
+    Call msAddAction(Me.CommandBars1)   '创建Actions集合
+    Call msAddMenu(Me.CommandBars1)     '创建菜单栏
+    Call msAddToolBar(Me.CommandBars1)  '创建工具栏
+    Call msAddPopupMenu(Me.CommandBars1)    '创建托盘图标的菜单
+    Call msAddXtrStatusBar(Me.CommandBars1) '创建状态栏
+    Call msAddKeyBindings(Me.CommandBars1)  '添加快捷键,放到LoadCommandBars方法后面才能生效？？？
+    Call msAddDesignerControls(Me.CommandBars1) 'CommandBars自定义对话框中使用的
     
-    CommandBars1.AddImageList ImageList1         '添加图标
-    CommandBars1.EnableCustomization True        '允许自定义，此属性最好放在所有CommandBars设定之后
-    CommandBars1.Options.UpdatePeriod = 250      '更改CommandBars的Update事件的执行周期，默认100ms
+    Me.CommandBars1.AddImageList ImageList1         '使CommandBars控件匹配ImageList控件中图标
+    Me.CommandBars1.EnableCustomization True        '允许CommandBars自定义，此属性最好放在所有CommandBars设定之后
+    Me.CommandBars1.Options.UpdatePeriod = 250      '更改CommandBars的Update事件的执行周期，默认100ms
     
-    Call gsLoadSkin(Me, SkinFramework1, sMSO7, True)  '加载窗口主题
-    
-    Call gsThemeCommandBar(Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyCommandbarsTheme, gID.WndThemeCommandBarsRibbon)), CommandBars1)    '加载工具栏主题
+    Call gsLoadSkin(Me, Me.SkinFramework1, sMSO7, True)  '加载窗口主题
+    '加载工具栏主题
+    Call gsThemeCommandBar(Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyCommandbarsTheme, gID.WndThemeCommandBarsRibbon)), CommandBars1)
     
     '注册表信息加载-CommandBars设置
     Call CommandBars1.LoadCommandBars(gVar.RegKeyCommandBars, gVar.RegAppName, gVar.RegSectionSettings)
 
     Call gsFormSizeLoad(Me) '注册表信息加载-窗口位置大小
     
+    '加载配置参数
+    mlngID = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyParaWindowMinHide, 1))
+    gVar.ParaBlnWindowMinHide = mlngID
+    
+    '打开多个应用程序检查。此判断暂放加载注册信息后
+    If App.PrevInstance Then
+        MsgBox "不可同时打开多个应用程序！", vbCritical, "警报"
+        Unload Me
+        Exit Sub
+    End If
+    
     '检查是否为试用版
     
     
     Call msGridSet(Grid1)  '表格设置
+    Call gsStartUpSet(False)    '是否向注册表中添加开机自动启动项
+    Call gfNotifyIconAdd(Me)    '添加托盘图标
     
+    
+End Sub
+
+Private Sub Form_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
+    '响应托盘图标的菜单
+    Dim sngMsg As Single
+    
+    sngMsg = X / Screen.TwipsPerPixelX
+    Select Case sngMsg
+        Case WM_RBUTTONUP
+            Dim cbsBar As XtremeCommandBars.CommandBar 'Popup
+            
+            For Each cbsBar In Me.CommandBars1
+                If cbsBar.Title = Me.CommandBars1.Actions(gID.IconPopupMenu).Caption Then
+                    cbsBar.ShowPopup
+                    Exit For
+                End If
+            Next
+        Case WM_LBUTTONDBLCLK
+            With Me
+                If .WindowState = vbMinimized Then
+                    .WindowState = vbNormal
+                    .Show
+                    .SetFocus
+                Else
+                    .WindowState = vbMinimized
+                End If
+            End With
+        Case Else
+    End Select
+End Sub
+
+Private Sub Form_Resize()
+    '窗口最小化提示
+    If Me.WindowState = vbMinimized Then
+        If gVar.ParaBlnWindowMinHide Then
+            Me.Hide
+            Call gfNotifyIconBalloon(Me, "最小化到系统托盘图标啦", "最小化提示")
+        End If
+    End If
 End Sub
 
 Private Sub Form_Unload(Cancel As Integer)
@@ -827,16 +905,31 @@ Private Sub Form_Unload(Cancel As Integer)
     Call CommandBars1.SaveCommandBars(gVar.RegKeyCommandBars, gVar.RegAppName, gVar.RegSectionSettings)
     
     Call gsFormSizeSave(Me) '保存注册表信息-窗口位置大小
-    
     Call gsSaveCommandbarsTheme(CommandBars1)   '保存CommandBars的风格主题
     
+    '一些参数设置保存
+    Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyParaWindowMinHide, gVar.ParaBlnWindowMinHide)
+    
     Call SkinFramework1.LoadSkin("", "")    '清空皮肤
-    Set gWind = Nothing
+    Set XtrStatusBar = Nothing  '清除状态栏
+    Call gfNotifyIconDelete(Me) '删除托盘图标
+    Set gWind = Nothing '清除全局窗体引用
     
 End Sub
 
-Private Sub StatuBar_PaneClick(ByVal Pane As XtremeCommandBars.StatusBarPane)
+Private Sub XtrStatusBar_PaneClick(ByVal Pane As XtremeCommandBars.StatusBarPane)
+    '手动断开/开启服务
+    Dim strMsg As String
+    
     If Pane.ID = gID.StatusBarPaneServerButton Then
-        
+        If Pane.Text = gVar.ServerClose Then
+            strMsg = "关闭后会断开所有用户的连接。"
+        End If
+        If MsgBox("是否" & Pane.Text & "？" & strMsg, vbQuestion + vbYesNo, "重启/断开服务询问") = vbNo Then Exit Sub
+        If Pane.Text = gVar.ServerClose Then
+            Pane.Text = gVar.ServerStart
+        ElseIf Pane.Text = gVar.ServerStart Then
+            Pane.Text = gVar.ServerClose
+        End If
     End If
 End Sub

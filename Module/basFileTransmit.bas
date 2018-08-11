@@ -273,7 +273,7 @@ Public Function gfSendFile(ByVal strFile As String, sckSend As MSWinsockLib.Wins
             .FileTransmitState = True
         End If
         
-        lngSendSize = gVar.ChunkSize
+        lngSendSize = gVar.FTChunkSize
         lngRemain = .FileSizeTotal - Loc(.FileNumber)
         If lngSendSize > lngRemain Then lngSendSize = lngRemain
         
@@ -332,30 +332,6 @@ Public Function gfShellExecute(ByVal strFile As String) As Boolean
     
 End Function
 
-Public Function gfStartUpSet() As Boolean
-    
-    '开机自启动设置
-    Dim strReg As String, strCur As String
-    Dim blnReg As Boolean
-    
-    strCur = Chr(34) & gVar.AppPath & App.EXEName & ".exe" & Chr(34) & "-s"
-    blnReg = gfRegOperate(HKEY_LOCAL_MACHINE, HKEY_USER_RUN, App.EXEName, REG_SZ, strReg, RegRead)
-    If blnReg Then
-        If LCase(strCur) <> LCase(strReg) Then
-            blnReg = False
-'''Debug.Print LCase(strCur)
-'''Debug.Print LCase(strReg)
-        End If
-    End If
-    If Not blnReg Then
-        blnReg = gfRegOperate(HKEY_LOCAL_MACHINE, HKEY_USER_RUN, App.EXEName, REG_SZ, strCur, RegWrite)
-        If Not blnReg Then
-            '记录设置开机自动启动失败
-            
-        End If
-    End If
-    
-End Function
 
 Public Function gfVersionCompare(ByVal strVerCL As String, ByVal strVerSV As String) As String
     '新旧版本号比较

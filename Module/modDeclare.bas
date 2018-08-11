@@ -280,6 +280,8 @@ Public Type gtypeCommonVariant
     RegTrailKey As String   '试用信息-Key值
     TrailPeriod As Long     '试用期周期
     
+    RegKeyParaWindowMinHide As String   '参数Key-窗口最小化隐藏
+    
     AppPath As String           'App路径，确保最后字符为"\"
     FolderNameTemp As String    '文件夹名称：Temp
     FolderNameData As String    '文件夹名称：Data
@@ -316,6 +318,8 @@ Public Type gtypeCommonVariant
     
     WindowWidth As Long     '窗口默认宽度
     WindowHeight As Long    '窗口默认高度
+    
+    ParaBlnWindowMinHide As Boolean '主窗口最小化时是否隐藏
     
 End Type
 
@@ -355,23 +359,6 @@ Public Type gtypeCommandBarID
     SysExportToText As Long '导出至文本
     SysExportToXML As Long  '导出为XML文档
     SysExportToPDF As Long  '导出为PDF
-    
-    SysSearch As Long           '搜索栏
-    SysSearch1Label As Long     '
-    SysSearch2TextBox As Long   '
-    SysSearch3Button As Long    '
-    SysSearch4ListBoxCaption As Long    '
-    SysSearch4ListBoxFormID As Long '
-    SysSearch5Go As Long    '
-    
-    
-    TestWindow As Long  '模块-窗体
-    
-    TestWindowFirst As Long '
-    TestWindowSecond As Long
-    TestWindowThird As Long
-    TestWindowThour As Long
-    TestWindowMDB As Long
     
     
     Help As Long        '模块-帮助
@@ -439,7 +426,8 @@ Public Type gtypeCommandBarID
     WndSonCloseRight As Long
     WndSonCloseOther As Long
     
-        
+'''**************************************************************'''
+
     Pane As Long   '模块--浮动面板
     
     PaneIDFirst As Long     '面板ID
@@ -462,6 +450,10 @@ Public Type gtypeCommandBarID
     StatusBarPaneServerState As Long    '状态栏中服务器服务状态-Server
     StatusBarPaneServerButton As Long   '状态栏中服务器开启/断开服务按钮-Server
     
+    IconPopupMenu As Long           '托盘图标菜单
+    IconPopupMenuShowWindow As Long '显示窗口
+    IconPopupMenuMinWindow As Long  '窗口最小化
+    IconPopupMenuMaxWindow As Long  '窗口最大化
     
 End Type
 

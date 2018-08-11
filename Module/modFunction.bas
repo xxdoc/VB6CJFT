@@ -89,7 +89,7 @@ Public Function gfBackConnection(ByVal strCon As String, _
     
     Set gfBackConnection = New ADODB.Connection
     gfBackConnection.CursorLocation = CursorLocation
-    gfBackConnection.ConnectionString = gID.CnString
+    gfBackConnection.ConnectionString = gVar.ConString
     gfBackConnection.CommandTimeout = 5
     gfBackConnection.Open
     
@@ -112,7 +112,7 @@ Public Function gfBackRecordset(ByVal cnSQL As String, _
     On Error GoTo LineErr
 
     Set gfBackRecordset = New ADODB.Recordset
-    Set cnBack = gfBackConnection(gID.CnString, CursorLocation)
+    Set cnBack = gfBackConnection(gVar.ConString, CursorLocation)
     If cnBack.State = adStateClosed Then Exit Function
     gfBackRecordset.CursorLocation = CursorLocation
     gfBackRecordset.Open cnSQL, cnBack, cnCursorType, cnLockType

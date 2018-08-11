@@ -28,15 +28,7 @@ Public Sub Main()
         .SysPrint = 1303
         .SysPrintPageSet = 1301
         .SysPrintPreview = 1302
-        
-        .SysSearch = 1400
-        .SysSearch1Label = 1401
-        .SysSearch2TextBox = 1402
-        .SysSearch3Button = 1403
-        .SysSearch4ListBoxCaption = 1404
-        .SysSearch4ListBoxFormID = 1405
-        .SysSearch5Go = 1406
-        
+                
         
         .Wnd = 2000
         
@@ -104,13 +96,6 @@ Public Sub Main()
         .HelpDocument = 3102
         .HelpUpdate = 3103
         
-        .TestWindow = 4000
-        
-        .TestWindowFirst = 4101
-        .TestWindowSecond = 4102
-        .TestWindowThird = 4103
-        .TestWindowThour = 4104
-        .TestWindowMDB = 4105
         
         
         '''***请将所有菜单栏中的【菜单】的CommandBrs的ID值设置在20000以下*******************
@@ -137,6 +122,11 @@ Public Sub Main()
         .StatusBarPaneServerState = 22106
         .StatusBarPaneTime = 22107
         .StatusBarPaneUserInfo = 22108
+        
+        .IconPopupMenu = 23000
+        .IconPopupMenuMaxWindow = 23101
+        .IconPopupMenuMinWindow = 23102
+        .IconPopupMenuShowWindow = 23103
         
     End With
     
@@ -216,6 +206,8 @@ Public Sub Main()
         .RegTrailPath = "SoftWare\Common\Section"   'HKEY_CURRENT_USER\SoftWare\……
         .RegTrailKey = "Key"
         .TrailPeriod = 15
+        
+        .RegKeyParaWindowMinHide = "WindowMinHide"
         
         .AppPath = App.Path & IIf(Right(App.Path, 1) = "\", "", "\")
         
@@ -655,14 +647,14 @@ Public Sub gsLoadAuthority(ByRef frmCur As Form, ByRef ctlCur As Control)
     
     Dim strUser As String, strForm As String, strCtlName As String
     
-    strUser = LCase(gID.UserLoginName)
+    strUser = LCase(gVar.UserLoginName)
     strForm = LCase(frmCur.Name)
     strCtlName = LCase(ctlCur.Name)
     
-    If strUser = LCase(gID.UserAdmin) Or strUser = LCase(gID.UserSystem) Then Exit Sub
+    If strUser = LCase(gVar.AccountAdmin) Or strUser = LCase(gVar.AccountSystem) Then Exit Sub
     ctlCur.Enabled = False
     
-    With gID.rsRF
+    With gVar.rsURF
         If .State = adStateOpen Then
             If .RecordCount > 0 Then
                 .MoveFirst
@@ -727,7 +719,7 @@ Public Sub gsLogAdd(ByRef frmCur As Form, Optional ByVal LogType As genumLogType
     strType = gfBackLogType(LogType)
     
     strSQL = "EXEC sp_Test_Sys_LogAdd '" & strType & "','" & frmCur.Name & "," & frmCur.Caption & "','" & strTable & _
-             "','" & strContent & "','" & gID.UserLoginName & "," & gID.UserFullName & "','" & gID.UserLoginIP & "','" & gID.UserComputerName & "'"
+             "','" & strContent & "','" & gVar.UserLoginName & "," & gVar.UserFullName & "','" & gVar.UserLoginIP & "','" & gVar.UserComputerName & "'"
 'Debug.Print strSQL
     Set rsLog = gfBackRecordset(strSQL, , adLockOptimistic)
     If rsLog.State = adStateOpen Then rsLog.Close
@@ -822,6 +814,31 @@ Public Sub gsSaveCommandbarsTheme(ByRef cbsBars As XtremeCommandBars.CommandBars
     
 End Sub
 
+Public Sub gsStartUpSet(Optional ByVal blnSet As Boolean = True)
+    
+    '开机自启动设置
+    Dim strReg As String, strCur As String
+    Dim blnReg As Boolean
+    
+    If Not blnSet Then Exit Sub
+    strCur = Chr(34) & gVar.AppPath & App.EXEName & ".exe" & Chr(34) & "-s"
+    blnReg = gfRegOperate(HKEY_LOCAL_MACHINE, HKEY_USER_RUN, App.EXEName, REG_SZ, strReg, RegRead)
+    If blnReg Then
+        If LCase(strCur) <> LCase(strReg) Then
+            blnReg = False
+'''Debug.Print LCase(strCur),LCase(strReg)
+        End If
+    End If
+    If Not blnReg Then
+        blnReg = gfRegOperate(HKEY_LOCAL_MACHINE, HKEY_USER_RUN, App.EXEName, REG_SZ, strCur, RegWrite)
+        If Not blnReg Then
+            '记录设置开机自动启动失败
+            Call gsAlarmAndLog("设置开机自动启动失败！")
+        End If
+    End If
+    
+End Sub
+
 Public Sub gsThemeCommandBar(ByVal CID As Long, ByRef cbsBars As XtremeCommandBars.CommandBars)
     'CommandBars风格设置
     Dim lngTheme As Long, lngID As Long
@@ -867,13 +884,13 @@ Public Sub gsThemeCommandBar(ByVal CID As Long, ByRef cbsBars As XtremeCommandBa
     
 End Sub
 
-Public Sub gsUnCheckedAction(ByVal strFormName As String)
-    '当窗口关闭时，去掉主窗体中cBS控件中被勾选的对应Action
+Public Sub gsUnCheckedAction(ByVal strFormName As String, cbsBars As XtremeCommandBars.CommandBars)
+    '当窗口关闭时，去掉主窗体中CommandBars控件中被勾选的对应Action
     
-    Dim actionCur As CommandBarAction
+    Dim actionCur As XtremeCommandBars.CommandBarAction
     
     strFormName = LCase(strFormName)
-    For Each actionCur In gmdi.cBS.Actions
+    For Each actionCur In cbsBars.Actions
         If Len(actionCur.Key) > 0 Then
             If LCase(actionCur.Key) = strFormName Then
                 actionCur.Checked = False
