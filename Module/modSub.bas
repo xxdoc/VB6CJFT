@@ -19,11 +19,13 @@ Public Sub Main()
         .SysAuthFunc = 1107
         .SysAuthLog = 1108
         
-        .SysExportToExcel = 1201
-        .SysExportToPDF = 1202
-        .SysExportToText = 1203
-        .SysExportToWord = 1204
+        .SysExportToCSV = 1201
+        .SysExportToExcel = 1202
+        .SysExportToHTML = 1203
+        .SysExportToPDF = 1204
         .SysExportToXML = 1205
+        .SysExportToText = 1206
+        .SysExportToWord = 1207
         
         .SysPrint = 1303
         .SysPrintPageSet = 1301
@@ -96,6 +98,9 @@ Public Sub Main()
         .HelpDocument = 3102
         .HelpUpdate = 3103
         
+        
+        .Tool = 4000
+        .toolOptions = 4101
         
         
         '''***请将所有菜单栏中的【菜单】的CommandBrs的ID值设置在20000以下*******************
@@ -208,6 +213,8 @@ Public Sub Main()
         .TrailPeriod = 15
         
         .RegKeyParaWindowMinHide = "WindowMinHide"
+        .RegKeyParaWindowCloseMin = "WindowCloseMin"
+        
         
         .AppPath = App.Path & IIf(Right(App.Path, 1) = "\", "", "\")
         
@@ -411,8 +418,8 @@ Public Sub gsFormSizeSave(ByRef frmSave As Form)
         Height = .Height
         If Left < 0 Or Left > Screen.Width Then Left = 0
         If Top < 0 Or Top > Screen.Height Then Top = 0
-        If Width > Screen.Width Then Width = gVar.WindowWidth
-        If Height > Screen.Height Then Height = gVar.WindowHeight
+        If Width < gVar.WindowWidth Or Width > Screen.Width Then Width = gVar.WindowWidth
+        If Height < gVar.WindowHeight Or Height > Screen.Height Then Height = gVar.WindowHeight
     End With
     Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyWindowLeft, CStr(Left))
     Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyWindowTop, CStr(Top))
@@ -549,6 +556,52 @@ Public Sub gsGridToExcel(ByRef gridControl As Control, Optional ByVal TimeCol As
     
 End Sub
 
+Public Sub gsGridExportTo(ByRef gridControl As FlexCell.Grid, ByVal ExportID As Long, _
+        Optional ByVal blnOpenFile As Boolean = True, Optional ByVal blnExportFixedRow As Boolean = True, _
+        Optional ByVal blnExportFixedCol As Boolean = True)
+    '将FlexcellGrid表格控件中的内容导出为CSV、Excel、HTML、PD、XMLF文件
+    
+    Dim strFileName As String, strMsg As String, strFileType As String
+    Dim K As Long
+    Dim blnOK As Boolean
+    
+    For K = 1 To 8
+        strFileName = strFileName & gfBackOneChar(udNumber + udUpperCase) '文件名中的8个随机字符，不含小写字母
+    Next
+    If TypeOf gridControl Is FlexCell.Grid Then '确定提示内容
+        Select Case ExportID
+            Case gID.SysExportToCSV
+                strMsg = "CSV": strFileType = ".csv"
+            Case gID.SysExportToHTML
+                strMsg = "HTML": strFileType = ".html"
+            Case gID.SysExportToPDF
+                strMsg = "PDF": strFileType = ".pdf"
+            Case gID.SysExportToXML
+                strMsg = "XML": strFileType = ".xml"
+            Case Else
+                strMsg = "Excel": strFileType = ".xls"
+        End Select
+        strFileName = gVar.FolderNameData & Format(Now, "yyyyMMddHHmmss_") & strFileName & strFileType
+        If MsgBox("确定导出当前表格内容为" & strMsg & "文件吗？", vbQuestion + vbOKCancel, "导出询问") = vbCancel Then Exit Sub
+        
+        Select Case ExportID
+            Case gID.SysExportToCSV
+                blnOK = gridControl.ExportToCSV(strFileName, blnExportFixedRow, blnExportFixedCol)
+            Case gID.SysExportToHTML
+                blnOK = gridControl.ExportToHTML(strFileName)
+            Case gID.SysExportToPDF
+                blnOK = gridControl.ExportToPDF(strFileName)
+            Case gID.SysExportToXML
+                blnOK = gridControl.ExportToXML(strFileName)
+            Case Else
+                blnOK = gridControl.ExportToExcel(strFileName, blnExportFixedRow, blnExportFixedCol)
+        End Select
+        If blnOK Then
+            If blnOpenFile Then Call gfFileOpen(strFileName)    '打开文件
+        End If
+    End If
+
+End Sub
 
 Public Sub gsGridToText(ByRef gridControl As Control)
     '将传入的表格控件中的内容导出为文本文件
@@ -867,6 +920,7 @@ Public Sub gsThemeCommandBar(ByVal CID As Long, ByRef cbsBars As XtremeCommandBa
             lngTheme = xtpThemeWhidbey
         Case Else   'gID.WndThemeCommandBarsWinXP
             lngTheme = xtpThemeNativeWinXP
+            CID = gID.WndThemeCommandBarsWinXP
     End Select
     
     cbsBars.VisualTheme = lngTheme

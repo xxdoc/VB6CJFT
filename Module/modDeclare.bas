@@ -281,6 +281,7 @@ Public Type gtypeCommonVariant
     TrailPeriod As Long     '试用期周期
     
     RegKeyParaWindowMinHide As String   '参数Key-窗口最小化隐藏
+    RegKeyParaWindowCloseMin As String  '参数Key-窗口点击关闭时默认最小化
     
     AppPath As String           'App路径，确保最后字符为"\"
     FolderNameTemp As String    '文件夹名称：Temp
@@ -319,7 +320,10 @@ Public Type gtypeCommonVariant
     WindowWidth As Long     '窗口默认宽度
     WindowHeight As Long    '窗口默认高度
     
+    CloseWindow As Boolean '是否真正关闭窗口。或者说是否点击了窗口右上角的关闭按钮
+    
     ParaBlnWindowMinHide As Boolean '主窗口最小化时是否隐藏
+    ParaBlnWindowCloseMin As Boolean    '主窗口点击关闭按钮时最小化
     
 End Type
 
@@ -359,6 +363,8 @@ Public Type gtypeCommandBarID
     SysExportToText As Long '导出至文本
     SysExportToXML As Long  '导出为XML文档
     SysExportToPDF As Long  '导出为PDF
+    SysExportToCSV As Long
+    SysExportToHTML As Long
     
     
     Help As Long        '模块-帮助
@@ -426,8 +432,15 @@ Public Type gtypeCommandBarID
     WndSonCloseRight As Long
     WndSonCloseOther As Long
     
+    
+    Tool As Long    '模块--工具
+    
+    toolOptions As Long  '选项
+    
+    
 '''**************************************************************'''
 
+    
     Pane As Long   '模块--浮动面板
     
     PaneIDFirst As Long     '面板ID
@@ -492,6 +505,14 @@ Public Enum genumLogType    '操作日志类型增、删、改、查
     udInsertBatch
     udDeleteBatch
     udUpdateBatch
+End Enum
+
+Public Enum genumGridExportType 'Flexcell Grid导出文件的类型
+    fcCSV
+    fcExcel
+    fcHTML
+    fcPDF
+    fcXML
 End Enum
 
 

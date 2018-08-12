@@ -1,7 +1,7 @@
 VERSION 5.00
 Object = "{248DD890-BB45-11CF-9ABC-0080C7E7B78D}#1.0#0"; "MSWINSCK.OCX"
 Object = "{E08BA07E-6463-4EAB-8437-99F08000BAD9}#1.9#0"; "FlexCell.ocx"
-Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.2#0"; "mscomctl.ocx"
+Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.2#0"; "MSCOMCTL.OCX"
 Object = "{555E8FCC-830E-45CC-AF00-A012D5AE7451}#15.3#0"; "Codejock.CommandBars.v15.3.1.ocx"
 Object = "{BD0C1912-66C3-49CC-8B12-7B347BF6C846}#15.3#0"; "Codejock.SkinFramework.v15.3.1.ocx"
 Begin VB.Form frmSysMain 
@@ -60,7 +60,7 @@ Begin VB.Form frmSysMain
          BeginProperty ListImage2 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmSysMain.frx":0799
             Key             =   "SysPDF"
-            Object.Tag             =   "1202"
+            Object.Tag             =   "1204"
          EndProperty
          BeginProperty ListImage3 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmSysMain.frx":0E6D
@@ -235,17 +235,17 @@ Begin VB.Form frmSysMain
          BeginProperty ListImage37 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmSysMain.frx":F76A
             Key             =   "SysWord"
-            Object.Tag             =   "1204"
+            Object.Tag             =   "1207"
          EndProperty
          BeginProperty ListImage38 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmSysMain.frx":10444
             Key             =   "SysText"
-            Object.Tag             =   "1203"
+            Object.Tag             =   "1206"
          EndProperty
          BeginProperty ListImage39 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmSysMain.frx":1111E
             Key             =   "SysExcel"
-            Object.Tag             =   "1201"
+            Object.Tag             =   "1202"
          EndProperty
          BeginProperty ListImage40 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmSysMain.frx":11DF8
@@ -406,9 +406,9 @@ Attribute VB_Exposed = False
 Option Explicit
 
 Dim mlngID As Long  '循环变量ID
-Dim WithEvents XtrStatusBar As XtremeCommandBars.StatusBar
+Dim WithEvents XtrStatusBar As XtremeCommandBars.StatusBar  '状态栏控件
 Attribute XtrStatusBar.VB_VarHelpID = -1
-
+Dim cbsPopupIcon As XtremeCommandBars.CommandBar    '托盘图标Pupup菜单
 
 
 
@@ -428,7 +428,9 @@ Private Sub msAddAction(ByRef cbsBars As XtremeCommandBars.CommandBars)
         .Add gID.SysLoginOut, "退出", "", "", ""
         .Add gID.SysLoginAgain, "重启", "", "", ""
         
+        .Add gID.SysExportToCSV, "导出至CSV", "", "", ""
         .Add gID.SysExportToExcel, "导出至Excel", "", "", ""
+        .Add gID.SysExportToHTML, "导出至HTML", "", "", ""
         .Add gID.SysExportToPDF, "导出至PDF", "", "", ""
         .Add gID.SysExportToText, "导出至txt", "", "", ""
         .Add gID.SysExportToWord, "导出至Word", "", "", ""
@@ -468,6 +470,10 @@ Private Sub msAddAction(ByRef cbsBars As XtremeCommandBars.CommandBars)
         .Add gID.IconPopupMenuMaxWindow, "最大化窗口", "", "", ""
         .Add gID.IconPopupMenuMinWindow, "最小化窗口", "", "", ""
         .Add gID.IconPopupMenuShowWindow, "显示窗口", "", "", ""
+        
+        .Add gID.Tool, "工具", "", "", "工具"
+        .Add gID.toolOptions, "选项", "", "", "frmOption"
+        
         
 '        .Add gID, "", "", "", ""
         
@@ -534,12 +540,11 @@ Private Sub msAddMenu(ByRef cbsBars As XtremeCommandBars.CommandBars)
     '系统主菜单
     Set cbsMenuMain = cbsMenuBar.Controls.Add(xtpControlPopup, gID.Sys, "")
     With cbsMenuMain.CommandBar.Controls
-        Set cbsMenuCtrl = .Add(xtpControlButton, gID.SysExportToExcel, "")
+        Set cbsMenuCtrl = .Add(xtpControlButton, gID.SysExportToCSV, "")
         cbsMenuCtrl.BeginGroup = True
-        .Add xtpControlButton, gID.SysExportToPDF, ""
-        .Add xtpControlButton, gID.SysExportToText, ""
-        .Add xtpControlButton, gID.SysExportToWord, ""
-        .Add xtpControlButton, gID.SysExportToXML, ""
+        For mlngID = gID.SysExportToExcel To gID.SysExportToWord
+            .Add xtpControlButton, mlngID, ""
+        Next
         
         Set cbsMenuCtrl = .Add(xtpControlButton, gID.SysPrintPageSet, "")
         cbsMenuCtrl.BeginGroup = True
@@ -575,6 +580,10 @@ Private Sub msAddMenu(ByRef cbsBars As XtremeCommandBars.CommandBars)
             Next
         End With
     End With
+    
+    '工具菜单
+    Set cbsMenuMain = cbsMenuBar.Controls.Add(xtpControlPopup, gID.Tool, "")
+    cbsMenuMain.CommandBar.Controls.Add xtpControlButton, gID.toolOptions, ""
     
     '帮助主菜单
     Set cbsMenuMain = cbsMenuBar.Controls.Add(xtpControlPopup, gID.Help, "")
@@ -636,8 +645,8 @@ End Sub
 
 Private Sub msAddPopupMenu(ByRef cbsBars As XtremeCommandBars.CommandBars)
     '创建托盘图标右键弹出式菜单
-    Dim cbsPopupIcon As XtremeCommandBars.CommandBar
-    
+'    Dim cbsPopupIcon As XtremeCommandBars.CommandBarPopup
+
     Set cbsPopupIcon = cbsBars.Add(cbsBars.Actions(gID.IconPopupMenu).Caption, xtpBarPopup)
     With cbsPopupIcon.Controls
         .Add xtpControlButton, gID.IconPopupMenuMaxWindow, ""
@@ -664,9 +673,11 @@ Private Sub msAddToolBar(ByRef cbsBars As XtremeCommandBars.CommandBars)
             Set cbsCtr = .Add(xtpControlButton, mlngID, "")
             cbsCtr.BeginGroup = True
         Next
-        For mlngID = gID.SysExportToExcel To gID.SysExportToXML
-            Set cbsCtr = .Add(xtpControlButton, mlngID, "")
-            cbsCtr.BeginGroup = True
+        For mlngID = gID.SysExportToExcel To gID.SysExportToWord
+            If mlngID <> gID.SysExportToHTML Then
+                Set cbsCtr = .Add(xtpControlButton, mlngID, "")
+                cbsCtr.BeginGroup = True
+            End If
         Next
         For mlngID = gID.SysPrintPageSet To gID.SysPrint
             Set cbsCtr = .Add(xtpControlButton, mlngID, "")
@@ -682,6 +693,7 @@ Private Sub msAddToolBar(ByRef cbsBars As XtremeCommandBars.CommandBars)
             cbsCtr.BeginGroup = True
         Next
     End With
+    
 End Sub
 
 Private Sub msGridSet(ByRef gridSet As FlexCell.Grid)
@@ -689,9 +701,10 @@ Private Sub msGridSet(ByRef gridSet As FlexCell.Grid)
         .AutoRedraw = False
         .Appearance = Flat
         .BackColorBkg = Me.BackColor
+'        .GridColor = vbBlack
         .DisplayRowIndex = True
         .ExtendLastCol = True
-        .ReadOnly = True    '禁止表格编辑
+'''        .ReadOnly = True    '禁止表格编辑
         
         .Cols = 8
         .Rows = 50
@@ -724,16 +737,27 @@ Public Sub msLeftClick(ByVal CID As Long, ByRef cbsBars As XtremeCommandBars.Com
                 Call gsThemeCommandBar(CID, cbsBars)
             Case .WndResetLayout
                 Call msResetLayout(cbsBars)
+                
             Case .SysLoginAgain
-                If MsgBox("确定重服务端程序吗？", vbQuestion + vbOKCancel) = vbOK Then
+                If MsgBox("确定重新启动服务端程序吗？", vbQuestion + vbOKCancel, "重启主程序询问") = vbOK Then
+                    gVar.CloseWindow = True
                     Unload Me
                     Me.Show
                 End If
-                
             Case .SysLoginOut
-                If MsgBox("确定退出服务端程序吗？", vbQuestion + vbOKCancel) = vbOK Then
+                If MsgBox("确定退出服务端程序吗？", vbQuestion + vbOKCancel, "关闭主程序询问") = vbOK Then
+                    gVar.CloseWindow = True
                     Unload Me
                 End If
+                
+            Case .IconPopupMenuMaxWindow
+                Me.WindowState = vbMaximized
+                Me.Show
+            Case .IconPopupMenuMinWindow
+                Me.WindowState = vbMinimized
+            Case .IconPopupMenuShowWindow
+                Me.WindowState = vbNormal
+                Me.Show
                 
             Case .HelpAbout
                 Dim strAbout As String
@@ -742,25 +766,26 @@ Public Sub msLeftClick(ByVal CID As Long, ByRef cbsBars As XtremeCommandBars.Com
                            "版权所有：XMH"
                 MsgBox strAbout, vbInformation, "关于" & App.Title
                 
-            Case .SysExportToExcel
-                If MsgBox("确定将当前表格内容导出为Excel文件吗？", vbQuestion + vbOKCancel, "导出询问") = vbOK Then Call gsGridToExcel(Screen.ActiveForm.ActiveControl)
+            Case .SysExportToCSV To .SysExportToXML
+                Call gsGridExportTo(Screen.ActiveControl, CID)
             Case .SysExportToText
-                If MsgBox("确定将当前表格内容导出为文本文件吗？", vbQuestion + vbOKCancel, "导出询问") = vbOK Then Call gsGridToText(Screen.ActiveForm.ActiveControl)
+                If MsgBox("是否将当前表格内容导出至txt文本文档？", vbQuestion + vbYesNo, "询问") = vbYes Then Call gsGridToText(Screen.ActiveControl)
             Case .SysExportToWord
-                If MsgBox("确定将当前表格内容导出为Word文档吗？", vbQuestion + vbOKCancel, "导出询问") = vbOK Then Call gsGridToWord(Screen.ActiveForm.ActiveControl)
+                If MsgBox("是否将当前表格内容导出至Word文档？", vbQuestion + vbYesNo, "询问") = vbYes Then Call gsGridToWord(Screen.ActiveControl)
+                
             Case .SysPrint
                 If MsgBox("确定打印当前表格内容吗？", vbQuestion + vbOKCancel, "打印询问") = vbOK Then Call gsGridPrint
             Case .SysPrintPreview
                 Call gsGridPrintPreview
             Case .SysPrintPageSet
                 Call gsGridPageSet
-            Case Else
                 
+            Case Else
                 strKey = LCase(cbsActions.Action(CID).Key)
                 If Left(strKey, 3) = "frm" Then
                     If cbsActions.Action(CID).Enabled Then
                         Select Case strKey
-                            Case LCase("frmSysSetSkin"), LCase("frmSysAlterPWD")
+                            Case LCase(cbsActions(gID.toolOptions).Key)
                                 Call gsOpenTheWindow(strKey, vbModal, vbNormal)
                             Case Else
                                 Call gsOpenTheWindow(strKey)
@@ -774,14 +799,26 @@ Public Sub msLeftClick(ByVal CID As Long, ByRef cbsBars As XtremeCommandBars.Com
     
 End Sub
 
+Private Sub msLoadParameter(Optional ByVal blnLoad As Boolean = True)
+    '从注册表中加载参数值至公用变量中
+    
+    If Not blnLoad Then Exit Sub
+    
+    With gVar
+        .ParaBlnWindowMinHide = Val(GetSetting(.RegAppName, .RegSectionSettings, .RegKeyParaWindowMinHide, 1))
+        .ParaBlnWindowCloseMin = Val(GetSetting(.RegAppName, .RegSectionSettings, .RegKeyParaWindowCloseMin, 1))
+        
+    End With
+End Sub
+
 Private Sub msResetLayout(ByRef cbsBars As XtremeCommandBars.CommandBars)
     '重置窗口布局：CommandBars与Dockingpane控件重置
     
-    Dim cBar As CommandBar
+    Dim cBar As XtremeCommandBars.CommandBar
     Dim L As Long, T As Long, R As Long, B As Long
 
     For Each cBar In cbsBars
-Debug.Print cBar.BarID, cBar.Title, cBar.Type
+'Debug.Print cBar.BarID, cBar.Title, cBar.Type
         cBar.Reset
         cBar.Visible = True
     Next
@@ -812,35 +849,36 @@ End Sub
 Private Sub Form_Load()
     '窗体加载
     
+    Dim cbsBars As XtremeCommandBars.CommandBars
+    
     Timer1.Item(0).Interval = 1000  '计时器循环时间
     Call Main   '初始化全局公用变量
     Set gWind = Me  '指定主窗体给全局引用对象
     XtremeCommandBars.CommandBarsGlobalSettings.App = App '一个默认设置
+    Set cbsBars = Me.CommandBars1
     
-    Call msAddAction(Me.CommandBars1)   '创建Actions集合
-    Call msAddMenu(Me.CommandBars1)     '创建菜单栏
-    Call msAddToolBar(Me.CommandBars1)  '创建工具栏
-    Call msAddPopupMenu(Me.CommandBars1)    '创建托盘图标的菜单
-    Call msAddXtrStatusBar(Me.CommandBars1) '创建状态栏
-    Call msAddKeyBindings(Me.CommandBars1)  '添加快捷键,放到LoadCommandBars方法后面才能生效？？？
-    Call msAddDesignerControls(Me.CommandBars1) 'CommandBars自定义对话框中使用的
+    Call msAddAction(cbsBars)   '创建Actions集合
+    Call msAddMenu(cbsBars)     '创建菜单栏
+    Call msAddToolBar(cbsBars)  '创建工具栏
+    Call msAddPopupMenu(cbsBars)    '创建托盘图标的菜单
+    Call msAddXtrStatusBar(cbsBars) '创建状态栏
+    Call msAddKeyBindings(cbsBars)  '添加快捷键,放到LoadCommandBars方法后面才能生效？？？
+    Call msAddDesignerControls(cbsBars) 'CommandBars自定义对话框中使用的
     
-    Me.CommandBars1.AddImageList ImageList1         '使CommandBars控件匹配ImageList控件中图标
-    Me.CommandBars1.EnableCustomization True        '允许CommandBars自定义，此属性最好放在所有CommandBars设定之后
-    Me.CommandBars1.Options.UpdatePeriod = 250      '更改CommandBars的Update事件的执行周期，默认100ms
+    cbsBars.AddImageList ImageList1         '使CommandBars控件匹配ImageList控件中图标
+    cbsBars.EnableCustomization True        '允许CommandBars自定义，此属性最好放在所有CommandBars设定之后
+    cbsBars.Options.UpdatePeriod = 250      '更改CommandBars的Update事件的执行周期，默认100ms
     
     Call gsLoadSkin(Me, Me.SkinFramework1, sMSO7, True)  '加载窗口主题
     '加载工具栏主题
-    Call gsThemeCommandBar(Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyCommandbarsTheme, gID.WndThemeCommandBarsRibbon)), CommandBars1)
+    Call gsThemeCommandBar(Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyCommandbarsTheme, gID.WndThemeCommandBarsRibbon)), cbsBars)
     
     '注册表信息加载-CommandBars设置
-    Call CommandBars1.LoadCommandBars(gVar.RegKeyCommandBars, gVar.RegAppName, gVar.RegSectionSettings)
+    Call cbsBars.LoadCommandBars(gVar.RegKeyCommandBars, gVar.RegAppName, gVar.RegSectionSettings)
 
     Call gsFormSizeLoad(Me) '注册表信息加载-窗口位置大小
+    Call msLoadParameter(True)  '加载配置参数
     
-    '加载配置参数
-    mlngID = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyParaWindowMinHide, 1))
-    gVar.ParaBlnWindowMinHide = mlngID
     
     '打开多个应用程序检查。此判断暂放加载注册信息后
     If App.PrevInstance Then
@@ -856,7 +894,7 @@ Private Sub Form_Load()
     Call gsStartUpSet(False)    '是否向注册表中添加开机自动启动项
     Call gfNotifyIconAdd(Me)    '添加托盘图标
     
-    
+    Set cbsBars = Nothing
 End Sub
 
 Private Sub Form_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
@@ -866,15 +904,9 @@ Private Sub Form_MouseMove(Button As Integer, Shift As Integer, X As Single, Y A
     sngMsg = X / Screen.TwipsPerPixelX
     Select Case sngMsg
         Case WM_RBUTTONUP
-            Dim cbsBar As XtremeCommandBars.CommandBar 'Popup
-            
-            For Each cbsBar In Me.CommandBars1
-                If cbsBar.Title = Me.CommandBars1.Actions(gID.IconPopupMenu).Caption Then
-                    cbsBar.ShowPopup
-                    Exit For
-                End If
-            Next
-        Case WM_LBUTTONDBLCLK
+            cbsPopupIcon.ShowPopup  '右键弹出Popup菜单
+
+        Case WM_LBUTTONDBLCLK   '左键双击托盘图标时 窗口最显示/最小化 切换
             With Me
                 If .WindowState = vbMinimized Then
                     .WindowState = vbNormal
@@ -888,9 +920,28 @@ Private Sub Form_MouseMove(Button As Integer, Shift As Integer, X As Single, Y A
     End Select
 End Sub
 
+Private Sub Form_QueryUnload(Cancel As Integer, UnloadMode As Integer)
+    '判断是否真正要关闭窗口
+    
+    If gVar.ParaBlnWindowCloseMin Then
+        If Not gVar.CloseWindow Then
+            Cancel = True
+            Me.WindowState = vbMinimized
+        End If
+        gVar.CloseWindow = False
+    Else
+        If Not gVar.CloseWindow Then
+            If MsgBox("是否最小化窗口？", vbQuestion + vbYesNo, "关闭或最小化") = vbYes Then
+                Cancel = True
+                Me.WindowState = vbMinimized
+            End If
+        End If
+    End If
+End Sub
+
 Private Sub Form_Resize()
     '窗口最小化提示
-    If Me.WindowState = vbMinimized Then
+    If Me.Visible And Me.WindowState = vbMinimized Then
         If gVar.ParaBlnWindowMinHide Then
             Me.Hide
             Call gfNotifyIconBalloon(Me, "最小化到系统托盘图标啦", "最小化提示")
@@ -900,6 +951,7 @@ End Sub
 
 Private Sub Form_Unload(Cancel As Integer)
     Dim lngID As Long
+    Dim resetNotifyIconData As gtypeNOTIFYICONDATA
     
     '保存注册表信息-CommandBars设置
     Call CommandBars1.SaveCommandBars(gVar.RegKeyCommandBars, gVar.RegAppName, gVar.RegSectionSettings)
@@ -907,14 +959,14 @@ Private Sub Form_Unload(Cancel As Integer)
     Call gsFormSizeSave(Me) '保存注册表信息-窗口位置大小
     Call gsSaveCommandbarsTheme(CommandBars1)   '保存CommandBars的风格主题
     
-    '一些参数设置保存
-    Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyParaWindowMinHide, gVar.ParaBlnWindowMinHide)
     
+    gVar.CloseWindow = False    '清除关闭窗口状态
     Call SkinFramework1.LoadSkin("", "")    '清空皮肤
     Set XtrStatusBar = Nothing  '清除状态栏
     Call gfNotifyIconDelete(Me) '删除托盘图标
+    gNotifyIconData = resetNotifyIconData   '清空托盘气泡信息。否则重启程序时会自动弹出？而且只能放上句删除托盘图标语句的后面?
     Set gWind = Nothing '清除全局窗体引用
-    
+
 End Sub
 
 Private Sub XtrStatusBar_PaneClick(ByVal Pane As XtremeCommandBars.StatusBarPane)
