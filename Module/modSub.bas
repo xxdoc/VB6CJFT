@@ -593,8 +593,8 @@ Public Sub gsGridExportTo(ByRef gridControl As FlexCell.Grid, ByVal ExportID As 
                 strMsg = "Excel": strFileType = ".xls"
         End Select
         
-        If Not gfFileRepair(gVar.FolderNameTemp) Then
-            Call gsAlarmAndLogEx(gVar.FolderNameTemp & "文件夹创建失败！无法缓存文件！", "导出警告")
+        If Not gfFileRepair(gVar.FolderNameTemp, True) Then
+            Call gsAlarmAndLogEx(gVar.FolderNameTemp & "  文件夹创建失败！无法缓存文件！", "导出警告")
             Exit Sub
         End If
         strFileName = gVar.FolderNameTemp & Format(Now, "yyyyMMddHHmmss_") & strFileName & strFileType
@@ -633,7 +633,7 @@ Public Sub gsGridToText(ByRef gridControl As Control)
     Next
     strFileName = gVar.FolderNameTemp & Format(Now, "yyyyMMddHHmmss_") & strFileName & ".txt"
     If Not gfFileRepair(strFileName) Then
-        MsgBox "创建文件失败，请重试！", vbExclamation, "文件生成警告"
+        Call gsAlarmAndLogEx("创建" & strFileName & "文件失败！", "文件生成警告")
         Exit Sub
     End If
     
@@ -691,6 +691,7 @@ Public Sub gsGridToWord(ByRef gridControl As Control)
             For J = 0 To lngCols - 1
                 tbOut.Cell(I + 1, J + 1).Range.Text = gridControl.Cell(I, J).Text
             Next
+            If Len(gridControl.Cell(I, 0).Text) = 0 Then tbOut.Cell(I + 1, 1).Range.Text = I
         Next
     Else
         For I = 0 To lngRows - 1
