@@ -218,10 +218,11 @@ Public Function gfDecryptSimple(ByVal strIn As String) As String
     Exit Function
     
 LineBreak:
-    Err.Clear
-    Err.Number = vbObjectError + 100001
-    Err.Description = "密文[" & strIn & "]被破坏，无法解密！"
-    Call gsAlarmAndLog("密文警告", False)
+'    Err.Clear
+'    Err.Number = vbObjectError + 100001
+'    Err.Description = "密文[" & strIn & "]被破坏，无法解密！"
+'    Call gsAlarmAndLog("密文警告", False)
+    Call gsAlarmAndLogEx("密文[" & strIn & "]被破坏，无法解密！", "密文警告", False)
 End Function
 
 Public Function gfEncryptSimple(ByVal strIn As String) As String

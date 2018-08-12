@@ -259,8 +259,9 @@ Public Sub Main()
 End Sub
 
 
-Public Sub gsAlarmAndLog(Optional ByVal strErr As String, Optional ByVal blnMsgBox As Boolean = True, Optional ByVal MsgButton As VbMsgBoxStyle = vbCritical)
-    '异常提示并写下异常日志
+Public Sub gsAlarmAndLog(Optional ByVal strErr As String, Optional ByVal blnMsgBox As Boolean = True, _
+        Optional ByVal MsgButton As VbMsgBoxStyle = vbCritical)
+    '系统异常提示并写下异常日志
     
     Dim strMsg As String
     
@@ -270,6 +271,16 @@ Public Sub gsAlarmAndLog(Optional ByVal strErr As String, Optional ByVal blnMsgB
     
 End Sub
 
+Public Sub gsAlarmAndLogEx(Optional ByVal strErrDescription As String, Optional ByVal strErrTitle As String, _
+        Optional ByVal blnMsgBox As Boolean = True, Optional ByVal MsgButton As VbMsgBoxStyle = vbCritical)
+    '自定义异常提示并写下日志
+    
+    Err.Clear
+    Err.Number = vbObjectError + 100001 '固定一个自定义异常号码
+    Err.Description = strErrDescription
+    Call gsAlarmAndLog(strErrTitle, blnMsgBox, MsgButton)
+    
+End Sub
 
 Public Sub gsFileWrite(ByVal strFile As String, ByVal strContent As String, _
     Optional ByVal OpenMode As genumFileOpenType = udAppend, _
@@ -581,7 +592,12 @@ Public Sub gsGridExportTo(ByRef gridControl As FlexCell.Grid, ByVal ExportID As 
             Case Else
                 strMsg = "Excel": strFileType = ".xls"
         End Select
-        strFileName = gVar.FolderNameData & Format(Now, "yyyyMMddHHmmss_") & strFileName & strFileType
+        
+        If Not gfFileRepair(gVar.FolderNameTemp) Then
+            Call gsAlarmAndLogEx(gVar.FolderNameTemp & "文件夹创建失败！无法缓存文件！", "导出警告")
+            Exit Sub
+        End If
+        strFileName = gVar.FolderNameTemp & Format(Now, "yyyyMMddHHmmss_") & strFileName & strFileType
         If MsgBox("确定导出当前表格内容为" & strMsg & "文件吗？", vbQuestion + vbOKCancel, "导出询问") = vbCancel Then Exit Sub
         
         Select Case ExportID
@@ -615,7 +631,7 @@ Public Sub gsGridToText(ByRef gridControl As Control)
     For I = 1 To 8
         strFileName = strFileName & gfBackOneChar(udNumber + udUpperCase) '文件名中的8个随机字符，不含小写字母
     Next
-    strFileName = gVar.FolderNameData & Format(Now, "yyyyMMddHHmmss_") & strFileName & ".txt"
+    strFileName = gVar.FolderNameTemp & Format(Now, "yyyyMMddHHmmss_") & strFileName & ".txt"
     If Not gfFileRepair(strFileName) Then
         MsgBox "创建文件失败，请重试！", vbExclamation, "文件生成警告"
         Exit Sub
