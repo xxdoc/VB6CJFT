@@ -1,19 +1,19 @@
 VERSION 5.00
 Object = "{248DD890-BB45-11CF-9ABC-0080C7E7B78D}#1.0#0"; "MSWINSCK.OCX"
 Object = "{E08BA07E-6463-4EAB-8437-99F08000BAD9}#1.9#0"; "FlexCell.ocx"
-Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.2#0"; "MSCOMCTL.OCX"
+Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.2#0"; "mscomctl.ocx"
 Object = "{555E8FCC-830E-45CC-AF00-A012D5AE7451}#15.3#0"; "Codejock.CommandBars.v15.3.1.ocx"
 Object = "{BD0C1912-66C3-49CC-8B12-7B347BF6C846}#15.3#0"; "Codejock.SkinFramework.v15.3.1.ocx"
 Begin VB.Form frmSysMain 
    Caption         =   "Main服务端"
-   ClientHeight    =   5535
+   ClientHeight    =   5040
    ClientLeft      =   120
    ClientTop       =   450
-   ClientWidth     =   12675
+   ClientWidth     =   9315
    Icon            =   "frmSysMain.frx":0000
    LinkTopic       =   "Form1"
-   ScaleHeight     =   5535
-   ScaleWidth      =   12675
+   ScaleHeight     =   5040
+   ScaleWidth      =   9315
    StartUpPosition =   2  '屏幕中心
    Begin MSWinsockLib.Winsock Winsock1 
       Index           =   0
@@ -33,8 +33,8 @@ Begin VB.Form frmSysMain
       Left            =   240
       TabIndex        =   0
       Top             =   720
-      Width           =   10695
-      _ExtentX        =   18865
+      Width           =   7695
+      _ExtentX        =   13573
       _ExtentY        =   5106
       Cols            =   5
       GridColor       =   12632256
@@ -408,7 +408,7 @@ Option Explicit
 Dim mlngID As Long  '循环变量ID
 Dim WithEvents XtrStatusBar As XtremeCommandBars.StatusBar  '状态栏控件
 Attribute XtrStatusBar.VB_VarHelpID = -1
-Dim cbsPopupIcon As XtremeCommandBars.CommandBar    '托盘图标Pupup菜单
+Dim mcbsPopupIcon As XtremeCommandBars.CommandBar    '托盘图标Pupup菜单
 
 
 
@@ -645,10 +645,10 @@ End Sub
 
 Private Sub msAddPopupMenu(ByRef cbsBars As XtremeCommandBars.CommandBars)
     '创建托盘图标右键弹出式菜单
-'    Dim cbsPopupIcon As XtremeCommandBars.CommandBarPopup
-
-    Set cbsPopupIcon = cbsBars.Add(cbsBars.Actions(gID.IconPopupMenu).Caption, xtpBarPopup)
-    With cbsPopupIcon.Controls
+'    Dim mcbsPopupIcon As XtremeCommandBars.CommandBarPopup
+    
+    Set mcbsPopupIcon = cbsBars.Add(cbsBars.Actions(gID.IconPopupMenu).Caption, xtpBarPopup)
+    With mcbsPopupIcon.Controls
         .Add xtpControlButton, gID.IconPopupMenuMaxWindow, ""
         .Add xtpControlButton, gID.IconPopupMenuMinWindow, ""
         .Add xtpControlButton, gID.IconPopupMenuShowWindow, ""
@@ -832,7 +832,7 @@ End Sub
 
 Private Sub CommandBars1_Execute(ByVal Control As XtremeCommandBars.ICommandBarControl)
     '命令单击事件
-    Call msLeftClick(Control.ID, CommandBars1)
+    Call msLeftClick(Control.ID, Me.CommandBars1)
 End Sub
 
 Private Sub CommandBars1_Resize()
@@ -841,7 +841,7 @@ Private Sub CommandBars1_Resize()
     Dim L As Long, T As Long, R As Long, B As Long
     
     On Error Resume Next
-    CommandBars1.GetClientRect L, T, R, B
+    Me.CommandBars1.GetClientRect L, T, R, B
     Grid1.Move L, T, R - L, B - T
     
 End Sub
@@ -887,7 +887,7 @@ Private Sub Form_Load()
         Exit Sub
     End If
     
-    '检查是否为试用版
+    '检查是否为试用版******************************
     
     
     Call msGridSet(Grid1)  '表格设置
@@ -904,7 +904,7 @@ Private Sub Form_MouseMove(Button As Integer, Shift As Integer, X As Single, Y A
     sngMsg = X / Screen.TwipsPerPixelX
     Select Case sngMsg
         Case WM_RBUTTONUP
-            cbsPopupIcon.ShowPopup  '右键弹出Popup菜单
+            mcbsPopupIcon.ShowPopup  '右键弹出Popup菜单
 
         Case WM_LBUTTONDBLCLK   '左键双击托盘图标时 窗口最显示/最小化 切换
             With Me
@@ -954,15 +954,16 @@ Private Sub Form_Unload(Cancel As Integer)
     Dim resetNotifyIconData As gtypeNOTIFYICONDATA
     
     '保存注册表信息-CommandBars设置
-    Call CommandBars1.SaveCommandBars(gVar.RegKeyCommandBars, gVar.RegAppName, gVar.RegSectionSettings)
+    Call Me.CommandBars1.SaveCommandBars(gVar.RegKeyCommandBars, gVar.RegAppName, gVar.RegSectionSettings)
     
     Call gsFormSizeSave(Me) '保存注册表信息-窗口位置大小
-    Call gsSaveCommandbarsTheme(CommandBars1)   '保存CommandBars的风格主题
+    Call gsSaveCommandbarsTheme(Me.CommandBars1)   '保存CommandBars的风格主题
     
     
     gVar.CloseWindow = False    '清除关闭窗口状态
     Call SkinFramework1.LoadSkin("", "")    '清空皮肤
     Set XtrStatusBar = Nothing  '清除状态栏
+    Set mcbsPopupIcon = Nothing '清除Popup菜单
     Call gfNotifyIconDelete(Me) '删除托盘图标
     gNotifyIconData = resetNotifyIconData   '清空托盘气泡信息。否则重启程序时会自动弹出？而且只能放上句删除托盘图标语句的后面?
     Set gWind = Nothing '清除全局窗体引用
