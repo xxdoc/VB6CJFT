@@ -127,6 +127,8 @@ Public Sub Main()
         .StatusBarPaneServerState = 22106
         .StatusBarPaneTime = 22107
         .StatusBarPaneUserInfo = 22108
+        .StatusBarPaneIP = 22109
+        .StatusBarPanePort = 22110
         
         .IconPopupMenu = 23000
         .IconPopupMenuMaxWindow = 23101
@@ -138,10 +140,10 @@ Public Sub Main()
     '公用变量值初始化
     With gVar
         
-        .TCPSetConnectMax = 20
-        .TCPSetIP = "127.0.0.1"
-        .TCPSetPort = 9898
-        
+        .TCPConnectMax = 20
+        .TCPDefaultIP = "127.0.0.1"
+        .TCPDefaultPort = 9898
+                
         .FTChunkSize = 5734
         .FTWaitTime = 5
         
@@ -187,14 +189,15 @@ Public Sub Main()
         .RegKeyTCPIP = "IP"
         .RegKeyTCPPort = "Port"
         .RegSectionTCP = "TCP"
+        .RegKeyReStartServer = "ReStartServer"
         
         .RegSectionSkin = "SkinFile"
         .RegKeySkinFile = "SkinRes"
         
-        .RegSectionServer = "Server"
-        .RegKeyServerAccount = "ServerAccount"
-        .RegKeyServerIP = "ServerIP"
-        .RegKeyServerPassword = "ServerPassword"
+        .RegSectionDBServer = "Server"
+        .RegKeyDBServerAccount = "ServerAccount"
+        .RegKeyDBServerIP = "ServerIP"
+        .RegKeyDBServerPassword = "ServerPassword"
         
         .RegSectionUser = "UserInfo"
         .RegKeyUserLast = "LastLoginUser"
@@ -238,14 +241,14 @@ Public Sub Main()
         .WindowWidth = 15800
         
         '''*****在注册表中保存服务器地址、访问的账号与密码****
-        strTemp = GetSetting(.RegAppName, .RegSectionServer, .RegKeyServerIP)
+        strTemp = GetSetting(.RegAppName, .RegSectionDBServer, .RegKeyDBServerIP)
         .ConSource = gfCheckIP(strTemp)
         
-        strTemp = GetSetting(.RegAppName, .RegSectionServer, .RegKeyServerAccount, "")
+        strTemp = GetSetting(.RegAppName, .RegSectionDBServer, .RegKeyDBServerAccount, "")
         If Len(strTemp) > 0 Then strTemp = gfDecryptSimple(strTemp)
         .ConUserID = strTemp
         
-        strTemp = GetSetting(.RegAppName, .RegSectionServer, .RegKeyServerPassword, "")
+        strTemp = GetSetting(.RegAppName, .RegSectionDBServer, .RegKeyDBServerPassword, "")
         If Len(strTemp) > 0 Then strTemp = gfDecryptSimple(strTemp)
         .ConPassword = strTemp
         
@@ -882,6 +885,28 @@ Public Sub gsSaveCommandbarsTheme(ByRef cbsBars As XtremeCommandBars.CommandBars
     If lngID > gID.WndThemeCommandBarsWinXP Then lngID = gID.WndThemeCommandBarsRibbon
     Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyCommandbarsTheme, lngID)
     
+End Sub
+
+Public Sub gsStartProgressBar(ByVal CurVal As Long, Optional ByVal MinVal As Long = 0, Optional ByVal MaxVal As Long = 100)
+    '主窗体状态栏中的进度条显示进度、百分值
+    
+    Dim cbsBars As XtremeCommandBars.CommandBars
+    Dim PaneBar As XtremeCommandBars.StatusBarProgressPane
+    Dim PaneTxt As XtremeCommandBars.StatusBarPane
+    
+    Set cbsBars = gWind.CommandBars1
+    Set PaneBar = cbsBars.StatusBar.FindPane(gID.StatusBarPaneProgress)
+    Set PaneTxt = cbsBars.StatusBar.FindPane(gID.StatusBarPaneProgressText)
+    With PaneBar
+        .Min = MinVal
+        .Max = MaxVal
+        .Value = CurVal
+    End With
+    PaneTxt.Text = CStr(CurVal / MaxVal * 100) & "%"
+    
+    Set PaneBar = Nothing
+    Set PaneTxt = Nothing
+    Set cbsBars = Nothing
 End Sub
 
 Public Sub gsStartUpSet(Optional ByVal blnSet As Boolean = True)

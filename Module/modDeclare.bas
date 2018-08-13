@@ -200,9 +200,11 @@ Public Const gconMaxPWD As Integer = 20     '密码的最大字符数
 
 '''自定义公用常量
 Public Type gtypeCommonVariant
-    TCPSetIP As String     'IP地址
-    TCPSetPort As Long     '端口
-    TCPSetConnectMax As Long  '最大连接数
+    TCPSetIP As String     '设置IP地址
+    TCPSetPort As Long     '设置端口号
+    TCPConnectMax As Long    '最大连接数
+    TCPDefaultIP As String      '默认IP地址
+    TCPDefaultPort As Long      '默认端口号
     
     TCPStateConnected As Boolean     '连接成功标识
     TCPStateServerStarted As Boolean '服务器启动标识
@@ -255,14 +257,16 @@ Public Type gtypeCommonVariant
     RegSectionTCP As String     '参数section_TCP值
     RegKeyTCPIP As String       '参数key_IP值
     RegKeyTCPPort As String     '参数key_port值
+    RegKeyReStartServer As String   '自动重启服务
+    
     
     RegSectionSkin As String    '参数section_Skin
     RegKeySkinFile As String    '参数Key_SkinFile
     
-    RegSectionServer As String  '数据库服务器信息块
-    RegKeyServerIP As String    '数据库服务器IP
-    RegKeyServerAccount As String   '数据库服务器连接账号
-    RegKeyServerPassword As String  '数据库服务器连接密码
+    RegSectionDBServer As String  '数据库服务器信息块
+    RegKeyDBServerIP As String    '数据库服务器IP
+    RegKeyDBServerAccount As String   '数据库服务器连接账号
+    RegKeyDBServerPassword As String  '数据库服务器连接密码
         
     RegSectionUser As String    'Section_用户信息
     RegKeyUserLast As String    '最后登陆用户名
@@ -324,6 +328,7 @@ Public Type gtypeCommonVariant
     
     ParaBlnWindowMinHide As Boolean '主窗口最小化时是否隐藏
     ParaBlnWindowCloseMin As Boolean    '主窗口点击关闭按钮时最小化
+    ParaBlnAutoReStartServer As Boolean '服务端程序断开服务时自动重新开启服务
     
 End Type
 
@@ -462,6 +467,8 @@ Public Type gtypeCommandBarID
     StatusBarPaneConnectButton As Long  '状态栏中连接按钮-Client
     StatusBarPaneServerState As Long    '状态栏中服务器服务状态-Server
     StatusBarPaneServerButton As Long   '状态栏中服务器开启/断开服务按钮-Server
+    StatusBarPaneIP As Long     '状态栏中IP
+    StatusBarPanePort As Long   '状态栏中端口
     
     IconPopupMenu As Long           '托盘图标菜单
     IconPopupMenuShowWindow As Long '显示窗口

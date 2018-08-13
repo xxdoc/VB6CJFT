@@ -1,7 +1,7 @@
 VERSION 5.00
 Object = "{248DD890-BB45-11CF-9ABC-0080C7E7B78D}#1.0#0"; "MSWINSCK.OCX"
 Object = "{E08BA07E-6463-4EAB-8437-99F08000BAD9}#1.9#0"; "FlexCell.ocx"
-Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.2#0"; "mscomctl.ocx"
+Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.2#0"; "MSCOMCTL.OCX"
 Object = "{555E8FCC-830E-45CC-AF00-A012D5AE7451}#15.3#0"; "Codejock.CommandBars.v15.3.1.ocx"
 Object = "{BD0C1912-66C3-49CC-8B12-7B347BF6C846}#15.3#0"; "Codejock.SkinFramework.v15.3.1.ocx"
 Begin VB.Form frmSysMain 
@@ -406,8 +406,8 @@ Attribute VB_Exposed = False
 Option Explicit
 
 Dim mlngID As Long  '循环变量ID
-Dim WithEvents XtrStatusBar As XtremeCommandBars.StatusBar  '状态栏控件
-Attribute XtrStatusBar.VB_VarHelpID = -1
+Dim WithEvents mXtrStatusBar As XtremeCommandBars.StatusBar  '状态栏控件
+Attribute mXtrStatusBar.VB_VarHelpID = -1
 Dim mcbsPopupIcon As XtremeCommandBars.CommandBar    '托盘图标Pupup菜单
 
 
@@ -465,6 +465,8 @@ Private Sub msAddAction(ByRef cbsBars As XtremeCommandBars.CommandBars)
         .Add gID.StatusBarPaneServerButton, "服务开启/断开按钮", "", "", ""
         .Add gID.StatusBarPaneServerState, "服务状态", "", "", ""
         .Add gID.StatusBarPaneTime, "系统时间", "", "", ""
+        .Add gID.StatusBarPaneIP, "本机IP地址", "", "", ""
+        .Add gID.StatusBarPanePort, "监听端口", "", "", ""
         
         .Add gID.IconPopupMenu, "托盘图标菜单", "", "", ""
         .Add gID.IconPopupMenuMaxWindow, "最大化窗口", "", "", ""
@@ -492,10 +494,12 @@ Private Sub msAddAction(ByRef cbsBars As XtremeCommandBars.CommandBars)
     Next
     
     '风格系列的cbsActions的两个属性的描述补充
-    For mlngID = gID.WndThemeCommandBarsOffice2000 To gID.WndThemeCommandBarsWinXP
-        cbsActions.Action(mlngID).DescriptionText = cbsActions.Action(gID.WndThemeCommandBars).Caption & "设置为：" & cbsActions.Action(mlngID).DescriptionText
-        cbsActions.Action(mlngID).ToolTipText = cbsActions.Action(mlngID).DescriptionText
-    Next
+    With cbsActions
+        For mlngID = gID.WndThemeCommandBarsOffice2000 To gID.WndThemeCommandBarsWinXP
+            .Action(mlngID).DescriptionText = .Action(gID.WndThemeCommandBars).Caption & "设置为：" & .Action(mlngID).DescriptionText
+            .Action(mlngID).ToolTipText = .Action(mlngID).DescriptionText
+        Next
+    End With
     
 End Sub
 
@@ -594,18 +598,27 @@ End Sub
 Private Sub msAddXtrStatusBar(ByRef cbsBars As XtremeCommandBars.CommandBars)
     '创建状态栏
     
-'    Dim XtrStatusBar As XtremeCommandBars.StatusBar
+'    Dim mXtrStatusBar As XtremeCommandBars.StatusBar
     Dim cbsActions As XtremeCommandBars.CommandBarActions  'cbs控件Actions集合的引用
     Dim BarPane As XtremeCommandBars.StatusBarPane
     
     Set cbsActions = cbsBars.Actions
-    Set XtrStatusBar = cbsBars.StatusBar
-    With XtrStatusBar
+    Set mXtrStatusBar = cbsBars.StatusBar
+    With mXtrStatusBar
         .AddPane 0      '系统Pane，显示CommandBarActions的Description
         .SetPaneStyle 0, SBPS_STRETCH
         
-        .AddPane gID.StatusBarPaneServerState
+        .AddPane gID.StatusBarPaneIP
+        .SetPaneText gID.StatusBarPaneIP, Me.Winsock1.Item(0).LocalIP  'gVar.TCPSetIP
+        .FindPane(gID.StatusBarPaneIP).Caption = cbsActions(gID.StatusBarPaneIP).Caption
+        .FindPane(gID.StatusBarPaneIP).Width = 90
         
+        .AddPane gID.StatusBarPanePort
+        .SetPaneText gID.StatusBarPanePort, gVar.TCPSetPort
+        .FindPane(gID.StatusBarPanePort).Caption = cbsActions(gID.StatusBarPanePort).Caption
+        .FindPane(gID.StatusBarPanePort).Width = 60
+        
+        .AddPane gID.StatusBarPaneServerState
         .FindPane(gID.StatusBarPaneServerState).Caption = cbsActions(gID.StatusBarPaneServerState).Caption
         .FindPane(gID.StatusBarPaneServerState).Text = gVar.ServerNotStarted
         .FindPane(gID.StatusBarPaneServerState).Width = 60
@@ -618,8 +631,7 @@ Private Sub msAddXtrStatusBar(ByRef cbsBars As XtremeCommandBars.CommandBars)
         
         .AddProgressPane gID.StatusBarPaneProgress
         .FindPane(gID.StatusBarPaneProgress).Caption = cbsActions(gID.StatusBarPaneProgress).Caption
-        .FindPane(gID.StatusBarPaneProgress).Value = 0
-        
+                
         .AddPane gID.StatusBarPaneProgressText
         .FindPane(gID.StatusBarPaneProgressText).Caption = cbsActions(gID.StatusBarPaneProgressText).Caption
         .SetPaneText gID.StatusBarPaneProgressText, "0%"
@@ -637,7 +649,7 @@ Private Sub msAddXtrStatusBar(ByRef cbsBars As XtremeCommandBars.CommandBars)
         .EnableCustomization True
     End With
     
-    For Each BarPane In XtrStatusBar     '设置ToolTip属性为Caption
+    For Each BarPane In mXtrStatusBar     '设置ToolTip属性为Caption
         BarPane.ToolTip = BarPane.Caption
     Next
     
@@ -694,6 +706,15 @@ Private Sub msAddToolBar(ByRef cbsBars As XtremeCommandBars.CommandBars)
         Next
     End With
     
+End Sub
+
+Private Sub msStartServer(ByRef sckCon As MSWinsockLib.Winsock)
+    '开启服务
+    With sckCon
+        If .State <> 0 Then .Close  '先关闭
+        .LocalPort = gVar.TCPSetPort
+        .Listen
+    End With
 End Sub
 
 Private Sub msGridSet(ByRef gridSet As FlexCell.Grid)
@@ -807,6 +828,9 @@ Private Sub msLoadParameter(Optional ByVal blnLoad As Boolean = True)
     With gVar
         .ParaBlnWindowMinHide = Val(GetSetting(.RegAppName, .RegSectionSettings, .RegKeyParaWindowMinHide, 1))
         .ParaBlnWindowCloseMin = Val(GetSetting(.RegAppName, .RegSectionSettings, .RegKeyParaWindowCloseMin, 1))
+        .TCPSetPort = Val(GetSetting(.RegAppName, .RegSectionTCP, .RegKeyTCPPort, gVar.TCPDefaultPort))
+        .TCPSetIP = gVar.TCPDefaultIP   '服务端使用本机IP地址
+        .ParaBlnAutoReStartServer = Val(GetSetting(.RegAppName, .RegSectionTCP, .RegKeyReStartServer, 1))
         
     End With
 End Sub
@@ -857,6 +881,7 @@ Private Sub Form_Load()
     XtremeCommandBars.CommandBarsGlobalSettings.App = App '一个默认设置
     Set cbsBars = Me.CommandBars1
     
+    Call msLoadParameter(True)  '加载配置参数
     Call msAddAction(cbsBars)   '创建Actions集合
     Call msAddMenu(cbsBars)     '创建菜单栏
     Call msAddToolBar(cbsBars)  '创建工具栏
@@ -870,6 +895,7 @@ Private Sub Form_Load()
     cbsBars.Options.UpdatePeriod = 250      '更改CommandBars的Update事件的执行周期，默认100ms
     
     Call gsLoadSkin(Me, Me.SkinFramework1, sMSO7, True)  '加载窗口主题
+    
     '加载工具栏主题
     Call gsThemeCommandBar(Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyCommandbarsTheme, gID.WndThemeCommandBarsRibbon)), cbsBars)
     
@@ -877,7 +903,7 @@ Private Sub Form_Load()
     Call cbsBars.LoadCommandBars(gVar.RegKeyCommandBars, gVar.RegAppName, gVar.RegSectionSettings)
 
     Call gsFormSizeLoad(Me) '注册表信息加载-窗口位置大小
-    Call msLoadParameter(True)  '加载配置参数
+    
     
     
     '打开多个应用程序检查。此判断暂放加载注册信息后
@@ -891,10 +917,11 @@ Private Sub Form_Load()
     
     
     Call msGridSet(Grid1)  '表格设置
-    Call gsStartUpSet(False)    '是否向注册表中添加开机自动启动项
+    Call gsStartUpSet(False)    '是否向注册表中添加开机自动启动项*******************
     Call gfNotifyIconAdd(Me)    '添加托盘图标
     
-    Set cbsBars = Nothing
+    Set cbsBars = Nothing   '销毁使用完的对象
+    
 End Sub
 
 Private Sub Form_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
@@ -962,7 +989,7 @@ Private Sub Form_Unload(Cancel As Integer)
     
     gVar.CloseWindow = False    '清除关闭窗口状态
     Call SkinFramework1.LoadSkin("", "")    '清空皮肤
-    Set XtrStatusBar = Nothing  '清除状态栏
+    Set mXtrStatusBar = Nothing  '清除状态栏
     Set mcbsPopupIcon = Nothing '清除Popup菜单
     Call gfNotifyIconDelete(Me) '删除托盘图标
     gNotifyIconData = resetNotifyIconData   '清空托盘气泡信息。否则重启程序时会自动弹出？而且只能放上句删除托盘图标语句的后面?
@@ -970,7 +997,7 @@ Private Sub Form_Unload(Cancel As Integer)
 
 End Sub
 
-Private Sub XtrStatusBar_PaneClick(ByVal Pane As XtremeCommandBars.StatusBarPane)
+Private Sub mXtrStatusBar_PaneClick(ByVal Pane As XtremeCommandBars.StatusBarPane)
     '手动断开/开启服务
     Dim strMsg As String
     
@@ -979,10 +1006,30 @@ Private Sub XtrStatusBar_PaneClick(ByVal Pane As XtremeCommandBars.StatusBarPane
             strMsg = "关闭后会断开所有用户的连接。"
         End If
         If MsgBox("是否" & Pane.Text & "？" & strMsg, vbQuestion + vbYesNo, "重启/断开服务询问") = vbNo Then Exit Sub
-        If Pane.Text = gVar.ServerClose Then
+        If Pane.Text = gVar.ServerClose Then    '关闭服务
             Pane.Text = gVar.ServerStart
-        ElseIf Pane.Text = gVar.ServerStart Then
+            Me.Winsock1.Item(0).Close
+            
+        ElseIf Pane.Text = gVar.ServerStart Then    '开启服务
             Pane.Text = gVar.ServerClose
+            Call msStartServer(Me.Winsock1.Item(0))
         End If
     End If
+End Sub
+
+Private Sub Timer1_Timer(Index As Integer)
+    'Index=0的计时器间隔1秒。Timer1的Index值 与 Winsock1的Index对应
+    
+    If Index = 0 Then
+        With Me.Winsock1.Item(Index)
+            If .State = 2 Then  '侦听
+                
+            ElseIf .State = 9 Then  '异常
+            
+            Else    '其它：关闭等
+            
+            End If
+        End With
+    End If
+    
 End Sub
