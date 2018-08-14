@@ -1,7 +1,7 @@
 VERSION 5.00
 Object = "{248DD890-BB45-11CF-9ABC-0080C7E7B78D}#1.0#0"; "MSWINSCK.OCX"
 Object = "{E08BA07E-6463-4EAB-8437-99F08000BAD9}#1.9#0"; "FlexCell.ocx"
-Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.2#0"; "mscomctl.ocx"
+Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.2#0"; "MSCOMCTL.OCX"
 Object = "{555E8FCC-830E-45CC-AF00-A012D5AE7451}#15.3#0"; "Codejock.CommandBars.v15.3.1.ocx"
 Object = "{BD0C1912-66C3-49CC-8B12-7B347BF6C846}#15.3#0"; "Codejock.SkinFramework.v15.3.1.ocx"
 Begin VB.Form frmSysMain 
@@ -466,7 +466,7 @@ Private Sub msAddAction(ByRef cbsBars As XtremeCommandBars.CommandBars)
         .Add gID.StatusBarPaneServerState, "服务状态", "", "", ""
         .Add gID.StatusBarPaneTime, "系统时间", "", "", ""
         .Add gID.StatusBarPaneIP, "本机IP地址", "", "", ""
-        .Add gID.StatusBarPanePort, "监听端口", "", "", ""
+        .Add gID.StatusBarPanePort, "侦听端口", "", "", ""
         .Add gID.StatusBarPaneReStartButton, "服务自动/手动重启模式切换按钮", "", "", ""
         
         .Add gID.IconPopupMenu, "托盘图标菜单", "", "", ""
@@ -838,8 +838,14 @@ Public Sub msLeftClick(ByVal CID As Long, ByRef cbsBars As XtremeCommandBars.Com
                 strKey = LCase(cbsActions.Action(CID).Key)
                 If Left(strKey, 3) = "frm" Then
                     If cbsActions.Action(CID).Enabled Then
-                        Select Case strKey
-                            Case LCase(cbsActions(gID.toolOptions).Key)
+'''                        Select Case strKey
+'''                            Case LCase(cbsActions(gID.toolOptions).Key)
+'''                                Call gsOpenTheWindow(strKey, vbModal, vbNormal)
+'''                            Case Else
+'''                                Call gsOpenTheWindow(strKey)
+'''                        End Select
+                        Select Case CID
+                            Case .toolOptions
                                 Call gsOpenTheWindow(strKey, vbModal, vbNormal)
                             Case Else
                                 Call gsOpenTheWindow(strKey)
@@ -1061,10 +1067,10 @@ Private Sub Timer1_Timer(Index As Integer)
         
     If Index = 0 Then
         With Me.Winsock1.Item(Index)
-            If .State = 2 Then  '侦听
+            If .State = 2 Then  '侦听正常状态
                 Call msSetServerState(vbGreen)
             Else
-                If .State = 9 Then  '异常
+                If .State = 9 Then  '异常状态
                     Call msSetServerState(vbRed)
                 Else    '关闭等
                     Call msSetServerState(vbYellow)

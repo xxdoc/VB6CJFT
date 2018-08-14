@@ -35,6 +35,19 @@ Attribute VB_Exposed = False
 Option Explicit
 
 
+Private Sub msLoadParameter(Optional ByVal blnLoad As Boolean = True)
+    
+    If Not blnLoad Then Exit Sub
+    
+    '从公共变量或注册表中加载配置信息
+    With Me.Grid1
+        .Cell(2, 1).Text = gVar.ParaBlnWindowCloseMin   '关闭时最小化
+        .Cell(2, 3).Text = gVar.ParaBlnWindowMinHide
+        
+    
+    End With
+    
+End Sub
 
 Private Sub msSaveParameter(Optional ByVal blnSave As Boolean = True)
     
@@ -60,9 +73,16 @@ End Sub
 
 
 Private Sub Form_Load()
+    Dim strFile As String
+    
+    strFile = gVar.FolderNameBin & "OptionWindow.cel"
+    If Not gfFileExist(strFile) Then
+        MsgBox "以下配置文件加载失败，请解决后再重新打开窗口。" & vbCrLf & strFile, vbCritical, "异常提示"
+        Exit Sub
+    End If
     With Grid1
         .AutoRedraw = False
-        .OpenFile (gVar.FolderNameBin & "OptionWindow.cel")
+        .OpenFile (strFile)
         .Appearance = Flat
         .Column(0).Width = 0
         .RowHeight(0) = 0
@@ -71,8 +91,7 @@ Private Sub Form_Load()
         .BorderColor = Me.BackColor
         .BackColorBkg = Me.BackColor
         
-        .Cell(2, 1).Text = gVar.ParaBlnWindowCloseMin
-        .Cell(2, 3).Text = gVar.ParaBlnWindowMinHide
+        Call msLoadParameter(True)
         
         .AutoRedraw = True
         .Refresh
