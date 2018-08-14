@@ -1,7 +1,7 @@
 VERSION 5.00
 Object = "{248DD890-BB45-11CF-9ABC-0080C7E7B78D}#1.0#0"; "MSWINSCK.OCX"
 Object = "{E08BA07E-6463-4EAB-8437-99F08000BAD9}#1.9#0"; "FlexCell.ocx"
-Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.2#0"; "MSCOMCTL.OCX"
+Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.2#0"; "mscomctl.ocx"
 Object = "{555E8FCC-830E-45CC-AF00-A012D5AE7451}#15.3#0"; "Codejock.CommandBars.v15.3.1.ocx"
 Object = "{BD0C1912-66C3-49CC-8B12-7B347BF6C846}#15.3#0"; "Codejock.SkinFramework.v15.3.1.ocx"
 Begin VB.Form frmSysMain 
@@ -467,6 +467,7 @@ Private Sub msAddAction(ByRef cbsBars As XtremeCommandBars.CommandBars)
         .Add gID.StatusBarPaneTime, "系统时间", "", "", ""
         .Add gID.StatusBarPaneIP, "本机IP地址", "", "", ""
         .Add gID.StatusBarPanePort, "监听端口", "", "", ""
+        .Add gID.StatusBarPaneReStartButton, "服务自动/手动重启模式切换按钮", "", "", ""
         
         .Add gID.IconPopupMenu, "托盘图标菜单", "", "", ""
         .Add gID.IconPopupMenuMaxWindow, "最大化窗口", "", "", ""
@@ -607,33 +608,35 @@ Private Sub msAddXtrStatusBar(ByRef cbsBars As XtremeCommandBars.CommandBars)
     With mXtrStatusBar
         .AddPane 0      '系统Pane，显示CommandBarActions的Description
         .SetPaneStyle 0, SBPS_STRETCH
+        .SetPaneText 0, "Hello"
+        .IdleText = "Hello"
         
         .AddPane gID.StatusBarPaneIP
         .SetPaneText gID.StatusBarPaneIP, Me.Winsock1.Item(0).LocalIP  'gVar.TCPSetIP
-        .FindPane(gID.StatusBarPaneIP).Caption = cbsActions(gID.StatusBarPaneIP).Caption
         .FindPane(gID.StatusBarPaneIP).Width = 90
         
         .AddPane gID.StatusBarPanePort
         .SetPaneText gID.StatusBarPanePort, gVar.TCPSetPort
-        .FindPane(gID.StatusBarPanePort).Caption = cbsActions(gID.StatusBarPanePort).Caption
         .FindPane(gID.StatusBarPanePort).Width = 60
         
+        .AddPane gID.StatusBarPaneReStartButton
+        .SetPaneText gID.StatusBarPaneReStartButton, IIf(gVar.ParaBlnAutoReStartServer, "自", "手") & "动重启服务模式"
+        .FindPane(gID.StatusBarPaneReStartButton).Width = 120
+        .FindPane(gID.StatusBarPaneReStartButton).BackgroundColor = vbCyan
+        .FindPane(gID.StatusBarPaneReStartButton).Button = True
+        
         .AddPane gID.StatusBarPaneServerState
-        .FindPane(gID.StatusBarPaneServerState).Caption = cbsActions(gID.StatusBarPaneServerState).Caption
-        .FindPane(gID.StatusBarPaneServerState).Text = gVar.ServerNotStarted
+        .FindPane(gID.StatusBarPaneServerState).Text = gVar.ServerStateNotStarted
         .FindPane(gID.StatusBarPaneServerState).Width = 60
         
         .AddPane gID.StatusBarPaneServerButton
-        .FindPane(gID.StatusBarPaneServerButton).Caption = cbsActions(gID.StatusBarPaneServerButton).Caption
-        .FindPane(gID.StatusBarPaneServerButton).Text = gVar.ServerStart
+        .FindPane(gID.StatusBarPaneServerButton).Text = gVar.ServerButtonStart
         .FindPane(gID.StatusBarPaneServerButton).Width = 60
         .FindPane(gID.StatusBarPaneServerButton).Button = True
         
         .AddProgressPane gID.StatusBarPaneProgress
-        .FindPane(gID.StatusBarPaneProgress).Caption = cbsActions(gID.StatusBarPaneProgress).Caption
                 
         .AddPane gID.StatusBarPaneProgressText
-        .FindPane(gID.StatusBarPaneProgressText).Caption = cbsActions(gID.StatusBarPaneProgressText).Caption
         .SetPaneText gID.StatusBarPaneProgressText, "0%"
         .FindPane(gID.StatusBarPaneProgressText).Width = 60
         
@@ -649,8 +652,10 @@ Private Sub msAddXtrStatusBar(ByRef cbsBars As XtremeCommandBars.CommandBars)
         .EnableCustomization True
     End With
     
-    For Each BarPane In mXtrStatusBar     '设置ToolTip属性为Caption
+    For Each BarPane In mXtrStatusBar     '设置Caption、ToolTip、Alignment属性
+        If Len(BarPane.Caption) = 0 Then BarPane.Caption = cbsActions(BarPane.ID).Caption
         BarPane.ToolTip = BarPane.Caption
+        If BarPane.ID <> 0 Then BarPane.Alignment = xtpAlignmentCenter
     Next
     
 End Sub
@@ -715,6 +720,34 @@ Private Sub msStartServer(ByRef sckCon As MSWinsockLib.Winsock)
         .LocalPort = gVar.TCPSetPort
         .Listen
     End With
+End Sub
+
+Private Sub msSetServerState(ByVal colorSet As Long)
+    '设置状态栏中服务端的状态
+    
+    Dim paneState As XtremeCommandBars.StatusBarPane
+    Dim paneButton As XtremeCommandBars.StatusBarPane
+    
+    Set paneState = mXtrStatusBar.FindPane(gID.StatusBarPaneServerState)
+    Set paneButton = mXtrStatusBar.FindPane(gID.StatusBarPaneServerButton)
+    If colorSet = vbGreen Then
+        paneState.BackgroundColor = vbGreen
+        paneState.Text = gVar.ServerStateStarted
+        paneButton.Text = gVar.ServerButtonClose
+        paneButton.TextColor = vbMagenta 'vbRed
+    ElseIf colorSet = vbRed Then
+        paneState.BackgroundColor = vbRed
+        paneState.Text = gVar.ServerStateError
+        paneButton.Text = gVar.ServerButtonStart
+        paneButton.TextColor = vbBlue ' vbGreen
+    Else
+        paneState.BackgroundColor = vbYellow
+        paneState.Text = gVar.ServerStateNotStarted
+        paneButton.Text = gVar.ServerButtonStart
+        paneButton.TextColor = vbBlue ' vbGreen
+    End If
+    Set paneState = Nothing
+    Set paneButton = Nothing
 End Sub
 
 Private Sub msGridSet(ByRef gridSet As FlexCell.Grid)
@@ -830,7 +863,7 @@ Private Sub msLoadParameter(Optional ByVal blnLoad As Boolean = True)
         .ParaBlnWindowCloseMin = Val(GetSetting(.RegAppName, .RegSectionSettings, .RegKeyParaWindowCloseMin, 1))
         .TCPSetPort = Val(GetSetting(.RegAppName, .RegSectionTCP, .RegKeyTCPPort, gVar.TCPDefaultPort))
         .TCPSetIP = gVar.TCPDefaultIP   '服务端使用本机IP地址
-        .ParaBlnAutoReStartServer = Val(GetSetting(.RegAppName, .RegSectionTCP, .RegKeyReStartServer, 1))
+        .ParaBlnAutoReStartServer = Val(GetSetting(.RegAppName, .RegSectionTCP, .RegKeyParaAutoReStartServer, 1))
         
     End With
 End Sub
@@ -998,36 +1031,47 @@ Private Sub Form_Unload(Cancel As Integer)
 End Sub
 
 Private Sub mXtrStatusBar_PaneClick(ByVal Pane As XtremeCommandBars.StatusBarPane)
-    '手动断开/开启服务
+    '状态栏按钮事件
     Dim strMsg As String
     
-    If Pane.ID = gID.StatusBarPaneServerButton Then
-        If Pane.Text = gVar.ServerClose Then
-            strMsg = "关闭后会断开所有用户的连接。"
-        End If
+    If Pane.ID = gID.StatusBarPaneServerButton Then '断开/开启服务
+        If Pane.Text = gVar.ServerButtonClose Then strMsg = "关闭后会断开所有用户的连接。"
         If MsgBox("是否" & Pane.Text & "？" & strMsg, vbQuestion + vbYesNo, "重启/断开服务询问") = vbNo Then Exit Sub
-        If Pane.Text = gVar.ServerClose Then    '关闭服务
-            Pane.Text = gVar.ServerStart
+        If Pane.Text = gVar.ServerButtonClose Then     '关闭服务
+            Pane.Text = gVar.ServerButtonStart
             Me.Winsock1.Item(0).Close
-            
-        ElseIf Pane.Text = gVar.ServerStart Then    '开启服务
-            Pane.Text = gVar.ServerClose
+        ElseIf Pane.Text = gVar.ServerButtonStart Then     '开启服务
+            Pane.Text = gVar.ServerButtonClose
             Call msStartServer(Me.Winsock1.Item(0))
         End If
+        
+    ElseIf Pane.ID = gID.StatusBarPaneReStartButton Then    '手动/自动重启服务模式
+        strMsg = "是否切换成" & IIf(gVar.ParaBlnAutoReStartServer, "手", "自") & "动重启服务模式？"
+        If MsgBox(strMsg, vbQuestion + vbYesNo, "模式切换询问") = vbYes Then
+            gVar.ParaBlnAutoReStartServer = Not gVar.ParaBlnAutoReStartServer
+            mXtrStatusBar.FindPane(gID.StatusBarPaneReStartButton).Text = IIf(gVar.ParaBlnAutoReStartServer, "自", "手") & "动重启服务模式"
+            Call SaveSetting(gVar.RegAppName, gVar.RegSectionTCP, gVar.RegKeyParaAutoReStartServer, IIf(gVar.ParaBlnAutoReStartServer, 1, 0))
+        End If
+        
     End If
 End Sub
 
 Private Sub Timer1_Timer(Index As Integer)
     'Index=0的计时器间隔1秒。Timer1的Index值 与 Winsock1的Index对应
-    
+        
     If Index = 0 Then
         With Me.Winsock1.Item(Index)
             If .State = 2 Then  '侦听
-                
-            ElseIf .State = 9 Then  '异常
-            
-            Else    '其它：关闭等
-            
+                Call msSetServerState(vbGreen)
+            Else
+                If .State = 9 Then  '异常
+                    Call msSetServerState(vbRed)
+                Else    '关闭等
+                    Call msSetServerState(vbYellow)
+                End If
+                If gVar.ParaBlnAutoReStartServer Then   '若勾选了自动开启服务则重启服务
+                    Call msStartServer(Me.Winsock1.Item(0))
+                End If
             End If
         End With
     End If

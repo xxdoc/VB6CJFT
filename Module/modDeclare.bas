@@ -212,17 +212,17 @@ Public Type gtypeCommonVariant
     FTChunkSize As Long   '文件传输时的分块大小
     FTWaitTime As Long    '每段文件传输时的等待时间，单位秒
         
-    ServerStart As String       '服务器状态：启动服务
-    ServerClose As String       '关闭服务
-    ServerError As String       '异常
-    ServerStarted As String     '已启动
-    ServerNotStarted As String  '未启动
+    ServerButtonStart As String       '服务器状态：启动服务
+    ServerButtonClose As String       '关闭服务
+    ServerStateError As String       '异常
+    ServerStateStarted As String     '已启动
+    ServerStateNotStarted As String  '未启动
     
-    StateConnected As String             '客户端状态：已连接
-    StateDisConnected As String          '未连接
-    StateConnectError As String          '连接异常
-    StateConnectToServer As String       '建立连接
-    StateDisConnectFromServer As String  '断开连接
+    ClientStateConnected As String             '客户端状态：已连接
+    ClientStateDisConnected As String          '未连接
+    ClientStateConnectError As String          '连接异常
+    ClientButtonConnectToServer As String       '建立连接
+    ClientButtonDisConnectFromServer As String  '断开连接
     
     PTFileName As String    '协议：文件名标识
     PTFileSize As String    '协议：文件大小标识
@@ -257,8 +257,6 @@ Public Type gtypeCommonVariant
     RegSectionTCP As String     '参数section_TCP值
     RegKeyTCPIP As String       '参数key_IP值
     RegKeyTCPPort As String     '参数key_port值
-    RegKeyReStartServer As String   '自动重启服务
-    
     
     RegSectionSkin As String    '参数section_Skin
     RegKeySkinFile As String    '参数Key_SkinFile
@@ -286,6 +284,7 @@ Public Type gtypeCommonVariant
     
     RegKeyParaWindowMinHide As String   '参数Key-窗口最小化隐藏
     RegKeyParaWindowCloseMin As String  '参数Key-窗口点击关闭时默认最小化
+    RegKeyParaAutoReStartServer As String   '服务商是否自动重启服务
     
     AppPath As String           'App路径，确保最后字符为"\"
     FolderNameTemp As String    '文件夹名称：Temp
@@ -469,6 +468,7 @@ Public Type gtypeCommandBarID
     StatusBarPaneServerButton As Long   '状态栏中服务器开启/断开服务按钮-Server
     StatusBarPaneIP As Long     '状态栏中IP
     StatusBarPanePort As Long   '状态栏中端口
+    StatusBarPaneReStartButton As Long  '状态栏中 自动重启服务按钮
     
     IconPopupMenu As Long           '托盘图标菜单
     IconPopupMenuShowWindow As Long '显示窗口

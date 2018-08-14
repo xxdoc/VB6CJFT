@@ -129,6 +129,7 @@ Public Sub Main()
         .StatusBarPaneUserInfo = 22108
         .StatusBarPaneIP = 22109
         .StatusBarPanePort = 22110
+        .StatusBarPaneReStartButton = 22111
         
         .IconPopupMenu = 23000
         .IconPopupMenuMaxWindow = 23101
@@ -147,17 +148,17 @@ Public Sub Main()
         .FTChunkSize = 5734
         .FTWaitTime = 5
         
-        .ServerClose = "关闭服务"
-        .ServerError = "异常"
-        .ServerNotStarted = "未启动"
-        .ServerStart = "开启服务"
-        .ServerStarted = "已启动"
+        .ServerButtonClose = "关闭服务"
+        .ServerButtonStart = "开启服务"
+        .ServerStateError = "异常"
+        .ServerStateNotStarted = "未启动"
+        .ServerStateStarted = "已启动"
         
-        .StateConnected = "已连接"
-        .StateDisConnected = "未连接"
-        .StateConnectError = "连接异常"
-        .StateConnectToServer = "建立连接"
-        .StateDisConnectFromServer = "断开连接"
+        .ClientStateConnected = "已连接"
+        .ClientStateDisConnected = "未连接"
+        .ClientStateConnectError = "连接异常"
+        .ClientButtonConnectToServer = "建立连接"
+        .ClientButtonDisConnectFromServer = "断开连接"
         
         .PTFileName = "<FileName>"
         .PTFileSize = "<FileSize>"
@@ -189,7 +190,6 @@ Public Sub Main()
         .RegKeyTCPIP = "IP"
         .RegKeyTCPPort = "Port"
         .RegSectionTCP = "TCP"
-        .RegKeyReStartServer = "ReStartServer"
         
         .RegSectionSkin = "SkinFile"
         .RegKeySkinFile = "SkinRes"
@@ -217,7 +217,7 @@ Public Sub Main()
         
         .RegKeyParaWindowMinHide = "WindowMinHide"
         .RegKeyParaWindowCloseMin = "WindowCloseMin"
-        
+        .RegKeyParaAutoReStartServer = "AutoReStartServer"
         
         .AppPath = App.Path & IIf(Right(App.Path, 1) = "\", "", "\")
         
@@ -891,20 +891,20 @@ Public Sub gsStartProgressBar(ByVal CurVal As Long, Optional ByVal MinVal As Lon
     '主窗体状态栏中的进度条显示进度、百分值
     
     Dim cbsBars As XtremeCommandBars.CommandBars
-    Dim PaneBar As XtremeCommandBars.StatusBarProgressPane
+    Dim paneBar As XtremeCommandBars.StatusBarProgressPane
     Dim PaneTxt As XtremeCommandBars.StatusBarPane
     
     Set cbsBars = gWind.CommandBars1
-    Set PaneBar = cbsBars.StatusBar.FindPane(gID.StatusBarPaneProgress)
+    Set paneBar = cbsBars.StatusBar.FindPane(gID.StatusBarPaneProgress)
     Set PaneTxt = cbsBars.StatusBar.FindPane(gID.StatusBarPaneProgressText)
-    With PaneBar
+    With paneBar
         .Min = MinVal
         .Max = MaxVal
         .Value = CurVal
     End With
     PaneTxt.Text = CStr(CurVal / MaxVal * 100) & "%"
     
-    Set PaneBar = Nothing
+    Set paneBar = Nothing
     Set PaneTxt = Nothing
     Set cbsBars = Nothing
 End Sub
