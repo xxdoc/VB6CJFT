@@ -42,7 +42,7 @@ Private Sub msLoadParameter(Optional ByVal blnLoad As Boolean = True)
     '从公共变量或注册表中加载配置信息
     With Me.Grid1
         .Cell(2, 1).Text = gVar.ParaBlnWindowCloseMin   '关闭时最小化
-        .Cell(2, 3).Text = gVar.ParaBlnWindowMinHide
+        .Cell(2, 5).Text = gVar.ParaBlnWindowMinHide    '最小化时隐藏
         
     
     End With
@@ -56,7 +56,7 @@ Private Sub msSaveParameter(Optional ByVal blnSave As Boolean = True)
     '参数值更新至公共变量
     With Grid1
         gVar.ParaBlnWindowCloseMin = .Cell(2, 1).Text
-        gVar.ParaBlnWindowMinHide = .Cell(2, 3).Text
+        gVar.ParaBlnWindowMinHide = .Cell(2, 5).Text
 
     End With
     
@@ -111,7 +111,7 @@ Private Sub Grid1_HyperLinkClick(ByVal Row As Long, ByVal Col As Long, URL As St
     
     If Col = 1 Then '保存
         If MsgBox("确定保存所有参数值吗？", vbQuestion + vbOKCancel, "保存询问") = vbOK Then Call msSaveParameter(True)
-    ElseIf Col = 3 Then '退出
+    ElseIf Col = 5 Then '退出
         Unload Me
     End If
 End Sub
