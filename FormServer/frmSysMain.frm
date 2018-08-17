@@ -871,6 +871,9 @@ Private Sub msLoadParameter(Optional ByVal blnLoad As Boolean = True)
         .TCPSetIP = gVar.TCPDefaultIP   '服务端使用本机IP地址
         .ParaBlnAutoReStartServer = Val(GetSetting(.RegAppName, .RegSectionTCP, .RegKeyParaAutoReStartServer, 1))
         
+        .ConSource = GetSetting(.RegAppName, .RegSectionDBServer, .RegKeyDBServerIP, .TCPSetIP)
+        .ConDatabase = GetSetting(.RegAppName, .RegSectionDBServer, .RegKeyDBServerDatabase, "dbTest")
+        
     End With
 End Sub
 
@@ -878,7 +881,7 @@ Private Sub msResetLayout(ByRef cbsBars As XtremeCommandBars.CommandBars)
     '重置窗口布局：CommandBars与Dockingpane控件重置
     
     Dim cBar As XtremeCommandBars.CommandBar
-    Dim L As Long, T As Long, R As Long, B As Long
+    Dim L As Long, T As Long, R As Long, b As Long
 
     For Each cBar In cbsBars
 'Debug.Print cBar.BarID, cBar.Title, cBar.Type
@@ -887,8 +890,8 @@ Private Sub msResetLayout(ByRef cbsBars As XtremeCommandBars.CommandBars)
     Next
     
     For mlngID = 2 To cbsBars.Count
-        cbsBars.GetClientRect L, T, R, B
-        cbsBars.DockToolBar cbsBars(mlngID), 0, B, xtpBarTop
+        cbsBars.GetClientRect L, T, R, b
+        cbsBars.DockToolBar cbsBars(mlngID), 0, b, xtpBarTop
     Next
 
 End Sub
@@ -901,11 +904,11 @@ End Sub
 Private Sub CommandBars1_Resize()
     '调整窗口布局
     
-    Dim L As Long, T As Long, R As Long, B As Long
+    Dim L As Long, T As Long, R As Long, b As Long
     
     On Error Resume Next
-    Me.CommandBars1.GetClientRect L, T, R, B
-    Grid1.Move L, T, R - L, B - T
+    Me.CommandBars1.GetClientRect L, T, R, b
+    Grid1.Move L, T, R - L, b - T
     
 End Sub
 

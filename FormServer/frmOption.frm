@@ -14,14 +14,25 @@ Begin VB.Form frmOption
    ScaleWidth      =   9030
    ShowInTaskbar   =   0   'False
    StartUpPosition =   1  '所有者中心
+   Begin VB.TextBox Text1 
+      Appearance      =   0  'Flat
+      Height          =   735
+      IMEMode         =   3  'DISABLE
+      Left            =   3000
+      PasswordChar    =   "*"
+      TabIndex        =   1
+      Top             =   1800
+      Visible         =   0   'False
+      Width           =   1575
+   End
    Begin FlexCell.Grid Grid1 
-      Height          =   1815
+      Height          =   3255
       Left            =   480
       TabIndex        =   0
       Top             =   600
-      Width           =   2895
-      _ExtentX        =   5106
-      _ExtentY        =   3201
+      Width           =   6735
+      _ExtentX        =   11880
+      _ExtentY        =   5741
       Cols            =   5
       GridColor       =   12632256
       Rows            =   30
@@ -44,7 +55,14 @@ Private Sub msLoadParameter(Optional ByVal blnLoad As Boolean = True)
         .Cell(2, 1).Text = gVar.ParaBlnWindowCloseMin   '关闭时最小化
         .Cell(2, 5).Text = gVar.ParaBlnWindowMinHide    '最小化时隐藏
         
-    
+        .Cell(5, 3).Text = gVar.TCPSetPort  '侦听端口
+        
+        .Cell(8, 3).Text = gVar.ConSource   '服务器名称/IP
+        .Cell(8, 7).Text = gVar.ConDatabase '数据库名
+        .Cell(10, 3).Text = gVar.ConUserID  '登陆名
+        Text1.Text = gVar.ConPassword    '密码
+        .Cell(10, 7).Text = String(Len(gVar.ConPassword), "*")
+        
     End With
     
 End Sub
@@ -82,14 +100,18 @@ Private Sub Form_Load()
     End If
     With Grid1
         .AutoRedraw = False
-        .OpenFile (strFile)
+        .OpenFile (strFile) '加载模板
+        
         .Appearance = Flat
         .Column(0).Width = 0
         .RowHeight(0) = 0
-        .ExtendLastCol = True
-        .GridColor = vbWhite
-        .BorderColor = Me.BackColor
-        .BackColorBkg = Me.BackColor
+        .ExtendLastCol = True   '扩展最后一列
+        .GridColor = vbWhite    '网格线的颜色
+        .BorderColor = Me.BackColor '边框的颜色
+        .BackColorBkg = Me.BackColor    '空白区域的背景色
+        .ReadOnlyFocusRect = Solid  '锁定（只读）单元格所显示的虚框样式
+        .DisplayFocusRect = False   '活动单元格是否显示一个虚框
+        .SelectionMode = cellSelectionNone  '表格的选择模式
         
         Call msLoadParameter(True)
         
@@ -100,6 +122,21 @@ End Sub
 
 Private Sub Form_Resize()
     Grid1.Move 120, 120, Me.ScaleWidth - 240, Me.ScaleHeight - 240
+End Sub
+
+Private Sub Grid1_Click()
+    With Grid1.ActiveCell
+        If .Row = 10 And .Col = 7 Then  '密码单元格借用TextBox控件处理成星号*
+            Text1.Move .Left * 15 + 100, .Top * 15 + 100, .Width * 15, .Height * 15
+            With Text1
+                .Visible = True
+                .ZOrder
+                .SetFocus
+                .SelStart = 0
+                .SelLength = Len(.Text)
+            End With
+        End If
+    End With
 End Sub
 
 Private Sub Grid1_HyperLinkClick(ByVal Row As Long, ByVal Col As Long, URL As String, Changed As Boolean)
@@ -114,4 +151,18 @@ Private Sub Grid1_HyperLinkClick(ByVal Row As Long, ByVal Col As Long, URL As St
     ElseIf Col = 5 Then '退出
         Unload Me
     End If
+End Sub
+
+Private Sub Text1_KeyPress(KeyAscii As Integer)
+    Select Case KeyAscii
+        Case 48 To 57, 65 To 90, 97 To 122  '0-9,A-Z,a-z
+            Debug.Print KeyAscii & ":" & Chr(KeyAscii)
+        Case Else
+            KeyAscii = 0    '密码：限制字母数字以外的输入
+    End Select
+End Sub
+
+Private Sub Text1_LostFocus()
+    Grid1.Cell(10, 7).Text = String(Len(Text1.Text), "*")   '表格只显示等数量的*号
+    Text1.Visible = False
 End Sub

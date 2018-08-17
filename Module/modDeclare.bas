@@ -211,6 +211,8 @@ Public Type gtypeCommonVariant
     
     FTChunkSize As Long   '文件传输时的分块大小
     FTWaitTime As Long    '每段文件传输时的等待时间，单位秒
+    
+    EncryptKey As String    '加密解密的密钥
         
     ServerButtonStart As String       '服务器状态：启动服务
     ServerButtonClose As String       '关闭服务
@@ -263,6 +265,7 @@ Public Type gtypeCommonVariant
     
     RegSectionDBServer As String  '数据库服务器信息块
     RegKeyDBServerIP As String    '数据库服务器IP
+    RegKeyDBServerDatabase As String    '数据库名
     RegKeyDBServerAccount As String   '数据库服务器连接账号
     RegKeyDBServerPassword As String  '数据库服务器连接密码
         
@@ -284,7 +287,7 @@ Public Type gtypeCommonVariant
     
     RegKeyParaWindowMinHide As String   '参数Key-窗口最小化隐藏
     RegKeyParaWindowCloseMin As String  '参数Key-窗口点击关闭时默认最小化
-    RegKeyParaAutoReStartServer As String   '服务商是否自动重启服务
+    RegKeyParaAutoReStartServer As String   '服务端是否自动重启服务
     
     AppPath As String           'App路径，确保最后字符为"\"
     FolderNameTemp As String    '文件夹名称：Temp
