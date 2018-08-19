@@ -863,16 +863,20 @@ Private Sub msLoadParameter(Optional ByVal blnLoad As Boolean = True)
     '从注册表中加载参数值至公用变量中
     
     If Not blnLoad Then Exit Sub
-    
+    On Error Resume Next
     With gVar
-        .ParaBlnWindowMinHide = Val(GetSetting(.RegAppName, .RegSectionSettings, .RegKeyParaWindowMinHide, 1))
-        .ParaBlnWindowCloseMin = Val(GetSetting(.RegAppName, .RegSectionSettings, .RegKeyParaWindowCloseMin, 1))
-        .TCPSetPort = Val(GetSetting(.RegAppName, .RegSectionTCP, .RegKeyTCPPort, gVar.TCPDefaultPort))
+        .ParaBlnWindowCloseMin = Val(GetSetting(.RegAppName, .RegSectionSettings, .RegKeyParaWindowCloseMin, 1))    '关闭时最小化
+        .ParaBlnWindowMinHide = Val(GetSetting(.RegAppName, .RegSectionSettings, .RegKeyParaWindowMinHide, 1))  '最小化时隐藏
+                
+        .TCPDefaultIP = Me.Winsock1.Item(0).LocalIP '本机IP地址
         .TCPSetIP = gVar.TCPDefaultIP   '服务端使用本机IP地址
-        .ParaBlnAutoReStartServer = Val(GetSetting(.RegAppName, .RegSectionTCP, .RegKeyParaAutoReStartServer, 1))
-        
-        .ConSource = GetSetting(.RegAppName, .RegSectionDBServer, .RegKeyDBServerIP, .TCPSetIP)
-        .ConDatabase = GetSetting(.RegAppName, .RegSectionDBServer, .RegKeyDBServerDatabase, "dbTest")
+        .TCPSetPort = Val(GetSetting(.RegAppName, .RegSectionTCP, .RegKeyTCPPort, gVar.TCPDefaultPort)) '侦听端口
+        .ParaBlnAutoReStartServer = Val(GetSetting(.RegAppName, .RegSectionTCP, .RegKeyParaAutoReStartServer, 1))   '手动/自动重启服务模式
+
+        .ConSource = gfCheckIP(gfGetReg(.RegAppName, .RegSectionDBServer, .RegKeyDBServerIP, .TCPSetIP))   '服务器名称/IP
+        .ConDatabase = DecryptString(gfGetReg(.RegAppName, .RegSectionDBServer, .RegKeyDBServerDatabase, EncryptString("dbTest", .EncryptKey)), .EncryptKey)    '数据库名
+        .ConUserID = DecryptString(gfGetReg(.RegAppName, .RegSectionDBServer, .RegKeyDBServerAccount, EncryptString("123", .EncryptKey)), .EncryptKey)  '登陆名
+        .ConPassword = DecryptString(gfGetReg(.RegAppName, .RegSectionDBServer, .RegKeyDBServerPassword, EncryptString("888888", .EncryptKey)), .EncryptKey)    '登陆密码
         
     End With
 End Sub

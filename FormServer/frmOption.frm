@@ -60,30 +60,50 @@ Private Sub msLoadParameter(Optional ByVal blnLoad As Boolean = True)
         .Cell(8, 3).Text = gVar.ConSource   '服务器名称/IP
         .Cell(8, 7).Text = gVar.ConDatabase '数据库名
         .Cell(10, 3).Text = gVar.ConUserID  '登陆名
-        Text1.Text = gVar.ConPassword    '密码
-        .Cell(10, 7).Text = String(Len(gVar.ConPassword), "*")
+        Text1.Text = gVar.ConPassword       '登陆密码
+        .Cell(10, 7).Text = String(Len(gVar.ConPassword), "*") '登陆密码*号显示
+        
         
     End With
     
 End Sub
 
 Private Sub msSaveParameter(Optional ByVal blnSave As Boolean = True)
+    Dim TempVal
     
     If Not blnSave Then Exit Sub
     
     '参数值更新至公共变量
     With Grid1
-        gVar.ParaBlnWindowCloseMin = .Cell(2, 1).Text
-        gVar.ParaBlnWindowMinHide = .Cell(2, 5).Text
-
+        gVar.ParaBlnWindowCloseMin = .Cell(2, 1).Text   '关闭时最小化
+        gVar.ParaBlnWindowMinHide = .Cell(2, 5).Text    '最小化时隐藏
+        
+        TempVal = Val(.Cell(5, 3).Text)                 '侦听端口
+        gVar.TCPSetPort = IIf(TempVal < 10000, gVar.TCPDefaultPort, TempVal)
+        
+        gVar.ConSource = gfCheckIP(Trim(.Cell(8, 3).Text))    '服务器名称/IP
+        gVar.ConDatabase = Trim(.Cell(8, 7).Text)   '数据库名
+        gVar.ConUserID = Trim(.Cell(10, 3).Text)    '登陆名
+        gVar.ConPassword = Text1.Text               '登陆密码
+        
+        
     End With
     
     '参数值通过公用变量保存进注册表中
     With gVar
-        Call SaveSetting(.RegAppName, .RegSectionSettings, .RegKeyParaWindowMinHide, IIf(.ParaBlnWindowMinHide, 1, 0))
-        Call SaveSetting(.RegAppName, .RegSectionSettings, .RegKeyParaWindowCloseMin, IIf(.ParaBlnWindowCloseMin, 1, 0))
+        Call SaveSetting(.RegAppName, .RegSectionSettings, .RegKeyParaWindowCloseMin, IIf(.ParaBlnWindowCloseMin, 1, 0))    '关闭时最小化
+        Call SaveSetting(.RegAppName, .RegSectionSettings, .RegKeyParaWindowMinHide, IIf(.ParaBlnWindowMinHide, 1, 0))  '最小化时隐藏
+        
+        Call SaveSetting(.RegAppName, .RegSectionTCP, .RegKeyTCPPort, .TCPSetPort)  '侦听端口
+        
+        Call SaveSetting(.RegAppName, .RegSectionDBServer, .RegKeyDBServerIP, .ConSource)
+        Call SaveSetting(.RegAppName, .RegSectionDBServer, .RegKeyDBServerDatabase, EncryptString(.ConDatabase, .EncryptKey)) '数据库名
+        Call SaveSetting(.RegAppName, .RegSectionDBServer, .RegKeyDBServerAccount, EncryptString(.ConUserID, .EncryptKey)) '登陆名
+        Call SaveSetting(.RegAppName, .RegSectionDBServer, .RegKeyDBServerPassword, EncryptString(.ConPassword, .EncryptKey)) '登陆密码
         
     End With
+    
+    Call msLoadParameter(True)  '窗口重新加载一次保存后的值
     
     If MsgBox("参数保存完成！是否现在退出窗口？", vbInformation + vbYesNo, "提示") = vbYes Then Unload Me
     
@@ -156,7 +176,7 @@ End Sub
 Private Sub Text1_KeyPress(KeyAscii As Integer)
     Select Case KeyAscii
         Case 48 To 57, 65 To 90, 97 To 122  '0-9,A-Z,a-z
-            Debug.Print KeyAscii & ":" & Chr(KeyAscii)
+'            Debug.Print KeyAscii & ":" & Chr(KeyAscii)
         Case Else
             KeyAscii = 0    '密码：限制字母数字以外的输入
     End Select

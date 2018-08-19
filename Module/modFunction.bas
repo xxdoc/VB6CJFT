@@ -439,18 +439,31 @@ Public Function gfFormLoad(ByVal strFormName As String) As Boolean
     
 End Function
 
+Public Function gfGetReg(ByVal AppName As String, ByVal Section As String, ByVal Key As String, _
+        Optional ByVal Default As String = "abc", Optional ByVal BackDefault As Boolean = True) As String
+    '使GetSetting函数返回的字符串值不为空
+    Dim strGet As String
+    
+    strGet = GetSetting(AppName, Section, Key, Default)
+    If BackDefault Then
+        If Len(Trim(strGet)) = 0 Then strGet = Default    '当获取值为空字符时也返回默认值
+    End If
+    gfGetReg = strGet
+    
+End Function
+
 
 Public Function gfIsTreeViewChild(ByRef nodeDad As MSComctlLib.Node, ByVal strKey As String) As Boolean
     '判断传入Key值是不是自己的子结点
     
-    Dim I As Long, C As Long
+    Dim i As Long, C As Long
     Dim nodeSon As MSComctlLib.Node
     
     C = nodeDad.Children
     If C = 0 Then Exit Function
 
-    For I = 1 To C
-        If I = 1 Then
+    For i = 1 To C
+        If i = 1 Then
             Set nodeSon = nodeDad.Child
         Else
             Set nodeSon = nodeSon.Next
@@ -477,14 +490,14 @@ Public Function gfStringCheck(ByVal strIn As String) As String
     '''敏感字符检测
     
     Dim arrStr As Variant
-    Dim I As Long
+    Dim i As Long
     
     arrStr = Array(";", "--", "'", "//", "/*", "*/", "select", "update", _
                    "delete", "insert", "alter", "drop", "create")
     strIn = LCase(strIn)
-    For I = LBound(arrStr) To UBound(arrStr)
-        If InStr(strIn, arrStr(I)) > 0 Then
-            gfStringCheck = arrStr(I)
+    For i = LBound(arrStr) To UBound(arrStr)
+        If InStr(strIn, arrStr(i)) > 0 Then
+            gfStringCheck = arrStr(i)
             Exit Function
         End If
     Next
