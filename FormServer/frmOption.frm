@@ -56,6 +56,7 @@ Private Sub msLoadParameter(Optional ByVal blnLoad As Boolean = True)
         .Cell(2, 5).Text = gVar.ParaBlnWindowMinHide    '最小化时隐藏
         
         .Cell(5, 3).Text = gVar.TCPSetPort  '侦听端口
+        .Cell(5, 5).Text = gVar.ParaBlnAutoStartupAtBoot   '开机自动启动
         
         .Cell(8, 3).Text = gVar.ConSource   '服务器名称/IP
         .Cell(8, 7).Text = gVar.ConDatabase '数据库名
@@ -80,6 +81,7 @@ Private Sub msSaveParameter(Optional ByVal blnSave As Boolean = True)
         
         TempVal = Val(.Cell(5, 3).Text)                 '侦听端口
         gVar.TCPSetPort = IIf(TempVal < 10000, gVar.TCPDefaultPort, TempVal)
+        gVar.ParaBlnAutoStartupAtBoot = .Cell(5, 5).Text    '开机自动启动
         
         gVar.ConSource = gfCheckIP(Trim(.Cell(8, 3).Text))    '服务器名称/IP
         gVar.ConDatabase = Trim(.Cell(8, 7).Text)   '数据库名
@@ -95,6 +97,12 @@ Private Sub msSaveParameter(Optional ByVal blnSave As Boolean = True)
         Call SaveSetting(.RegAppName, .RegSectionSettings, .RegKeyParaWindowMinHide, IIf(.ParaBlnWindowMinHide, 1, 0))  '最小化时隐藏
         
         Call SaveSetting(.RegAppName, .RegSectionTCP, .RegKeyTCPPort, .TCPSetPort)  '侦听端口
+        If .ParaBlnAutoStartupAtBoot Then   '注册表中添加启动项
+            .ParaBlnAutoStartupAtBoot = gfStartUpSet(True, RegWrite)
+        Else    '注册表中删除启动项
+            Call gfStartUpSet(True, RegDelete)
+        End If
+        Call SaveSetting(.RegAppName, .RegSectionSettings, .RegKeyParaAutoStartupAtBoot, IIf(.ParaBlnAutoStartupAtBoot, 1, 0)) '开机自动启动
         
         Call SaveSetting(.RegAppName, .RegSectionDBServer, .RegKeyDBServerIP, .ConSource)
         Call SaveSetting(.RegAppName, .RegSectionDBServer, .RegKeyDBServerDatabase, EncryptString(.ConDatabase, .EncryptKey)) '数据库名

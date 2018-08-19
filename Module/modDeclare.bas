@@ -205,6 +205,7 @@ Public Type gtypeCommonVariant
     TCPConnectMax As Long    '最大连接数
     TCPDefaultIP As String      '默认IP地址
     TCPDefaultPort As Long      '默认端口号
+    TCPWaitTime As Long     '连接确认等待时间
     
     TCPStateConnected As Boolean     '连接成功标识
     TCPStateServerStarted As Boolean '服务器启动标识
@@ -242,7 +243,10 @@ Public Type gtypeCommonVariant
     
     PTClientConfirm As String   '协议：客户端确认
     PTClientIsTrue As String    '协议：客户端给服务端的确认
-    PTWaitTime As Long
+    
+    PTClientUserComputerName As String  '协议：客户端计算机名
+    PTClientUserLoginName As String '协议：客户端用户登陆名
+    PTClientUserFullName As String  '协议：客户端用户姓名
     
     EXENameOfClient As String   '客户端程序exe文件名
     EXENameOfUpdate As String   '更新端程序exe文件名
@@ -288,6 +292,7 @@ Public Type gtypeCommonVariant
     RegKeyParaWindowMinHide As String   '参数Key-窗口最小化隐藏
     RegKeyParaWindowCloseMin As String  '参数Key-窗口点击关闭时默认最小化
     RegKeyParaAutoReStartServer As String   '服务端是否自动重启服务
+    RegKeyParaAutoStartupAtBoot As String   '开机自动启动
     
     AppPath As String           'App路径，确保最后字符为"\"
     FolderNameTemp As String    '文件夹名称：Temp
@@ -323,6 +328,9 @@ Public Type gtypeCommonVariant
     FuncControl As String   '功能类别：其它控件
     FuncMainMenu As String  '功能类别：主菜单
     
+    Formaty_M_dH_m_s As String  '时间格式yyyy-MM-dd HH:mm:ss
+    Formatymdhms As String       '时间格式yyyyMMddHHmmss
+    
     WindowWidth As Long     '窗口默认宽度
     WindowHeight As Long    '窗口默认高度
     
@@ -331,6 +339,7 @@ Public Type gtypeCommonVariant
     ParaBlnWindowMinHide As Boolean '主窗口最小化时是否隐藏
     ParaBlnWindowCloseMin As Boolean    '主窗口点击关闭按钮时最小化
     ParaBlnAutoReStartServer As Boolean '服务端程序断开服务时自动重新开启服务
+    ParaBlnAutoStartupAtBoot As Boolean ' 开机自动启动
     
 End Type
 

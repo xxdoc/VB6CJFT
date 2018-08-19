@@ -635,6 +635,51 @@ Public Function gfShellExecute(ByVal strFile As String) As Boolean
 End Function
 
 
+Public Function gfStartUpSet(Optional ByVal blnSet As Boolean = True, Optional ByVal OpType As genumRegOperateType = RegRead) As Boolean
+    '开机自启动设置三个操作：读取、添加、删除
+    
+    Dim strReg As String, strCur As String
+    Dim blnReg As Boolean
+    
+    If Not blnSet Then Exit Function    '不进行任何操作
+    
+    strCur = Chr(34) & gVar.AppPath & App.EXEName & ".exe" & Chr(34) & "-s"
+    blnReg = gfRegOperate(HKEY_LOCAL_MACHINE, HKEY_USER_RUN, App.EXEName, REG_SZ, strReg, RegRead)
+    If blnReg Then
+        If LCase(strCur) = LCase(strReg) Then   '已存在
+            gfStartUpSet = True
+        Else    '不存在
+            blnReg = False
+'''Debug.Print LCase(strCur),LCase(strReg)
+        End If
+    End If
+    If OpType = RegWrite Then   '添加启动项
+        If blnReg Then
+            gfStartUpSet = True
+        Else
+            blnReg = gfRegOperate(HKEY_LOCAL_MACHINE, HKEY_USER_RUN, App.EXEName, REG_SZ, strCur, RegWrite)
+            If blnReg Then
+                gfStartUpSet = True
+            Else
+                Call gsAlarmAndLog("设置开机自动启动项失败！")
+                gfStartUpSet = False
+            End If
+        End If
+    ElseIf OpType = RegDelete Then  '删除启动项
+        If blnReg Then
+            blnReg = gfRegOperate(HKEY_LOCAL_MACHINE, HKEY_USER_RUN, App.EXEName, REG_SZ, strCur, RegDelete)
+            If blnReg Then
+                gfStartUpSet = True
+            Else
+                Call gsAlarmAndLog("删除开机自动启动项失败！")
+                gfStartUpSet = False
+            End If
+        Else
+            gfStartUpSet = True
+        End If
+    End If
+End Function
+
 Public Function gfVersionCompare(ByVal strVerCL As String, ByVal strVerSV As String) As String
     '新旧版本号比较
     Dim ArrCL() As String, ArrSV() As String

@@ -141,14 +141,15 @@ Public Sub Main()
     '公用变量值初始化
     With gVar
         
-        .TCPConnectMax = 20
+        .TCPConnectMax = 20 '单位个
         .TCPDefaultIP = "127.0.0.1"
         .TCPDefaultPort = 19898
+        .TCPWaitTime = 3    '单位秒
                 
         .FTChunkSize = 5734
-        .FTWaitTime = 5
+        .FTWaitTime = 3     '单位秒
         
-        .EncryptKey = "[FT]"
+        .EncryptKey = "[FT]"    '密钥
         
         .ServerButtonClose = "关闭服务"
         .ServerButtonStart = "开启服务"
@@ -178,7 +179,10 @@ Public Sub Main()
         
         .PTClientConfirm = "<ClientConfirm>"
         .PTClientIsTrue = "<ClientIsTrue>"
-        .PTWaitTime = 2
+        
+        .PTClientUserComputerName = "<ClientUserComputerName>"
+        .PTClientUserFullName = "<ClientUserFullName>"
+        .PTClientUserLoginName = "<ClientUserLoginName>"
         
         .EXENameOfClient = "FFC.exe"
         .EXENameOfServer = "FFS.exe"
@@ -221,6 +225,7 @@ Public Sub Main()
         .RegKeyParaWindowMinHide = "WindowMinHide"
         .RegKeyParaWindowCloseMin = "WindowCloseMin"
         .RegKeyParaAutoReStartServer = "AutoReStartServer"
+        .RegKeyParaAutoStartupAtBoot = "AutoStartupAtBoot"
         
         .AppPath = App.Path & IIf(Right(App.Path, 1) = "\", "", "\")
         
@@ -239,6 +244,9 @@ Public Sub Main()
         .FuncControl = "其它"
         .FuncForm = "窗口"
         .FuncMainMenu = "主菜单"
+        
+        .Formaty_M_dH_m_s = "yyyy-MM-dd HH:mm:ss"   '时间格式
+        .Formatymdhms = "yyyyMMddHHmmss"
         
         .WindowHeight = 8700
         .WindowWidth = 15800
@@ -305,7 +313,7 @@ Public Sub gsFileWrite(ByVal strFile As String, ByVal strContent As String, _
             Open strFile For Append As #intNum
     End Select
     
-    strTime = Format(Now, "yyyy-MM-dd hh:mm:ss")
+    strTime = Format(Now, gVar.Formaty_M_dH_m_s)
     Select Case WriteMode
         Case udWrite
             Write #intNum, strTime, strContent
@@ -596,7 +604,7 @@ Public Sub gsGridExportTo(ByRef gridControl As FlexCell.Grid, ByVal ExportID As 
             Call gsAlarmAndLogEx(gVar.FolderNameTemp & "  文件夹创建失败！无法缓存文件！", "导出警告")
             Exit Sub
         End If
-        strFileName = gVar.FolderNameTemp & Format(Now, "yyyyMMddHHmmss_") & strFileName & strFileType
+        strFileName = gVar.FolderNameTemp & Format(Now, gVar.Formatymdhms & "_") & strFileName & strFileType
         If MsgBox("确定导出当前表格内容为" & strMsg & "文件吗？", vbQuestion + vbOKCancel, "导出询问") = vbCancel Then Exit Sub
         
         Select Case ExportID
@@ -630,7 +638,7 @@ Public Sub gsGridToText(ByRef gridControl As Control)
     For i = 1 To 8
         strFileName = strFileName & gfBackOneChar(udNumber + udUpperCase) '文件名中的8个随机字符，不含小写字母
     Next
-    strFileName = gVar.FolderNameTemp & Format(Now, "yyyyMMddHHmmss_") & strFileName & ".txt"
+    strFileName = gVar.FolderNameTemp & Format(Now, gVar.Formatymdhms & "_") & strFileName & ".txt"
     If Not gfFileRepair(strFileName) Then
         Call gsAlarmAndLogEx("创建" & strFileName & "文件失败！", "文件生成警告")
         Exit Sub
@@ -903,31 +911,6 @@ Public Sub gsStartProgressBar(ByVal CurVal As Long, Optional ByVal MinVal As Lon
     Set paneBar = Nothing
     Set PaneTxt = Nothing
     Set cbsBars = Nothing
-End Sub
-
-Public Sub gsStartUpSet(Optional ByVal blnSet As Boolean = True)
-    
-    '开机自启动设置
-    Dim strReg As String, strCur As String
-    Dim blnReg As Boolean
-    
-    If Not blnSet Then Exit Sub
-    strCur = Chr(34) & gVar.AppPath & App.EXEName & ".exe" & Chr(34) & "-s"
-    blnReg = gfRegOperate(HKEY_LOCAL_MACHINE, HKEY_USER_RUN, App.EXEName, REG_SZ, strReg, RegRead)
-    If blnReg Then
-        If LCase(strCur) <> LCase(strReg) Then
-            blnReg = False
-'''Debug.Print LCase(strCur),LCase(strReg)
-        End If
-    End If
-    If Not blnReg Then
-        blnReg = gfRegOperate(HKEY_LOCAL_MACHINE, HKEY_USER_RUN, App.EXEName, REG_SZ, strCur, RegWrite)
-        If Not blnReg Then
-            '记录设置开机自动启动失败
-            Call gsAlarmAndLog("设置开机自动启动失败！")
-        End If
-    End If
-    
 End Sub
 
 Public Sub gsThemeCommandBar(ByVal CID As Long, ByRef cbsBars As XtremeCommandBars.CommandBars)

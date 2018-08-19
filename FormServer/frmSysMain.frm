@@ -421,7 +421,7 @@ Private Sub msAddAction(ByRef cbsBars As XtremeCommandBars.CommandBars)
     Set cbsActions = cbsBars.Actions
     cbsBars.EnableActions   '启用CommandBars的Actions集合
     
-'    cbsActions.Add "Id", "Caption", "TooltipText", "DescriptionText", "Category"
+'    cbsActions.Add "Id", "Caption", "TooltipText", "DescriptionText", "Category"   '范例
     With cbsActions
         .Add gID.Sys, "系统", "", "", "系统"
         
@@ -502,7 +502,35 @@ Private Sub msAddAction(ByRef cbsBars As XtremeCommandBars.CommandBars)
         Next
     End With
     
+    Set cbsAction = Nothing
+    Set cbsActions = Nothing
 End Sub
+
+Private Sub msAddConnectToGrid(ByRef sckAdd As MSWinsockLib.Winsock)
+    '添加连接信息至表格中
+    
+    Dim K As Long, C As Long
+    
+    With Me.Grid1
+        .AutoRedraw = False
+        C = .Rows - 1
+        For K = 1 To C  '寻找可用空行
+            If Len(.Cell(K, 1).Text) = 0 Then Exit For
+        Next
+        If K = C + 1 Then   '表格已满，添加新行
+            .Rows = .Rows + 1
+        End If
+        .Cell(K, 1).Text = sckAdd.RemoteHostIP
+        .Cell(K, 2).Text = sckAdd.RemoteHost
+        .Cell(K, 5).Text = Format(Now, gVar.Formaty_M_dH_m_s)
+        .Cell(K, 6).Text = sckAdd.Index
+        .Cell(K, 7).Text = sckAdd.Tag
+        .AutoRedraw = True
+        .Refresh
+    End With
+    
+End Sub
+
 
 Private Sub msAddDesignerControls(ByRef cbsBars As XtremeCommandBars.CommandBars)
     'CommandBars自定义对话框中内容项的添加
@@ -519,6 +547,9 @@ Private Sub msAddDesignerControls(ByRef cbsBars As XtremeCommandBars.CommandBars
         End If
     Next
     
+    Set cbsControls = Nothing
+    Set cbsAction = Nothing
+    Set cbsActions = Nothing
 End Sub
 
 Private Sub msAddKeyBindings(ByRef cbsBars As XtremeCommandBars.CommandBars)
@@ -536,7 +567,6 @@ Private Sub msAddMenu(ByRef cbsBars As XtremeCommandBars.CommandBars)
     Dim cbsMenuBar As XtremeCommandBars.MenuBar
     Dim cbsMenuMain As XtremeCommandBars.CommandBarPopup
     Dim cbsMenuCtrl As XtremeCommandBars.CommandBarControl
-    
     
     Set cbsMenuBar = cbsBars.ActiveMenuBar
     cbsMenuBar.ShowGripper = False  '不显示可拖动的那个点点标记
@@ -594,12 +624,14 @@ Private Sub msAddMenu(ByRef cbsBars As XtremeCommandBars.CommandBars)
     Set cbsMenuMain = cbsMenuBar.Controls.Add(xtpControlPopup, gID.Help, "")
     cbsMenuMain.CommandBar.Controls.Add xtpControlButton, gID.HelpAbout, ""
     
+    Set cbsMenuBar = Nothing
+    Set cbsMenuMain = Nothing
+    Set cbsMenuCtrl = Nothing
 End Sub
 
 Private Sub msAddXtrStatusBar(ByRef cbsBars As XtremeCommandBars.CommandBars)
     '创建状态栏
     
-'    Dim mXtrStatusBar As XtremeCommandBars.StatusBar
     Dim cbsActions As XtremeCommandBars.CommandBarActions  'cbs控件Actions集合的引用
     Dim BarPane As XtremeCommandBars.StatusBarPane
     
@@ -658,12 +690,13 @@ Private Sub msAddXtrStatusBar(ByRef cbsBars As XtremeCommandBars.CommandBars)
         If BarPane.ID <> 0 Then BarPane.Alignment = xtpAlignmentCenter
     Next
     
+    Set cbsActions = Nothing
+    Set BarPane = Nothing
 End Sub
 
 Private Sub msAddPopupMenu(ByRef cbsBars As XtremeCommandBars.CommandBars)
     '创建托盘图标右键弹出式菜单
-'    Dim mcbsPopupIcon As XtremeCommandBars.CommandBarPopup
-    
+        
     Set mcbsPopupIcon = cbsBars.Add(cbsBars.Actions(gID.IconPopupMenu).Caption, xtpBarPopup)
     With mcbsPopupIcon.Controls
         .Add xtpControlButton, gID.IconPopupMenuMaxWindow, ""
@@ -711,6 +744,35 @@ Private Sub msAddToolBar(ByRef cbsBars As XtremeCommandBars.CommandBars)
         Next
     End With
     
+    Set cbsBar = Nothing
+    Set cbsCtr = Nothing
+    Set cbsActions = Nothing
+End Sub
+
+Private Sub msStartConfirm(ByVal Index As Integer)
+    '防非客户端来连接服务器，启动对应计时器进行反馈检查
+    Dim tmrConfirm As VB.Timer
+    Dim blnExist As Boolean
+    
+    If Index = 0 Then
+        MsgBox "计时器Index值非法传入！", vbCritical, "防意外建立连接警报"
+        Exit Sub
+    End If
+    
+    For Each tmrConfirm In Me.Timer1    '防意外，检查是否已存在该计时器
+        If tmrConfirm.Index = Index Then
+            blnExist = True
+            Exit For
+        End If
+    Next
+    
+    With Me.Timer1
+        If Not blnExist Then Load .Item(Index) '不存在指定Index的控件时才加载
+        .Item(Index).Interval = 1000    '计时器间隔
+        .Item(Index).Enabled = True '激活计时
+    End With
+    
+    Set tmrConfirm = Nothing
 End Sub
 
 Private Sub msStartServer(ByRef sckCon As MSWinsockLib.Winsock)
@@ -746,8 +808,85 @@ Private Sub msSetServerState(ByVal colorSet As Long)
         paneButton.Text = gVar.ServerButtonStart
         paneButton.TextColor = vbBlue ' vbGreen
     End If
+    
     Set paneState = Nothing
     Set paneButton = Nothing
+End Sub
+
+Private Sub msCloseAllConnect(Optional ByVal blnClose As Boolean = True, _
+                              Optional ByVal blnCloseListen As Boolean = True)
+    '关闭所有客户端连接
+    Dim sckDel As MSWinsockLib.Winsock
+    
+    If Not blnClose Then Exit Sub   '不执行关闭
+    
+    For Each sckDel In Me.Winsock1
+        If sckDel.Index = 0 Then
+            If blnCloseListen Then
+                sckDel.Close    '关闭侦听
+            End If
+        Else
+            If sckDel.State <> 0 Then sckDel.Close  '先关闭连接
+            gArr(sckDel.Index) = gArr(0)    '清空对应数组信息
+            Unload sckDel   '卸载对应控件
+        End If
+    Next
+    
+    With Me.Grid1
+        .AutoRedraw = False
+        .ReadOnly = False   '不取消锁定好像清除不了表格中内容。但可写入？
+        .Range(1, 1, .Rows - 1, .Cols - 1).ClearText
+        .ReadOnly = True
+        .AutoRedraw = True
+        .Refresh
+    End With
+'Debug.Print "msCloseAllConnect(" & blnClose & "," & blnCloseListen & ")"
+    Set sckDel = Nothing
+End Sub
+
+Private Sub msGetClientInfo(ByVal strInfo As String, ByVal Index As Long)
+    '将客户端发来的信息：计算机名、用户登陆系统名、用户姓名填入表格中
+    '注意：客户端发来信息顺序固定为计算机名--用户登陆系统名--用户姓名
+    Dim strPC As String, strLogin As String, strFull As String
+    Dim LocPC As Long, LocLogin As Long, LocFull As Long, lngTemp As Long, C As Long
+    
+    With gVar
+        LocPC = InStr(strInfo, .PTClientUserComputerName)
+        LocLogin = InStr(strInfo, .PTClientUserLoginName)
+        LocFull = InStr(strInfo, .PTClientUserFullName)
+        
+        If LocPC > 0 And LocLogin > LocPC Then
+            lngTemp = LocPC + Len(.PTClientUserComputerName)
+            strPC = Mid(strInfo, lngTemp, LocLogin - lngTemp)
+        End If
+        
+        If LocLogin > LocPC And LocFull > LocLogin Then
+            lngTemp = LocLogin + Len(.PTClientUserLoginName)
+            strLogin = Mid(strInfo, lngTemp, LocFull - lngTemp)
+        End If
+        
+        If LocFull > LocLogin Then
+            lngTemp = LocFull + Len(.PTClientUserFullName)
+            strFull = Mid(strInfo, lngTemp)
+        End If
+    End With
+    
+    With Me.Grid1
+        .AutoRedraw = False
+        .ReadOnly = False
+        C = .Rows - 1
+        For lngTemp = 1 To C
+            If Val(.Cell(lngTemp, 6).Text) = Index Then
+                .Cell(lngTemp, 2).Text = strPC
+                .Cell(lngTemp, 3).Text = strLogin
+                .Cell(lngTemp, 4).Text = strFull
+                Exit For
+            End If
+        Next
+        .AutoRedraw = True
+        .ReadOnly = True
+        .Refresh
+    End With
 End Sub
 
 Private Sub msGridSet(ByRef gridSet As FlexCell.Grid)
@@ -755,22 +894,25 @@ Private Sub msGridSet(ByRef gridSet As FlexCell.Grid)
         .AutoRedraw = False
         .Appearance = Flat
         .BackColorBkg = Me.BackColor
-'        .GridColor = vbBlack
         .DisplayRowIndex = True
         .ExtendLastCol = True
-'''        .ReadOnly = True    '禁止表格编辑
+        .ReadOnly = True    '禁止表格编辑
         
-        .Cols = 8
+        .Cols = 9
         .Rows = 50
         .Cell(0, 0).Text = "序号"
         .Cell(0, 1).Text = "连接用户IP地址"
-        .Cell(0, 2).Text = "连接标识"
-        .Cell(0, 3).Text = "连接号"
-        .Cell(0, 4).Text = "登陆账号"
-        .Cell(0, 5).Text = "用户姓名"
-        .Cell(0, 6).Text = "连接建立时间"
+        .Cell(0, 2).Text = "连接用户计算机名称"
+        .Cell(0, 3).Text = "连接用户登陆账号"
+        .Cell(0, 4).Text = "连接用户姓名"
+        .Cell(0, 5).Text = "连接建立时间"
+        .Cell(0, 6).Text = "Index"
+        .Cell(0, 7).Text = "RequestID"
         .Column(1).Width = 120
-        .Column(6).Width = 120
+        .Column(2).Width = 130
+        .Column(3).Width = 130
+        .Column(4).Width = 120
+        .Column(5).Width = 120
         .RowHeight(0) = 40
         .Range(0, 0, 0, .Cols - 1).WrapText = True
 
@@ -857,22 +999,25 @@ Public Sub msLeftClick(ByVal CID As Long, ByRef cbsBars As XtremeCommandBars.Com
         End Select
     End With
     
+    Set cbsActions = Nothing
 End Sub
 
 Private Sub msLoadParameter(Optional ByVal blnLoad As Boolean = True)
     '从注册表中加载参数值至公用变量中
     
     If Not blnLoad Then Exit Sub
-    On Error Resume Next
+    
+    On Error Resume Next    '加/解密函数过程可能有异常
     With gVar
         .ParaBlnWindowCloseMin = Val(GetSetting(.RegAppName, .RegSectionSettings, .RegKeyParaWindowCloseMin, 1))    '关闭时最小化
         .ParaBlnWindowMinHide = Val(GetSetting(.RegAppName, .RegSectionSettings, .RegKeyParaWindowMinHide, 1))  '最小化时隐藏
-                
+        
         .TCPDefaultIP = Me.Winsock1.Item(0).LocalIP '本机IP地址
         .TCPSetIP = gVar.TCPDefaultIP   '服务端使用本机IP地址
-        .TCPSetPort = Val(GetSetting(.RegAppName, .RegSectionTCP, .RegKeyTCPPort, gVar.TCPDefaultPort)) '侦听端口
         .ParaBlnAutoReStartServer = Val(GetSetting(.RegAppName, .RegSectionTCP, .RegKeyParaAutoReStartServer, 1))   '手动/自动重启服务模式
-
+        .TCPSetPort = Val(GetSetting(.RegAppName, .RegSectionTCP, .RegKeyTCPPort, gVar.TCPDefaultPort)) '侦听端口
+        .ParaBlnAutoStartupAtBoot = Val(GetSetting(.RegAppName, .RegSectionSettings, .RegKeyParaAutoStartupAtBoot, 0))  '开机自动启动
+        
         .ConSource = gfCheckIP(gfGetReg(.RegAppName, .RegSectionDBServer, .RegKeyDBServerIP, .TCPSetIP))   '服务器名称/IP
         .ConDatabase = DecryptString(gfGetReg(.RegAppName, .RegSectionDBServer, .RegKeyDBServerDatabase, EncryptString("dbTest", .EncryptKey)), .EncryptKey)    '数据库名
         .ConUserID = DecryptString(gfGetReg(.RegAppName, .RegSectionDBServer, .RegKeyDBServerAccount, EncryptString("123", .EncryptKey)), .EncryptKey)  '登陆名
@@ -897,7 +1042,8 @@ Private Sub msResetLayout(ByRef cbsBars As XtremeCommandBars.CommandBars)
         cbsBars.GetClientRect L, T, R, b
         cbsBars.DockToolBar cbsBars(mlngID), 0, b, xtpBarTop
     Next
-
+    
+    Set cBar = Nothing
 End Sub
 
 Private Sub CommandBars1_Execute(ByVal Control As XtremeCommandBars.ICommandBarControl)
@@ -963,11 +1109,9 @@ Private Sub Form_Load()
     
     
     Call msGridSet(Grid1)  '表格设置
-    Call gsStartUpSet(False)    '是否向注册表中添加开机自动启动项*******************
     Call gfNotifyIconAdd(Me)    '添加托盘图标
     
     Set cbsBars = Nothing   '销毁使用完的对象
-    
 End Sub
 
 Private Sub Form_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
@@ -1032,15 +1176,15 @@ Private Sub Form_Unload(Cancel As Integer)
     Call gsFormSizeSave(Me) '保存注册表信息-窗口位置大小
     Call gsSaveCommandbarsTheme(Me.CommandBars1)   '保存CommandBars的风格主题
     
-    
     gVar.CloseWindow = False    '清除关闭窗口状态
     Call SkinFramework1.LoadSkin("", "")    '清空皮肤
     Set mXtrStatusBar = Nothing  '清除状态栏
     Set mcbsPopupIcon = Nothing '清除Popup菜单
     Call gfNotifyIconDelete(Me) '删除托盘图标
     gNotifyIconData = resetNotifyIconData   '清空托盘气泡信息。否则重启程序时会自动弹出？而且只能放上句删除托盘图标语句的后面?
+    ReDim gArr(0)
     Set gWind = Nothing '清除全局窗体引用
-
+    
 End Sub
 
 Private Sub mXtrStatusBar_PaneClick(ByVal Pane As XtremeCommandBars.StatusBarPane)
@@ -1052,7 +1196,7 @@ Private Sub mXtrStatusBar_PaneClick(ByVal Pane As XtremeCommandBars.StatusBarPan
         If MsgBox("是否" & Pane.Text & "？" & strMsg, vbQuestion + vbYesNo, "重启/断开服务询问") = vbNo Then Exit Sub
         If Pane.Text = gVar.ServerButtonClose Then     '关闭服务
             Pane.Text = gVar.ServerButtonStart
-            Me.Winsock1.Item(0).Close
+            Call msCloseAllConnect(True, True)
         ElseIf Pane.Text = gVar.ServerButtonStart Then     '开启服务
             Pane.Text = gVar.ServerButtonClose
             Call msStartServer(Me.Winsock1.Item(0))
@@ -1071,12 +1215,16 @@ End Sub
 
 Private Sub Timer1_Timer(Index As Integer)
     'Index=0的计时器间隔1秒。Timer1的Index值 与 Winsock1的Index对应
-        
-    If Index = 0 Then
-        With Me.Winsock1.Item(Index)
+    Dim sckClose As MSWinsockLib.Winsock, sckCheck As MSWinsockLib.Winsock
+    Static CheckConnectTime As Long
+    Static ConfirmTime() As Long
+    
+    On Error Resume Next
+    With Me.Winsock1.Item(Index)
+        If Index = 0 Then
             If .State = 2 Then  '侦听正常状态
                 Call msSetServerState(vbGreen)
-            Else
+            Else    '其它状态
                 If .State = 9 Then  '异常状态
                     Call msSetServerState(vbRed)
                 Else    '关闭等
@@ -1086,7 +1234,208 @@ Private Sub Timer1_Timer(Index As Integer)
                     Call msStartServer(Me.Winsock1.Item(0))
                 End If
             End If
+            
+            '当客户端非正常关闭时，连接不会自动断开，此处每隔一段时间检查一次所有连接的状态，不等于7则关闭掉连接
+            CheckConnectTime = CheckConnectTime + 1
+            If CheckConnectTime > 5 Then
+                For Each sckCheck In Me.Winsock1
+                    If sckCheck.Index <> 0 Then
+                        If sckCheck.State <> 7 Then
+                            Call Winsock1_Close(sckCheck.Index) 'sckCheck.Close
+                            Debug.Print "CheckConnect:" & sckCheck.Index
+                        End If
+                    End If
+                Next
+                CheckConnectTime = 0
+            End If
+            '''index=0计时器为服务端自身检查用
+        
+        Else
+            '''index>0为各个客户端连接检查用
+            
+            ReDim Preserve ConfirmTime(Me.Timer1.UBound)
+            ConfirmTime(Index) = ConfirmTime(Index) + 1
+            If ConfirmTime(Index) > gVar.TCPWaitTime Then
+                If Not gArr(Index).Connected Then
+                    For Each sckClose In Me.Winsock1
+                        If sckClose.Index = Index Then
+                            Call Winsock1_Close(sckClose.Index) 'sckClose.Close
+                            Exit For
+                        End If
+                    Next
+                End If
+                ConfirmTime(Index) = 0      '计时清零
+                Me.Timer1.Item(Index).Enabled = False
+                Unload Me.Timer1.Item(Index)    '检查完卸载掉对应计时器控件
+            End If
+        End If
+    End With
+    
+    Set sckClose = Nothing
+    Set sckCheck = Nothing
+End Sub
+
+Private Sub Winsock1_Close(Index As Integer)
+    '关闭连接
+    Dim K As Long, C As Long
+    Dim strIP As String, strRequestID As String
+    
+    On Error Resume Next
+    If Index = 0 Then
+        Call msCloseAllConnect(True, False)  '关闭侦听控件则关闭所有连接
+    Else
+        With Me.Grid1
+            .AutoRedraw = False
+            .ReadOnly = False   '先取消锁定
+            C = .Rows - 1
+            For K = 1 To C
+                strIP = Trim(.Cell(K, 1).Text)
+                strRequestID = Trim(.Cell(K, 7).Text)
+                If Len(strIP) > 0 Then
+                    If (strIP = Me.Winsock1.Item(Index).RemoteHostIP) And _
+                            (strRequestID = Me.Winsock1.Item(Index).Tag) Then   '有可能同一IP登陆多个客户端，故以RequestID区分
+                        .RemoveItem K   '移除对应行信息
+                        .AddItem ""     '末尾添加一行维持表格行数不变
+                        Unload Me.Winsock1.Item(Index)  '卸载断开的客户端的连接控件
+                        gArr(Index) = gArr(0)   '清除数组
+                        If Not Me.Timer1.Item(Index) Is Nothing Then Unload Me.Timer1.Item(Index)   '卸载对应计时器
+                        Close   '关闭所有打开的文件
+'                        Debug.Print "Winsock_Close:" & Index
+                        Exit For
+                    End If
+                End If
+            Next
+            .AutoRedraw = True
+            .ReadOnly = True
+            .Refresh
         End With
     End If
+    
+End Sub
+
+Private Sub Winsock1_ConnectionRequest(Index As Integer, ByVal requestID As Long)
+    '建立连接
+    
+    Dim sckNew As MSWinsockLib.Winsock
+    Dim K As Long
+    
+    If Index <> 0 Then Exit Sub '仅0元素的控件在侦听能接收连接申请
+    
+    If Me.Winsock1.Count > gVar.TCPConnectMax Then
+        Call gsAlarmAndLog("客户端发送的申请连接数已超过最大值" & CStr(gVar.TCPConnectMax), False)
+        Exit Sub
+    End If
+    
+    '查找Winsock1中可用的最小的Index值
+    For Each sckNew In Winsock1
+        If sckNew.Index = K Then
+            K = K + 1
+        Else    '说明Index断号不连续了
+            Exit For
+        End If
+    Next
+    
+    With Winsock1
+        If K = .Count Then ReDim Preserve gArr(K)   '重置数组大小
+        gArr(K) = gArr(0)   '初始化数组元素K。可能被之前建立过的连接使用过
+        
+        Load .Item(K)   '生成Winsock1(K)控件
+        .Item(K).Accept requestID   '指定客户端申请的连接给新生成的Winsock1(K)控件
+        .Item(K).Tag = requestID    '存储该申请号，另作它用
+        
+        Call msAddConnectToGrid(.Item(K)) '将连接添加进表格中
+        
+        Call gfSendInfo(gVar.PTClientConfirm, .Item(K)) '发送客户端确认信息，若规定时间内返回确认信息则连接正常，否则断开连接。
+        Call msStartConfirm(K)  '激活 返回确认信息 计时器
+    End With
+    
+    Set sckNew = Nothing
+End Sub
+
+Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
+    '接收信息
+    Dim strGet As String
+    Dim byteGet() As Byte
+    
+    With gArr(Index)
+        If Not .FileTransmitState Then
+            '字符信息传输状态
+            
+            Me.Winsock1.Item(Index).GetData strGet
+            If Not gfRestoreInfo(strGet, Me.Winsock1.Item(Index)) Then  '传输的文件信息
+                
+            End If
+            
+            If InStr(strGet, gVar.PTClientIsTrue) Then '客户端发回的连接确认信息
+                .Connected = True
+                
+            ElseIf InStr(strGet, gVar.PTVersionOfClient) > 0 Then '接收到客户端版本信息
+                
+            
+            ElseIf InStr(strGet, gVar.PTClientUserComputerName) > 0 Then    '客户端发来的计算机名、用户名等信息
+                Call msGetClientInfo(strGet)
+                
+            ElseIf InStr(strGet, gVar.PTFileStart) > 0 Then '要开始发送文件给客户端
+                Call gfSendInfo(.FilePath, Me.Winsock1.Item(Index))
+                
+            End If
+            Debug.Print "Server GetInfo:" & strGet, bytesTotal
+            
+        '字符信息传输状态
+        Else
+        '文件传输状态
+            
+            If .FileNumber = 0 Then
+                .FileNumber = FreeFile
+                Open .FilePath For Binary As #.FileNumber
+            End If
+            
+            ReDim byteGet(bytesTotal - 1)
+            Me.Winsock1.Item(inex).GetData byteGet, vbArray + vbByte
+            Put #.FileNumber, , byteGet
+            .FileSizeCompleted = .FileSizeCompleted + bytesTotal
+            
+            If .FileSizeCompleted >= .FileSizeTotal Then
+                Close #.FileNumber
+                Call gfSendInfo(gVar.PTFileEnd, Me.Winsock1.Item(Index))
+                gArr(Index) = gArr(0)
+                Debug.Print "Server Received Over"
+            End If
+            
+        End If
+    End With
+    
+End Sub
+
+Private Sub Winsock1_Error(Index As Integer, ByVal Number As Integer, Description As String, ByVal Scode As Long, ByVal Source As String, ByVal HelpFile As String, ByVal HelpContext As Long, CancelDisplay As Boolean)
+    '异常处理
+    
+    If Index = 0 Then
+        Call msCloseAllConnect(True, True)
+    Else
+        If gArr(Index).FileTransmitState Then   '异常时清空文件传输信息
+            Close
+            gArr(Index) = gArr(0)
+        End If
+    End If
+    Debug.Print "ServerWinsockError:" & Index & "--" & Err.Number & "  " & Err.Description
+    
+End Sub
+
+Private Sub Winsock1_SendComplete(Index As Integer)
+    '发送完处理
+    
+    If Index = 0 Then Exit Sub
+    
+    With gArr(Index)
+        If .FileTransmitState Then
+            If .FileSizeCompleted < .FileSizeTotal Then '未发送完则继续发送
+                Call gfSendFile(.FilePath, Me.Winsock1.Item(Index))
+            Else    '发送则完清空传输信息
+                gArr(Index) = gArr(0)
+                Debug.Print "Server Send File Over"
+            End If
+        End If
+    End With
     
 End Sub
