@@ -1,7 +1,7 @@
 VERSION 5.00
 Object = "{248DD890-BB45-11CF-9ABC-0080C7E7B78D}#1.0#0"; "MSWINSCK.OCX"
 Object = "{E08BA07E-6463-4EAB-8437-99F08000BAD9}#1.9#0"; "FlexCell.ocx"
-Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.2#0"; "MSCOMCTL.OCX"
+Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.2#0"; "mscomctl.ocx"
 Object = "{555E8FCC-830E-45CC-AF00-A012D5AE7451}#15.3#0"; "Codejock.CommandBars.v15.3.1.ocx"
 Object = "{BD0C1912-66C3-49CC-8B12-7B347BF6C846}#15.3#0"; "Codejock.SkinFramework.v15.3.1.ocx"
 Begin VB.Form frmSysMain 
@@ -749,70 +749,6 @@ Private Sub msAddToolBar(ByRef cbsBars As XtremeCommandBars.CommandBars)
     Set cbsActions = Nothing
 End Sub
 
-Private Sub msStartConfirm(ByVal Index As Integer)
-    '防非客户端来连接服务器，启动对应计时器进行反馈检查
-    Dim tmrConfirm As VB.Timer
-    Dim blnExist As Boolean
-    
-    If Index = 0 Then
-        MsgBox "计时器Index值非法传入！", vbCritical, "防意外建立连接警报"
-        Exit Sub
-    End If
-    
-    For Each tmrConfirm In Me.Timer1    '防意外，检查是否已存在该计时器
-        If tmrConfirm.Index = Index Then
-            blnExist = True
-            Exit For
-        End If
-    Next
-    
-    With Me.Timer1
-        If Not blnExist Then Load .Item(Index) '不存在指定Index的控件时才加载
-        .Item(Index).Interval = 1000    '计时器间隔
-        .Item(Index).Enabled = True '激活计时
-    End With
-    
-    Set tmrConfirm = Nothing
-End Sub
-
-Private Sub msStartServer(ByRef sckCon As MSWinsockLib.Winsock)
-    '开启服务
-    With sckCon
-        If .State <> 0 Then .Close  '先关闭
-        .LocalPort = gVar.TCPSetPort
-        .Listen
-    End With
-End Sub
-
-Private Sub msSetServerState(ByVal colorSet As Long)
-    '设置状态栏中服务端的状态
-    
-    Dim paneState As XtremeCommandBars.StatusBarPane
-    Dim paneButton As XtremeCommandBars.StatusBarPane
-    
-    Set paneState = mXtrStatusBar.FindPane(gID.StatusBarPaneServerState)
-    Set paneButton = mXtrStatusBar.FindPane(gID.StatusBarPaneServerButton)
-    If colorSet = vbGreen Then
-        paneState.BackgroundColor = vbGreen
-        paneState.Text = gVar.ServerStateStarted
-        paneButton.Text = gVar.ServerButtonClose
-        paneButton.TextColor = vbMagenta 'vbRed
-    ElseIf colorSet = vbRed Then
-        paneState.BackgroundColor = vbRed
-        paneState.Text = gVar.ServerStateError
-        paneButton.Text = gVar.ServerButtonStart
-        paneButton.TextColor = vbBlue ' vbGreen
-    Else
-        paneState.BackgroundColor = vbYellow
-        paneState.Text = gVar.ServerStateNotStarted
-        paneButton.Text = gVar.ServerButtonStart
-        paneButton.TextColor = vbBlue ' vbGreen
-    End If
-    
-    Set paneState = Nothing
-    Set paneButton = Nothing
-End Sub
-
 Private Sub msCloseAllConnect(Optional ByVal blnClose As Boolean = True, _
                               Optional ByVal blnCloseListen As Boolean = True)
     '关闭所有客户端连接
@@ -1044,6 +980,110 @@ Private Sub msResetLayout(ByRef cbsBars As XtremeCommandBars.CommandBars)
     Next
     
     Set cBar = Nothing
+End Sub
+
+Private Sub msSetServerState(ByVal colorSet As Long)
+    '设置状态栏中服务端的状态
+    
+    Dim paneState As XtremeCommandBars.StatusBarPane
+    Dim paneButton As XtremeCommandBars.StatusBarPane
+    
+    Set paneState = mXtrStatusBar.FindPane(gID.StatusBarPaneServerState)
+    Set paneButton = mXtrStatusBar.FindPane(gID.StatusBarPaneServerButton)
+    If colorSet = vbGreen Then
+        paneState.BackgroundColor = vbGreen
+        paneState.Text = gVar.ServerStateStarted
+        paneButton.Text = gVar.ServerButtonClose
+        paneButton.TextColor = vbMagenta 'vbRed
+    ElseIf colorSet = vbRed Then
+        paneState.BackgroundColor = vbRed
+        paneState.Text = gVar.ServerStateError
+        paneButton.Text = gVar.ServerButtonStart
+        paneButton.TextColor = vbBlue ' vbGreen
+    Else
+        paneState.BackgroundColor = vbYellow
+        paneState.Text = gVar.ServerStateNotStarted
+        paneButton.Text = gVar.ServerButtonStart
+        paneButton.TextColor = vbBlue ' vbGreen
+    End If
+    
+    Set paneState = Nothing
+    Set paneButton = Nothing
+End Sub
+
+Private Sub msStartConfirm(ByVal Index As Integer)
+    '防非客户端来连接服务器，启动对应计时器进行反馈检查
+    Dim tmrConfirm As VB.Timer
+    Dim blnExist As Boolean
+    
+    If Index = 0 Then
+        MsgBox "计时器Index值非法传入！", vbCritical, "防意外建立连接警报"
+        Exit Sub
+    End If
+    
+    For Each tmrConfirm In Me.Timer1    '防意外，检查是否已存在该计时器
+        If tmrConfirm.Index = Index Then
+            blnExist = True
+            Exit For
+        End If
+    Next
+    
+    With Me.Timer1
+        If Not blnExist Then Load .Item(Index) '不存在指定Index的控件时才加载
+        .Item(Index).Interval = 1000    '计时器间隔
+        .Item(Index).Enabled = True '激活计时
+    End With
+    
+    Set tmrConfirm = Nothing
+End Sub
+
+Private Sub msStartServer(ByRef sckCon As MSWinsockLib.Winsock)
+    '开启服务
+    With sckCon
+        If .State <> 0 Then .Close  '先关闭
+        .LocalPort = gVar.TCPSetPort
+        .Listen
+    End With
+End Sub
+
+Private Sub msVersionCS(ByVal strVer As String, ByRef sckVer As MSWinsockLib.Winsock)
+    '处理客户端发来的版本信息
+    Dim strVC As String, strVS As String, strCompare As String
+    Dim strNetFile As String, strSetupFile As String
+    
+    strNetFile = gVar.AppPath & gVar.EXENameOfClient    '保存在服务端的对比用的客户端软件exe文件
+    strVS = gfBackVersion(strNetFile)   '获取服务端对比用的客户端版本号
+    strVC = Mid(strVer, Len(gVar.PTVersionOfClient) + 1)    '截取客户端发来的版本号
+    
+    strCompare = gfVersionCompare(strVC, strVS) '比较 客户端发来的 与服务端对比用的 版本号
+    If strCompare = "0" Then    '没有新版本，不用更新
+        Call gfSendInfo(gVar.PTVersionNotUpdate, sckVer)
+    ElseIf strCompare = "1" Then    '有新版，要更新
+        Call gfSendInfo(gVar.PTVersionNeedUpdate & strVS, sckVer)   '通知客户端需要更新
+        
+        '组织并发送更新文件安装程序的信息给客户端
+        gArr(sckVer.Index) = gArr(0)
+        strSetupFile = gVar.AppPath & gVar.EXENameOfSetup
+        If Not gfFileExist(strSetupFile) Then
+            Call gsAlarmAndLog("要发送的更新程序不存在", False)
+            Exit Sub
+        End If
+        With gArr(sckVer.Index)
+            .FileFolder = gVar.FolderNameTemp
+            .FileName = gVar.EXENameOfUpdate
+            .FilePath = strSetupFile
+            .FileSizeTotal = FileLen(.FilePath)
+        End With
+        If sckVer.State = 7 Then
+            If gfSendInfo(gfFileInfoJoin(sckVer.Index, ftSend), sckVer) Then '先发送文件的信息
+                Debug.Print "Server:已发送更新程序的文件信息"
+            End If
+        End If
+        
+    Else    '版本检测异常处理
+        Call gfSendInfo(gVar.PTVersionNotUpdate & strCompare, sckVer)
+        Debug.Print "Server:版本检测异常"
+    End If
 End Sub
 
 Private Sub CommandBars1_Execute(ByVal Control As XtremeCommandBars.ICommandBarControl)
@@ -1361,18 +1401,17 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
         If Not .FileTransmitState Then
             '字符信息传输状态
             
-            Me.Winsock1.Item(Index).GetData strGet
-            If Not gfRestoreInfo(strGet, Me.Winsock1.Item(Index)) Then  '传输的文件信息
-                
-            End If
+            Me.Winsock1.Item(Index).GetData strGet  '先控件接收信息
+            
+            Call gfRestoreInfo(strGet, Me.Winsock1.Item(Index))  '获取发来的是不是文件信息
             
             If InStr(strGet, gVar.PTClientIsTrue) Then '客户端发回的连接确认信息
-                .Connected = True
+                .Connected = True   '设置状态以供计时器判断
                 
             ElseIf InStr(strGet, gVar.PTVersionOfClient) > 0 Then '接收到客户端版本信息
-                
+                Call msVersionCS(strGet, Me.Winsock1.Item(Index))
             
-            ElseIf InStr(strGet, gVar.PTClientUserComputerName) > 0 Then    '客户端发来的计算机名、用户名等信息
+            ElseIf InStr(strGet, gVar.PTClientUserComputerName) > 0 Then '客户端发来的计算机名、用户名等信息
                 Call msGetClientInfo(strGet)
                 
             ElseIf InStr(strGet, gVar.PTFileStart) > 0 Then '要开始发送文件给客户端
@@ -1386,19 +1425,19 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
         '文件传输状态
             
             If .FileNumber = 0 Then
-                .FileNumber = FreeFile
-                Open .FilePath For Binary As #.FileNumber
+                .FileNumber = FreeFile '生成操作文件号
+                Open .FilePath For Binary As #.FileNumber '以二进制方式打开文件
             End If
             
-            ReDim byteGet(bytesTotal - 1)
-            Me.Winsock1.Item(inex).GetData byteGet, vbArray + vbByte
-            Put #.FileNumber, , byteGet
-            .FileSizeCompleted = .FileSizeCompleted + bytesTotal
+            ReDim byteGet(bytesTotal - 1)   '确定字节数组大小
+            Me.Winsock1.Item(inex).GetData byteGet, vbArray + vbByte    '接收文件
+            Put #.FileNumber, , byteGet '写入文件
+            .FileSizeCompleted = .FileSizeCompleted + bytesTotal    '统计已传输文件大小的总量
             
-            If .FileSizeCompleted >= .FileSizeTotal Then
-                Close #.FileNumber
-                Call gfSendInfo(gVar.PTFileEnd, Me.Winsock1.Item(Index))
-                gArr(Index) = gArr(0)
+            If .FileSizeCompleted >= .FileSizeTotal Then    '若接收完成
+                Close #.FileNumber  '关闭操作文件号
+                Call gfSendInfo(gVar.PTFileEnd, Me.Winsock1.Item(Index)) '发送接收完的信号
+                gArr(Index) = gArr(0)   '清空文件信息
                 Debug.Print "Server Received Over"
             End If
             
@@ -1411,7 +1450,7 @@ Private Sub Winsock1_Error(Index As Integer, ByVal Number As Integer, Descriptio
     '异常处理
     
     If Index = 0 Then
-        Call msCloseAllConnect(True, True)
+        Call msCloseAllConnect(True, True)  '侦听控件异常则关闭所有连接。可能没什么用
     Else
         If gArr(Index).FileTransmitState Then   '异常时清空文件传输信息
             Close
@@ -1419,14 +1458,12 @@ Private Sub Winsock1_Error(Index As Integer, ByVal Number As Integer, Descriptio
         End If
     End If
     Debug.Print "ServerWinsockError:" & Index & "--" & Err.Number & "  " & Err.Description
-    
 End Sub
 
 Private Sub Winsock1_SendComplete(Index As Integer)
     '发送完处理
     
-    If Index = 0 Then Exit Sub
-    
+    If Index = 0 Then Exit Sub  '0元素只负责侦听不传输
     With gArr(Index)
         If .FileTransmitState Then
             If .FileSizeCompleted < .FileSizeTotal Then '未发送完则继续发送
@@ -1437,5 +1474,4 @@ Private Sub Winsock1_SendComplete(Index As Integer)
             End If
         End If
     End With
-    
 End Sub

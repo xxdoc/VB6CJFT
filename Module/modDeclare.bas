@@ -534,6 +534,15 @@ Public Enum genumGridExportType 'Flexcell Grid导出文件的类型
     fcXML
 End Enum
 
+Public Enum genumNumber
+    eZero = 0
+    eOne = 1
+    eTwo = 2
+    eThree = 3
+    eFour = 4
+    eFive = 5
+End Enum
+
 
 Public gID As gtypeCommandBarID '主窗体中的全局CommandBars的ID变量
 Public gWind As Form            '全局主窗体引用

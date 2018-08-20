@@ -692,27 +692,27 @@ Public Function gfVersionCompare(ByVal strVerCL As String, ByVal strVerSV As Str
     If K = C And K = 3 Then
         For K = 0 To C
             If Not IsNumeric(ArrCL(K)) Then
-                gfVersionCompare = "客户端版本异常"
+                gfVersionCompare = "客户端版本异常" '返回值
                 Exit For
             End If
             If Not IsNumeric(ArrSV(K)) Then
-                gfVersionCompare = "服务端版本异常"
+                gfVersionCompare = "服务端版本异常" '返回值
                 Exit For
             End If
             
             If Val(ArrSV(K)) > Val(ArrCL(K)) Then
-                gfVersionCompare = "1" '说明有新版本
+                gfVersionCompare = "1" ''返回值说明有新版本
                 Exit For
             End If
         Next
-        If K = C + 1 Then gfVersionCompare = "0" '说明没有新版，不用更新
+        If K = C + 1 Then gfVersionCompare = "0" ''返回值说明没有新版，不用更新
     Else
         If K = 3 And C <> 3 Then
-            gfVersionCompare = "服务端版本获取异常"
+            gfVersionCompare = "服务端版本获取异常" '返回值
         ElseIf C = 3 And K <> 3 Then
-            gfVersionCompare = "客户端版本获取异常"
+            gfVersionCompare = "客户端版本获取异常" '返回值
         Else
-            gfVersionCompare = "版本获取异常"
+            gfVersionCompare = "版本获取异常"   '返回值
         End If
     End If
     
