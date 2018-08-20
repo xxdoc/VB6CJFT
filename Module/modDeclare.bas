@@ -293,6 +293,8 @@ Public Type gtypeCommonVariant
     RegKeyParaWindowCloseMin As String  '参数Key-窗口点击关闭时默认最小化
     RegKeyParaAutoReStartServer As String   '服务端是否自动重启服务
     RegKeyParaAutoStartupAtBoot As String   '开机自动启动
+    RegKeyParaLimitClientConnect As String  '限制客户端连接
+    RegKeyParaLimitClientConnectTime As String '限制客户端连接时长
     
     AppPath As String           'App路径，确保最后字符为"\"
     FolderNameTemp As String    '文件夹名称：Temp
@@ -339,7 +341,9 @@ Public Type gtypeCommonVariant
     ParaBlnWindowMinHide As Boolean '主窗口最小化时是否隐藏
     ParaBlnWindowCloseMin As Boolean    '主窗口点击关闭按钮时最小化
     ParaBlnAutoReStartServer As Boolean '服务端程序断开服务时自动重新开启服务
-    ParaBlnAutoStartupAtBoot As Boolean ' 开机自动启动
+    ParaBlnAutoStartupAtBoot As Boolean '开机自动启动
+    ParaBlnLimitClientConnect As Boolean '限制客户端连接时间
+    ParaLimitClientConnectTime As Long  '限制客户端最大连续连接时长是多少
     
 End Type
 

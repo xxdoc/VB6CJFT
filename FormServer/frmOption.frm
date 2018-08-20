@@ -64,13 +64,15 @@ Private Sub msLoadParameter(Optional ByVal blnLoad As Boolean = True)
         Text1.Text = gVar.ConPassword       '登陆密码
         .Cell(10, 7).Text = String(Len(gVar.ConPassword), "*") '登陆密码*号显示
         
+        .Cell(13, 1).Text = gVar.ParaBlnLimitClientConnect '限制客户端连接
+        .Cell(13, 7).Text = gVar.ParaLimitClientConnectTime '限制客户端连接时长
         
     End With
     
 End Sub
 
 Private Sub msSaveParameter(Optional ByVal blnSave As Boolean = True)
-    Dim TempVal
+    Dim tempVal
     
     If Not blnSave Then Exit Sub
     
@@ -79,8 +81,8 @@ Private Sub msSaveParameter(Optional ByVal blnSave As Boolean = True)
         gVar.ParaBlnWindowCloseMin = .Cell(2, 1).Text   '关闭时最小化
         gVar.ParaBlnWindowMinHide = .Cell(2, 5).Text    '最小化时隐藏
         
-        TempVal = Val(.Cell(5, 3).Text)                 '侦听端口
-        gVar.TCPSetPort = IIf(TempVal < 10000, gVar.TCPDefaultPort, TempVal)
+        tempVal = Val(.Cell(5, 3).Text)                 '侦听端口
+        gVar.TCPSetPort = IIf(tempVal < 10000, gVar.TCPDefaultPort, tempVal)
         gVar.ParaBlnAutoStartupAtBoot = .Cell(5, 5).Text    '开机自动启动
         
         gVar.ConSource = gfCheckIP(Trim(.Cell(8, 3).Text))    '服务器名称/IP
@@ -88,6 +90,9 @@ Private Sub msSaveParameter(Optional ByVal blnSave As Boolean = True)
         gVar.ConUserID = Trim(.Cell(10, 3).Text)    '登陆名
         gVar.ConPassword = Text1.Text               '登陆密码
         
+        gVar.ParaBlnLimitClientConnect = .Cell(13, 1).Text '限制客户端连接
+        tempVal = Val(.Cell(13, 7).Text)
+        gVar.ParaLimitClientConnectTime = IIf(tempVal < 1 Or tempVal > 60, 30, tempVal) '限制客户端连接时长
         
     End With
     
@@ -108,6 +113,9 @@ Private Sub msSaveParameter(Optional ByVal blnSave As Boolean = True)
         Call SaveSetting(.RegAppName, .RegSectionDBServer, .RegKeyDBServerDatabase, EncryptString(.ConDatabase, .EncryptKey)) '数据库名
         Call SaveSetting(.RegAppName, .RegSectionDBServer, .RegKeyDBServerAccount, EncryptString(.ConUserID, .EncryptKey)) '登陆名
         Call SaveSetting(.RegAppName, .RegSectionDBServer, .RegKeyDBServerPassword, EncryptString(.ConPassword, .EncryptKey)) '登陆密码
+        
+        Call SaveSetting(.RegAppName, .RegSectionTCP, .RegKeyParaLimitClientConnect, IIf(.ParaBlnLimitClientConnect, 1, 0)) '限制客户端连接
+        Call SaveSetting(.RegAppName, .RegSectionTCP, .RegKeyParaLimitClientConnectTime, .ParaLimitClientConnectTime) '限制客户端连接时长
         
     End With
     

@@ -1,7 +1,7 @@
 VERSION 5.00
 Object = "{248DD890-BB45-11CF-9ABC-0080C7E7B78D}#1.0#0"; "MSWINSCK.OCX"
 Object = "{E08BA07E-6463-4EAB-8437-99F08000BAD9}#1.9#0"; "FlexCell.ocx"
-Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.2#0"; "mscomctl.ocx"
+Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.2#0"; "MSCOMCTL.OCX"
 Object = "{555E8FCC-830E-45CC-AF00-A012D5AE7451}#15.3#0"; "Codejock.CommandBars.v15.3.1.ocx"
 Object = "{BD0C1912-66C3-49CC-8B12-7B347BF6C846}#15.3#0"; "Codejock.SkinFramework.v15.3.1.ocx"
 Begin VB.Form frmSysMain 
@@ -940,6 +940,7 @@ End Sub
 
 Private Sub msLoadParameter(Optional ByVal blnLoad As Boolean = True)
     '从注册表中加载参数值至公用变量中
+    Dim tempVal
     
     If Not blnLoad Then Exit Sub
     
@@ -951,13 +952,16 @@ Private Sub msLoadParameter(Optional ByVal blnLoad As Boolean = True)
         .TCPDefaultIP = Me.Winsock1.Item(0).LocalIP '本机IP地址
         .TCPSetIP = gVar.TCPDefaultIP   '服务端使用本机IP地址
         .ParaBlnAutoReStartServer = Val(GetSetting(.RegAppName, .RegSectionTCP, .RegKeyParaAutoReStartServer, 1))   '手动/自动重启服务模式
-        .TCPSetPort = Val(GetSetting(.RegAppName, .RegSectionTCP, .RegKeyTCPPort, gVar.TCPDefaultPort)) '侦听端口
+        .TCPSetPort = gfGetRegNumericValue(.RegAppName, .RegSectionTCP, .RegKeyTCPPort, , gVar.TCPDefaultPort, 10000, 65535) '侦听端口
         .ParaBlnAutoStartupAtBoot = Val(GetSetting(.RegAppName, .RegSectionSettings, .RegKeyParaAutoStartupAtBoot, 0))  '开机自动启动
         
-        .ConSource = gfCheckIP(gfGetReg(.RegAppName, .RegSectionDBServer, .RegKeyDBServerIP, .TCPSetIP))   '服务器名称/IP
-        .ConDatabase = DecryptString(gfGetReg(.RegAppName, .RegSectionDBServer, .RegKeyDBServerDatabase, EncryptString("dbTest", .EncryptKey)), .EncryptKey)    '数据库名
-        .ConUserID = DecryptString(gfGetReg(.RegAppName, .RegSectionDBServer, .RegKeyDBServerAccount, EncryptString("123", .EncryptKey)), .EncryptKey)  '登陆名
-        .ConPassword = DecryptString(gfGetReg(.RegAppName, .RegSectionDBServer, .RegKeyDBServerPassword, EncryptString("888888", .EncryptKey)), .EncryptKey)    '登陆密码
+        .ConSource = gfCheckIP(gfGetRegStringValue(.RegAppName, .RegSectionDBServer, .RegKeyDBServerIP, .TCPSetIP))   '服务器名称/IP
+        .ConDatabase = DecryptString(gfGetRegStringValue(.RegAppName, .RegSectionDBServer, .RegKeyDBServerDatabase, EncryptString("dbTest", .EncryptKey)), .EncryptKey)    '数据库名
+        .ConUserID = DecryptString(gfGetRegStringValue(.RegAppName, .RegSectionDBServer, .RegKeyDBServerAccount, EncryptString("123", .EncryptKey)), .EncryptKey)  '登陆名
+        .ConPassword = DecryptString(gfGetRegStringValue(.RegAppName, .RegSectionDBServer, .RegKeyDBServerPassword, EncryptString("888888", .EncryptKey)), .EncryptKey)    '登陆密码
+        
+        .ParaBlnLimitClientConnect = Val(GetSetting(.RegAppName, .RegSectionTCP, .RegKeyParaLimitClientConnect, 0)) '限制客户端连接
+        .ParaLimitClientConnectTime = gfGetRegNumericValue(.RegAppName, .RegSectionTCP, .RegKeyParaLimitClientConnectTime, True, 30, 1, 60) '限制客户端连接时长
         
     End With
 End Sub
@@ -1412,7 +1416,7 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
                 Call msVersionCS(strGet, Me.Winsock1.Item(Index))
             
             ElseIf InStr(strGet, gVar.PTClientUserComputerName) > 0 Then '客户端发来的计算机名、用户名等信息
-                Call msGetClientInfo(strGet)
+                Call msGetClientInfo(strGet, Index)
                 
             ElseIf InStr(strGet, gVar.PTFileStart) > 0 Then '要开始发送文件给客户端
                 Call gfSendInfo(.FilePath, Me.Winsock1.Item(Index))
@@ -1430,7 +1434,7 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
             End If
             
             ReDim byteGet(bytesTotal - 1)   '确定字节数组大小
-            Me.Winsock1.Item(inex).GetData byteGet, vbArray + vbByte    '接收文件
+            Me.Winsock1.Item(Index).GetData byteGet, vbArray + vbByte    '接收文件
             Put #.FileNumber, , byteGet '写入文件
             .FileSizeCompleted = .FileSizeCompleted + bytesTotal    '统计已传输文件大小的总量
             

@@ -439,7 +439,7 @@ Public Function gfFormLoad(ByVal strFormName As String) As Boolean
     
 End Function
 
-Public Function gfGetReg(ByVal AppName As String, ByVal Section As String, ByVal Key As String, _
+Public Function gfGetRegStringValue(ByVal AppName As String, ByVal Section As String, ByVal Key As String, _
         Optional ByVal Default As String = "abc", Optional ByVal BackDefault As Boolean = True) As String
     '使GetSetting函数返回的字符串值不为空
     Dim strGet As String
@@ -448,10 +448,23 @@ Public Function gfGetReg(ByVal AppName As String, ByVal Section As String, ByVal
     If BackDefault Then
         If Len(Trim(strGet)) = 0 Then strGet = Default    '当获取值为空字符时也返回默认值
     End If
-    gfGetReg = strGet
+    gfGetRegStringValue = strGet
     
 End Function
 
+Public Function gfGetRegNumericValue(ByVal AppName As String, ByVal Section As String, _
+        ByVal Key As String, Optional ByVal inMinMax As Boolean = True, Optional ByVal Default As Long = 1, _
+        Optional ByVal nMin As Long = 1, Optional ByVal nMax As Long = 10) As Long
+    '使GetSetting函数返回整形数值,，但这个值不能超出最小与最大值，超出以最小值返回
+    Dim lngGet As Long
+    
+    lngGet = GetSetting(AppName, Section, Key, Default)
+    If inMinMax Then
+        If lngGet < nMin Or lngGet > nMax Then lngGet = Default
+    End If
+    gfGetRegNumericValue = lngGet
+    
+End Function
 
 Public Function gfIsTreeViewChild(ByRef nodeDad As MSComctlLib.Node, ByVal strKey As String) As Boolean
     '判断传入Key值是不是自己的子结点

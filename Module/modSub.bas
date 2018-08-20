@@ -226,6 +226,8 @@ Public Sub Main()
         .RegKeyParaWindowCloseMin = "WindowCloseMin"
         .RegKeyParaAutoReStartServer = "AutoReStartServer"
         .RegKeyParaAutoStartupAtBoot = "AutoStartupAtBoot"
+        .RegKeyParaLimitClientConnect = "LimitClientConnect"
+        .RegKeyParaLimitClientConnectTime = "LimitClientConnectTime"
         
         .AppPath = App.Path & IIf(Right(App.Path, 1) = "\", "", "\")
         
@@ -253,10 +255,10 @@ Public Sub Main()
         
 '''        '''*****在注册表中保存服务器地址、访问的账号与密码****
 '''        '转移至Server端主窗体中加载函数中了
-'''        .ConSource = gfCheckIP(gfGetReg(.RegAppName, .RegSectionDBServer, .RegKeyDBServerIP, ""))
-'''        .ConDatabase = DecryptString(gfGetReg(.RegAppName, .RegSectionDBServer, .RegKeyDBServerDatabase))     '暂仅限连接SQLServer2008 OR 2012 数据库
-'''        .ConUserID = DecryptString(gfGetReg(.RegAppName, .RegSectionDBServer, .RegKeyDBServerAccount))
-'''        .ConPassword = DecryptString(gfGetReg(.RegAppName, .RegSectionDBServer, .RegKeyDBServerPassword))
+'''        .ConSource = gfCheckIP(gfGetRegStringValue(.RegAppName, .RegSectionDBServer, .RegKeyDBServerIP, ""))
+'''        .ConDatabase = DecryptString(gfGetRegStringValue(.RegAppName, .RegSectionDBServer, .RegKeyDBServerDatabase))     '暂仅限连接SQLServer2008 OR 2012 数据库
+'''        .ConUserID = DecryptString(gfGetRegStringValue(.RegAppName, .RegSectionDBServer, .RegKeyDBServerAccount))
+'''        .ConPassword = DecryptString(gfGetRegStringValue(.RegAppName, .RegSectionDBServer, .RegKeyDBServerPassword))
 '''        .ConString = "Provider=SQLOLEDB;Persist Security Info=False;Data Source=" & .ConSource & _
 '''                    ";UID=" & .ConUserID & ";PWD=" & .ConPassword & _
 '''                    ";DataBase=" & .ConDatabase & ";"   '''在64位系统上Data Source中间要空格隔开才能建立连接
