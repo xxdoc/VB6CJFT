@@ -1262,8 +1262,10 @@ Private Sub Timer1_Timer(Index As Integer)
     Dim sckClose As MSWinsockLib.Winsock, sckCheck As MSWinsockLib.Winsock
     Static CheckConnectTime As Long
     Static ConfirmTime() As Long
-    
-    On Error Resume Next
+    Static ConfirmOK() As Boolean
+    Static CountTime() As Long
+        
+'''    On Error Resume Next
     With Me.Winsock1.Item(Index)
         If Index = 0 Then
             If .State = 2 Then  '侦听正常状态
@@ -1281,7 +1283,7 @@ Private Sub Timer1_Timer(Index As Integer)
             
             '当客户端非正常关闭时，连接不会自动断开，此处每隔一段时间检查一次所有连接的状态，不等于7则关闭掉连接
             CheckConnectTime = CheckConnectTime + 1
-            If CheckConnectTime > 5 Then
+            If CheckConnectTime > 5 Then    '每隔N秒检查一次
                 For Each sckCheck In Me.Winsock1
                     If sckCheck.Index <> 0 Then
                         If sckCheck.State <> 7 Then
@@ -1292,26 +1294,44 @@ Private Sub Timer1_Timer(Index As Integer)
                 Next
                 CheckConnectTime = 0
             End If
-            '''index=0计时器为服务端自身检查用
+            '''index=0计时器为服务端自身用
         
         Else
-            '''index>0为各个客户端连接检查用
+            '''index>0为各个客户端连接用
             
-            ReDim Preserve ConfirmTime(Me.Timer1.UBound)
-            ConfirmTime(Index) = ConfirmTime(Index) + 1
+            ReDim Preserve ConfirmTime(Me.Timer1.UBound)    '需要每次都这样？
+            ReDim Preserve ConfirmOK(Me.Timer1.UBound)
+            ReDim Preserve CountTime(Me.Timer1.UBound)
+            
+            If Not ConfirmOK(Index) Then ConfirmTime(Index) = ConfirmTime(Index) + 1
+            If gVar.ParaBlnLimitClientConnect Then CountTime(Index) = CountTime(Index) + 1
+            
             If ConfirmTime(Index) > gVar.TCPWaitTime Then
                 If Not gArr(Index).Connected Then
                     For Each sckClose In Me.Winsock1
                         If sckClose.Index = Index Then
-                            Call Winsock1_Close(sckClose.Index) 'sckClose.Close
+                            Call Winsock1_Close(Index) 'sckClose.Close
                             Exit For
                         End If
                     Next
                 End If
-                ConfirmTime(Index) = 0      '计时清零
-                Me.Timer1.Item(Index).Enabled = False
-                Unload Me.Timer1.Item(Index)    '检查完卸载掉对应计时器控件
+                ConfirmTime(Index) = 0  '确认计时器清零
+                ConfirmOK(Index) = True '确认标志
+                If Not gVar.ParaBlnLimitClientConnect Then  '若没有选择限制客户端连接功能
+                    ConfirmOK(Index) = False
+                    CountTime(Index) = 0    '限制连接计时器清零
+'''                    If Not Me.Timer1.Item(Index) Is Nothing Then   '已在Winsock1_Close事件卸载了对应Timer控件
+'''                        Me.Timer1.Item(Index).Enabled = False   '确认完后卸载掉对应计时器控件
+'''                        Unload Me.Timer1.Item(Index)
+'''                    End If
+                End If
             End If
+            
+            If CountTime(Index) > (gVar.ParaLimitClientConnectTime * 60) Then   '计时已满则关闭对应客户端连接
+                CountTime(Index) = 0    '清空计时
+                Call Winsock1_Close(Index)  '关闭客户端连接
+            End If
+            
         End If
     End With
     
@@ -1342,7 +1362,9 @@ Private Sub Winsock1_Close(Index As Integer)
                         .AddItem ""     '末尾添加一行维持表格行数不变
                         Unload Me.Winsock1.Item(Index)  '卸载断开的客户端的连接控件
                         gArr(Index) = gArr(0)   '清除数组
-                        If Not Me.Timer1.Item(Index) Is Nothing Then Unload Me.Timer1.Item(Index)   '卸载对应计时器
+                        If Not Me.Timer1.Item(Index) Is Nothing Then
+                            Unload Me.Timer1.Item(Index)   '卸载对应计时器
+                        End If
                         Close   '关闭所有打开的文件
 '                        Debug.Print "Winsock_Close:" & Index
                         Exit For
