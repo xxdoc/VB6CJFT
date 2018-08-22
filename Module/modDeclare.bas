@@ -244,6 +244,9 @@ Public Type gtypeCommonVariant
     PTClientConfirm As String   '协议：客户端确认
     PTClientIsTrue As String    '协议：客户端给服务端的确认
     
+    PTConnectIsFull As String   '协议：连接数已满
+    PTConnectTimeOut As String  '协议：连续连接时间到
+    
     PTClientUserComputerName As String  '协议：客户端计算机名
     PTClientUserLoginName As String '协议：客户端用户登陆名
     PTClientUserFullName As String  '协议：客户端用户姓名

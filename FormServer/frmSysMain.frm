@@ -776,7 +776,7 @@ Private Sub msCloseAllConnect(Optional ByVal blnClose As Boolean = True, _
         .AutoRedraw = True
         .Refresh
     End With
-'Debug.Print "msCloseAllConnect(" & blnClose & "," & blnCloseListen & ")"
+    Debug.Print "msCloseAllConnect(" & blnClose & "," & blnCloseListen & ")"
     Set sckDel = Nothing
 End Sub
 
@@ -973,7 +973,7 @@ Private Sub msResetLayout(ByRef cbsBars As XtremeCommandBars.CommandBars)
     Dim L As Long, T As Long, R As Long, b As Long
 
     For Each cBar In cbsBars
-'Debug.Print cBar.BarID, cBar.Title, cBar.Type
+    Debug.Print cBar.BarID, cBar.Title, cBar.Type
         cBar.Reset
         cBar.Visible = True
     Next
@@ -1260,6 +1260,7 @@ End Sub
 Private Sub Timer1_Timer(Index As Integer)
     'Index=0的计时器间隔1秒。Timer1的Index值 与 Winsock1的Index对应
     Dim sckClose As MSWinsockLib.Winsock, sckCheck As MSWinsockLib.Winsock
+    Dim timeOut As Long
     Static CheckConnectTime As Long
     Static ConfirmTime() As Long
     Static ConfirmOK() As Boolean
@@ -1299,6 +1300,7 @@ Private Sub Timer1_Timer(Index As Integer)
         Else
             '''index>0为各个客户端连接用
             
+            timeOut = gVar.ParaLimitClientConnectTime * 60  '计算允许连接时长的总秒数
             ReDim Preserve ConfirmTime(Me.Timer1.UBound)    '需要每次都这样？
             ReDim Preserve ConfirmOK(Me.Timer1.UBound)
             ReDim Preserve CountTime(Me.Timer1.UBound)
@@ -1327,9 +1329,17 @@ Private Sub Timer1_Timer(Index As Integer)
                 End If
             End If
             
-            If CountTime(Index) > (gVar.ParaLimitClientConnectTime * 60) Then   '计时已满则关闭对应客户端连接
-                CountTime(Index) = 0    '清空计时
-                Call Winsock1_Close(Index)  '关闭客户端连接
+            If CountTime(Index) > timeOut Then   '计时已满则关闭对应客户端连接
+                '若在文件传输状态下则等待传输2分钟后直接关闭
+                If (Not gArr(Index).FileTransmitState) Or (CountTime(Index) - timeOut > 120) Then
+                    CountTime(Index) = 0    '清空计时
+                    If gArr(Index).FileTransmitState Then   '清空文件传输信息
+                        Close
+                        gArr(Index) = gArr(0)
+                    End If
+                    Call gfSendInfo(gVar.PTConnectTimeOut, Me.Winsock1.Item(Index)) '发送连接时间已到信息给客户端
+                    Call Winsock1_Close(Index)  '关闭客户端连接
+                End If
             End If
             
         End If
@@ -1366,7 +1376,7 @@ Private Sub Winsock1_Close(Index As Integer)
                             Unload Me.Timer1.Item(Index)   '卸载对应计时器
                         End If
                         Close   '关闭所有打开的文件
-'                        Debug.Print "Winsock_Close:" & Index
+                        Debug.Print "Winsock_Close:" & Index
                         Exit For
                     End If
                 End If
@@ -1384,13 +1394,9 @@ Private Sub Winsock1_ConnectionRequest(Index As Integer, ByVal requestID As Long
     
     Dim sckNew As MSWinsockLib.Winsock
     Dim K As Long
+    Dim blnFull As Boolean
     
     If Index <> 0 Then Exit Sub '仅0元素的控件在侦听能接收连接申请
-    
-    If Me.Winsock1.Count > gVar.TCPConnectMax Then
-        Call gsAlarmAndLog("客户端发送的申请连接数已超过最大值" & CStr(gVar.TCPConnectMax), False)
-        Exit Sub
-    End If
     
     '查找Winsock1中可用的最小的Index值
     For Each sckNew In Winsock1
@@ -1400,8 +1406,14 @@ Private Sub Winsock1_ConnectionRequest(Index As Integer, ByVal requestID As Long
             Exit For
         End If
     Next
+    Set sckNew = Nothing
     
-    With Winsock1
+    If Me.Winsock1.Count > gVar.TCPConnectMax Then
+        Call gsAlarmAndLog("客户端发送的申请连接数已超过最大值" & CStr(gVar.TCPConnectMax), False)
+        blnFull = True
+    End If
+    
+    With Me.Winsock1
         If K = .Count Then ReDim Preserve gArr(K)   '重置数组大小
         gArr(K) = gArr(0)   '初始化数组元素K。可能被之前建立过的连接使用过
         
@@ -1411,11 +1423,16 @@ Private Sub Winsock1_ConnectionRequest(Index As Integer, ByVal requestID As Long
         
         Call msAddConnectToGrid(.Item(K)) '将连接添加进表格中
         
+        If blnFull Then '若连接数已满，则发信通知客户端，并关闭该客户端的连接
+            Call gfSendInfo(gVar.PTConnectIsFull, .Item(K))
+            Call Winsock1_Close(CInt(K))
+            Exit Sub
+        End If
+        
         Call gfSendInfo(gVar.PTClientConfirm, .Item(K)) '发送客户端确认信息，若规定时间内返回确认信息则连接正常，否则断开连接。
         Call msStartConfirm(K)  '激活 返回确认信息 计时器
     End With
     
-    Set sckNew = Nothing
 End Sub
 
 Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)

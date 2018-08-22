@@ -180,6 +180,9 @@ Public Sub Main()
         .PTClientConfirm = "<ClientConfirm>"
         .PTClientIsTrue = "<ClientIsTrue>"
         
+        .PTConnectIsFull = "ConnectIsFull"
+        .PTConnectTimeOut = "ConnectTimeOut"
+        
         .PTClientUserComputerName = "<ClientUserComputerName>"
         .PTClientUserFullName = "<ClientUserFullName>"
         .PTClientUserLoginName = "<ClientUserLoginName>"
