@@ -6,6 +6,7 @@ Begin VB.MDIForm frmSysMain
    ClientLeft      =   120
    ClientTop       =   450
    ClientWidth     =   4560
+   Icon            =   "frmSysMain.frx":0000
    LinkTopic       =   "MDIForm1"
    StartUpPosition =   3  '´°¿ÚÈ±Ê¡
 End

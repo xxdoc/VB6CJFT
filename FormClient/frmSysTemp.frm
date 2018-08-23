@@ -5,6 +5,7 @@ Begin VB.Form frmSysTemp
    ClientLeft      =   120
    ClientTop       =   450
    ClientWidth     =   8910
+   Icon            =   "frmSysTemp.frx":0000
    LinkTopic       =   "Form1"
    ScaleHeight     =   5460
    ScaleWidth      =   8910

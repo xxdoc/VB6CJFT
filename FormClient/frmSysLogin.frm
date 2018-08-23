@@ -1,14 +1,18 @@
 VERSION 5.00
 Begin VB.Form frmSysLogin 
+   BorderStyle     =   1  'Fixed Single
    Caption         =   "Login"
-   ClientHeight    =   3030
-   ClientLeft      =   120
-   ClientTop       =   450
-   ClientWidth     =   4560
+   ClientHeight    =   3825
+   ClientLeft      =   45
+   ClientTop       =   375
+   ClientWidth     =   5820
+   Icon            =   "frmSysLogin.frx":0000
    LinkTopic       =   "Form1"
-   ScaleHeight     =   3030
-   ScaleWidth      =   4560
-   StartUpPosition =   3  '窗口缺省
+   MaxButton       =   0   'False
+   MinButton       =   0   'False
+   ScaleHeight     =   3825
+   ScaleWidth      =   5820
+   StartUpPosition =   2  '屏幕中心
 End
 Attribute VB_Name = "frmSysLogin"
 Attribute VB_GlobalNameSpace = False
