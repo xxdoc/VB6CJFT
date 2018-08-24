@@ -213,13 +213,22 @@ Public Sub Main()
         .RegKeyUserLast = "LastLoginUser"
         .RegKeyUserList = "LoginUserList"
         
+        .RegKeyCommandBars = "FF"
+        .RegKeyCBSClientSetting = "ClientSetting"
+        .RegKeyCBSServerSetting = "ServerSetting"
+        
         .RegSectionSettings = "Settings"
-        .RegKeyCommandBars = "cbs"
-        .RegKeyWindowHeight = "WindowHeight"
-        .RegKeyWindowLeft = "WindowLeft"
-        .RegKeyWindowTop = "WindowTop"
-        .RegKeyWindowWidth = "WindowWidth"
-        .RegKeyCommandbarsTheme = "cbsTheme"
+        .RegKeyServerWindowHeight = "ServerWindowHeight"
+        .RegKeyServerWindowLeft = "ServerWindowLeft"
+        .RegKeyServerWindowTop = "ServerWindowTop"
+        .RegKeyServerWindowWidth = "ServerWindowWidth"
+        .RegKeyServerCommandbarsTheme = "ServercbsTheme"
+        
+        .RegKeyClientWindowHeight = "ClientWindowHeight"
+        .RegKeyClientWindowLeft = "ClientWindowLeft"
+        .RegKeyClientWindowTop = "ClientWindowTop"
+        .RegKeyClientWindowWidth = "ClientWindowWidth"
+        .RegKeyClientCommandbarsTheme = "ClientcbsTheme"
         
         .RegTrailPath = "SoftWare\Common\Section"   'HKEY_CURRENT_USER\SoftWare\……
         .RegTrailKey = "Key"
@@ -414,23 +423,34 @@ Public Sub gsFormScrollBar(ByRef frmCur As Form, ByRef ctlMv As Control, _
 
 End Sub
 
-Public Sub gsFormSizeLoad(ByRef frmLoad As Form)
+Public Sub gsFormSizeLoad(ByRef frmLoad As Form, Optional blnServer As Boolean = True)
     '从注册表中加载窗口的位置与大小信息
     Dim Left As Long, Top As Long, Width As Long, Height As Long
     
-    Left = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyWindowLeft, 0))
-    If Left < 0 Or Left > Screen.Width Then Left = 0
-    Top = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyWindowTop, 0))
-    If Top < 0 Or Left > Screen.Height Then Top = 0
-    Width = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyWindowWidth, gVar.WindowWidth))
-    If Width <= 0 Or Width > Screen.Width Then Width = gVar.WindowWidth
-    Height = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyWindowHeight, gVar.WindowHeight))
-    If Height <= 0 Or Height > Screen.Height Then Height = gVar.WindowHeight
+    If blnServer Then
+        Left = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerWindowLeft, 0))
+        If Left < 0 Or Left > Screen.Width Then Left = 0
+        Top = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerWindowTop, 0))
+        If Top < 0 Or Left > Screen.Height Then Top = 0
+        Width = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerWindowWidth, gVar.WindowWidth))
+        If Width <= 0 Or Width > Screen.Width Then Width = gVar.WindowWidth
+        Height = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerWindowHeight, gVar.WindowHeight))
+        If Height <= 0 Or Height > Screen.Height Then Height = gVar.WindowHeight
+    Else
+        Left = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientWindowLeft, 0))
+        If Left < 0 Or Left > Screen.Width Then Left = 0
+        Top = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientWindowTop, 0))
+        If Top < 0 Or Left > Screen.Height Then Top = 0
+        Width = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientWindowWidth, gVar.WindowWidth))
+        If Width <= 0 Or Width > Screen.Width Then Width = gVar.WindowWidth
+        Height = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientWindowHeight, gVar.WindowHeight))
+        If Height <= 0 Or Height > Screen.Height Then Height = gVar.WindowHeight
+    End If
     frmLoad.Move Left, Top, Width, Height
     
 End Sub
 
-Public Sub gsFormSizeSave(ByRef frmSave As Form)
+Public Sub gsFormSizeSave(ByRef frmSave As Form, Optional ByVal blnServer As Boolean = True)
     '保存窗口的位置与大小信息至注册表中
     Dim Left As Long, Top As Long, Width As Long, Height As Long
     
@@ -444,11 +464,18 @@ Public Sub gsFormSizeSave(ByRef frmSave As Form)
         If Width < gVar.WindowWidth Or Width > Screen.Width Then Width = gVar.WindowWidth
         If Height < gVar.WindowHeight Or Height > Screen.Height Then Height = gVar.WindowHeight
     End With
-    Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyWindowLeft, CStr(Left))
-    Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyWindowTop, CStr(Top))
-    Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyWindowWidth, CStr(Width))
-    Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyWindowHeight, CStr(Height))
     
+    If blnServer Then
+        Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerWindowLeft, CStr(Left))
+        Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerWindowTop, CStr(Top))
+        Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerWindowWidth, CStr(Width))
+        Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerWindowHeight, CStr(Height))
+    Else
+        Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientWindowLeft, CStr(Left))
+        Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientWindowTop, CStr(Top))
+        Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientWindowWidth, CStr(Width))
+        Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientWindowHeight, CStr(Height))
+    End If
 End Sub
 
 Public Sub gsGridPageSet()
@@ -884,7 +911,7 @@ Public Sub gsOpenTheWindow(ByVal strFormName As String, _
         
 End Sub
 
-Public Sub gsSaveCommandbarsTheme(ByRef cbsBars As XtremeCommandBars.CommandBars)
+Public Sub gsSaveCommandbarsTheme(ByRef cbsBars As XtremeCommandBars.CommandBars, Optional ByVal blnServer As Boolean = True)
     '保存CommandBars的风格主题
     Dim lngID As Long
     
@@ -892,7 +919,7 @@ Public Sub gsSaveCommandbarsTheme(ByRef cbsBars As XtremeCommandBars.CommandBars
         If cbsBars.Actions(lngID).Checked Then Exit For
     Next
     If lngID > gID.WndThemeCommandBarsWinXP Then lngID = gID.WndThemeCommandBarsRibbon
-    Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyCommandbarsTheme, lngID)
+    Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, IIf(blnServer, gVar.RegKeyServerCommandbarsTheme, gVar.RegKeyClientCommandbarsTheme), lngID)
     
 End Sub
 

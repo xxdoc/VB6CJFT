@@ -1133,10 +1133,10 @@ Private Sub Form_Load()
     Call gsLoadSkin(Me, Me.SkinFramework1, sMSO7, True)  '加载窗口主题
     
     '加载工具栏主题
-    Call gsThemeCommandBar(Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyCommandbarsTheme, gID.WndThemeCommandBarsRibbon)), cbsBars)
+    Call gsThemeCommandBar(Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerCommandbarsTheme, gID.WndThemeCommandBarsRibbon)), cbsBars)
     
     '注册表信息加载-CommandBars设置
-    Call cbsBars.LoadCommandBars(gVar.RegKeyCommandBars, gVar.RegAppName, gVar.RegSectionSettings)
+    Call cbsBars.LoadCommandBars(gVar.RegKeyCommandBars, gVar.RegAppName, gVar.RegKeyCBSServerSetting)
 
     Call gsFormSizeLoad(Me) '注册表信息加载-窗口位置大小
     
@@ -1211,11 +1211,11 @@ Private Sub Form_Resize()
 End Sub
 
 Private Sub Form_Unload(Cancel As Integer)
-    Dim lngID As Long
+    '卸载窗体时保存信息
     Dim resetNotifyIconData As gtypeNOTIFYICONDATA
     
     '保存注册表信息-CommandBars设置
-    Call Me.CommandBars1.SaveCommandBars(gVar.RegKeyCommandBars, gVar.RegAppName, gVar.RegSectionSettings)
+    Call Me.CommandBars1.SaveCommandBars(gVar.RegKeyCommandBars, gVar.RegAppName, gVar.RegKeyCBSServerSetting)
     
     Call gsFormSizeSave(Me) '保存注册表信息-窗口位置大小
     Call gsSaveCommandbarsTheme(Me.CommandBars1)   '保存CommandBars的风格主题

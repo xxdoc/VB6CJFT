@@ -280,13 +280,22 @@ Public Type gtypeCommonVariant
     RegKeyUserLast As String    '最后登陆用户名
     RegKeyUserList As String    '曾经登陆过年用户名列表
     
-    RegSectionSettings As String    'Section_Settings区
     RegKeyCommandBars As String 'SaveCommandBars参数RegistryKey
-    RegKeyWindowLeft As String  'Key_窗口Left值
-    RegKeyWindowTop As String   '
-    RegKeyWindowWidth As String '
-    RegKeyWindowHeight As String    '
-    RegKeyCommandbarsTheme As String    '
+    RegKeyCBSServerSetting As String    'Server上的CBS控件注册信息保存Key值
+    RegKeyCBSClientSetting As String    'Client上的CBS控件注册信息保存Key值
+    
+    RegSectionSettings As String    'Section_Settings区
+    RegKeyServerWindowLeft As String  'Server上Key_窗口Left值
+    RegKeyServerWindowTop As String   '
+    RegKeyServerWindowWidth As String '
+    RegKeyServerWindowHeight As String    '
+    RegKeyServerCommandbarsTheme As String    '
+    
+    RegKeyClientWindowLeft As String  'Client上Key_窗口Left值
+    RegKeyClientWindowTop As String   '
+    RegKeyClientWindowWidth As String '
+    RegKeyClientWindowHeight As String    '
+    RegKeyClientCommandbarsTheme As String    '
     
     RegTrailPath As String  '注册表中HKEY_CURRENT_USER下SOFTWARE路径
     RegTrailKey As String   '试用信息-Key值
