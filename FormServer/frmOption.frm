@@ -130,7 +130,7 @@ Private Sub Form_Load()
     Dim strFile As String
     
     Me.Icon = LoadPicture("")
-    strFile = gVar.FolderNameBin & "OptionWindow.cel"
+    strFile = gVar.FolderNameBin & "OptionWindowServer.cel"
     If Not gfFileExist(strFile) Then
         MsgBox "以下配置文件加载失败，请解决后再重新打开窗口。" & vbCrLf & strFile, vbCritical, "异常提示"
         Exit Sub

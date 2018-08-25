@@ -856,7 +856,8 @@ Private Sub msGridSet(ByRef gridSet As FlexCell.Grid)
         .Refresh
     End With
 End Sub
-Public Sub msLeftClick(ByVal CID As Long, ByRef cbsBars As XtremeCommandBars.CommandBars)
+
+Private Sub msLeftClick(ByVal CID As Long, ByRef cbsBars As XtremeCommandBars.CommandBars)
     'CommandBars单击命令响应公共过程
     
     Dim strKey As String

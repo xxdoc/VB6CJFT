@@ -23,6 +23,7 @@ UserControl=Usercontrol\ctlTextComboBox.ctl
 UserControl=Usercontrol\ctlProgressLabel.ctl
 Form=FormClient\frmSysLogin.frm
 Form=FormClient\frmSysMain.frm
+Form=FormClient\frmOption.frm
 IconForm="frmSysTemp"
 Startup="frmSysMain"
 HelpFile=""

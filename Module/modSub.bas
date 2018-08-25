@@ -895,15 +895,15 @@ Public Sub gsOpenTheWindow(ByVal strFormName As String, _
     Dim C As Long
     
     strFormName = LCase(strFormName)
-    If gfFormLoad(strFormName) Then
+    If gfFormLoad(strFormName) Then '窗体已存在
         For C = 0 To Forms.Count - 1
             If LCase(Forms(C).Name) = strFormName Then
-                Set frmOpen = Forms(C)
+                Set frmOpen = Forms(C)  '引用该窗体
                 Exit For
             End If
         Next
-    Else
-        Set frmOpen = Forms.Add(strFormName)
+    Else    '窗体不存在
+        Set frmOpen = Forms.Add(strFormName)    '新建该窗体
     End If
     
     frmOpen.WindowState = FormWndState

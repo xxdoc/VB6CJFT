@@ -397,6 +397,7 @@ Attribute mXtrStatusBar.VB_VarHelpID = -1
 Dim mcbsPopupIcon As XtremeCommandBars.CommandBar    '托盘图标Pupup菜单
 
 
+
 Private Sub msAddAction(ByRef cbsBars As XtremeCommandBars.CommandBars)
     '创建CommandBars的Action
     
@@ -645,6 +646,82 @@ Private Sub msAddToolBar(ByRef cbsBars As XtremeCommandBars.CommandBars)
     Set cbsActions = Nothing
 End Sub
 
+Private Sub msLeftClick(ByVal CID As Long, ByRef cbsBars As XtremeCommandBars.CommandBars)
+    'CommandBars单击命令响应公共过程
+    
+    Dim strKey As String
+    Dim cbsActions As XtremeCommandBars.CommandBarActions  'cbs控件Actions集合的引用
+    
+    Set cbsActions = cbsBars.Actions
+    With gID
+        Select Case CID
+            Case .WndThemeCommandBarsOffice2000 To .WndThemeCommandBarsWinXP
+                Call gsThemeCommandBar(CID, cbsBars)
+            Case .WndResetLayout
+                Call msResetLayout(cbsBars)
+                
+            Case .SysLoginAgain
+                If MsgBox("确定重新启动服务端程序吗？", vbQuestion + vbOKCancel, "重启主程序询问") = vbOK Then
+                    gVar.CloseWindow = True
+                    Unload Me
+                    Me.Show
+                End If
+            Case .SysLoginOut
+                If MsgBox("确定退出服务端程序吗？", vbQuestion + vbOKCancel, "关闭主程序询问") = vbOK Then
+                    gVar.CloseWindow = True
+                    Unload Me
+                End If
+                
+            Case .IconPopupMenuMaxWindow
+                Me.WindowState = vbMaximized
+                Me.Show
+            Case .IconPopupMenuMinWindow
+                Me.WindowState = vbMinimized
+            Case .IconPopupMenuShowWindow
+                Me.WindowState = vbNormal
+                Me.Show
+                
+            Case .HelpAbout
+                Dim strAbout As String
+                strAbout = "名称：" & App.Title & vbCrLf & _
+                           "版本：" & App.Major & "." & App.Minor & "." & App.Revision & vbCrLf & _
+                           "版权所有：XMH"
+                MsgBox strAbout, vbInformation, "关于" & App.Title
+                
+            Case .SysExportToCSV To .SysExportToXML
+                Call gsGridExportTo(Screen.ActiveControl, CID)
+            Case .SysExportToText
+                If MsgBox("是否将当前表格内容导出至txt文本文档？", vbQuestion + vbYesNo, "询问") = vbYes Then Call gsGridToText(Screen.ActiveControl)
+            Case .SysExportToWord
+                If MsgBox("是否将当前表格内容导出至Word文档？", vbQuestion + vbYesNo, "询问") = vbYes Then Call gsGridToWord(Screen.ActiveControl)
+                
+            Case .SysPrint
+                If MsgBox("确定打印当前表格内容吗？", vbQuestion + vbOKCancel, "打印询问") = vbOK Then Call gsGridPrint
+            Case .SysPrintPreview
+                Call gsGridPrintPreview
+            Case .SysPrintPageSet
+                Call gsGridPageSet
+                
+            Case Else
+                strKey = LCase(cbsActions.Action(CID).Key)
+                If Left(strKey, 3) = "frm" Then
+                    If cbsActions.Action(CID).Enabled Then
+                        Select Case CID
+                            Case .toolOptions
+                                Call gsOpenTheWindow(strKey, vbModal, vbNormal)
+                            Case Else
+                                Call gsOpenTheWindow(strKey)
+                        End Select
+                    End If
+                Else
+                    MsgBox "【" & cbsActions(CID).Caption & "】命令未定义！", vbExclamation, "命令警告"
+                End If
+        End Select
+    End With
+    
+    Set cbsActions = Nothing
+End Sub
+
 Private Sub msLoadParameter(Optional ByVal blnLoad As Boolean = True)
     '从注册表中加载参数值至公用变量中
     Dim tempVal
@@ -671,6 +748,26 @@ Private Sub msLoadParameter(Optional ByVal blnLoad As Boolean = True)
         
         
     End With
+End Sub
+
+Private Sub msResetLayout(ByRef cbsBars As XtremeCommandBars.CommandBars)
+    '重置窗口布局：CommandBars与Dockingpane控件重置
+    
+    Dim cBar As XtremeCommandBars.CommandBar
+    Dim L As Long, T As Long, R As Long, b As Long
+
+    For Each cBar In cbsBars
+    Debug.Print cBar.BarID, cBar.Title, cBar.Type
+        cBar.Reset
+        cBar.Visible = True
+    Next
+    
+    For mlngID = 2 To cbsBars.Count
+        cbsBars.GetClientRect L, T, R, b
+        cbsBars.DockToolBar cbsBars(mlngID), 0, b, xtpBarTop
+    Next
+    
+    Set cBar = Nothing
 End Sub
 
 Private Sub msAddXtrStatusBar(ByRef cbsBars As XtremeCommandBars.CommandBars)
@@ -743,6 +840,11 @@ Private Sub msAddXtrStatusBar(ByRef cbsBars As XtremeCommandBars.CommandBars)
 End Sub
 
 
+Private Sub CommandBars1_Execute(ByVal Control As XtremeCommandBars.ICommandBarControl)
+    '命令单击事件
+    Call msLeftClick(Control.ID, Me.CommandBars1)
+End Sub
+
 Private Sub MDIForm_Load()
     '窗体加载
     
@@ -781,12 +883,66 @@ Private Sub MDIForm_Load()
     '检查是否为试用版******************************
     '==============================================
     
-    
-    
-    
-    Call gfNotifyIconAdd(Me)    '添加托盘图标
+''    If gVar.ClientLoginOK Then  '系统登陆成功
+        Call gfNotifyIconAdd(Me)    '添加托盘图标
+''    Else
+''        Me.Hide
+''        frmSysLogin.Show
+''    End If
     
     Set cbsBars = Nothing   '销毁使用完的对象
+End Sub
+
+Private Sub MDIForm_MouseMove(Button As Integer, Shift As Integer, x As Single, y As Single)
+    '响应托盘图标的菜单
+    Dim sngMsg As Single
+    
+    sngMsg = x / Screen.TwipsPerPixelX
+    Select Case sngMsg
+        Case WM_RBUTTONUP
+            mcbsPopupIcon.ShowPopup  '右键弹出Popup菜单
+
+        Case WM_LBUTTONDBLCLK   '左键双击托盘图标时 窗口最显示/最小化 切换
+            With Me
+                If .WindowState = vbMinimized Then
+                    .WindowState = vbNormal
+                    .Show
+                    .SetFocus
+                Else
+                    .WindowState = vbMinimized
+                End If
+            End With
+        Case Else
+    End Select
+End Sub
+
+Private Sub MDIForm_QueryUnload(Cancel As Integer, UnloadMode As Integer)
+    '判断是否真正要关闭窗口
+    
+    If gVar.ParaBlnWindowCloseMin Then
+        If Not gVar.CloseWindow Then
+            Cancel = True
+            Me.WindowState = vbMinimized
+        End If
+        gVar.CloseWindow = False
+    Else
+        If Not gVar.CloseWindow Then
+            If MsgBox("是否最小化窗口？", vbQuestion + vbYesNo, "关闭或最小化") = vbYes Then
+                Cancel = True
+                Me.WindowState = vbMinimized
+            End If
+        End If
+    End If
+End Sub
+
+Private Sub MDIForm_Resize()
+    '窗口最小化提示
+    If Me.Visible And Me.WindowState = vbMinimized Then
+        If gVar.ParaBlnWindowMinHide Then
+            Me.Hide
+            Call gfNotifyIconBalloon(Me, "最小化到系统托盘图标啦", "最小化提示")
+        End If
+    End If
 End Sub
 
 Private Sub MDIForm_Unload(Cancel As Integer)
@@ -808,4 +964,30 @@ Private Sub MDIForm_Unload(Cancel As Integer)
     ReDim gArr(0)
     Set gWind = Nothing '清除全局窗体引用
     
+End Sub
+
+Private Sub mXtrStatusBar_PaneClick(ByVal Pane As XtremeCommandBars.StatusBarPane)
+    '状态栏按钮事件
+    Dim strMsg As String
+    
+    If Pane.ID = gID.StatusBarPaneServerButton Then '断开/开启服务
+        If Pane.Text = gVar.ServerButtonClose Then strMsg = "关闭后会断开所有用户的连接。"
+        If MsgBox("是否" & Pane.Text & "？" & strMsg, vbQuestion + vbYesNo, "重启/断开服务询问") = vbNo Then Exit Sub
+        If Pane.Text = gVar.ServerButtonClose Then     '关闭服务
+            Pane.Text = gVar.ServerButtonStart
+            Call msCloseAllConnect(True, True)
+        ElseIf Pane.Text = gVar.ServerButtonStart Then     '开启服务
+            Pane.Text = gVar.ServerButtonClose
+            Call msStartServer(Me.Winsock1.Item(0))
+        End If
+        
+    ElseIf Pane.ID = gID.StatusBarPaneReStartButton Then    '手动/自动重启服务模式
+        strMsg = "是否切换成" & IIf(gVar.ParaBlnAutoReStartServer, "手", "自") & "动重启服务模式？"
+        If MsgBox(strMsg, vbQuestion + vbYesNo, "模式切换询问") = vbYes Then
+            gVar.ParaBlnAutoReStartServer = Not gVar.ParaBlnAutoReStartServer
+            mXtrStatusBar.FindPane(gID.StatusBarPaneReStartButton).Text = IIf(gVar.ParaBlnAutoReStartServer, "自", "手") & "动重启服务模式"
+            Call SaveSetting(gVar.RegAppName, gVar.RegSectionTCP, gVar.RegKeyParaAutoReStartServer, IIf(gVar.ParaBlnAutoReStartServer, 1, 0))
+        End If
+        
+    End If
 End Sub

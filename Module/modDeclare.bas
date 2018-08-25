@@ -349,6 +349,7 @@ Public Type gtypeCommonVariant
     WindowHeight As Long    '窗口默认高度
     
     CloseWindow As Boolean '是否真正关闭窗口。或者说是否点击了窗口右上角的关闭按钮
+    ClientLoginOK As Boolean '客户端已成功登陆系统
     
     ParaBlnWindowMinHide As Boolean '主窗口最小化时是否隐藏
     ParaBlnWindowCloseMin As Boolean    '主窗口点击关闭按钮时最小化
