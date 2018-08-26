@@ -207,7 +207,7 @@ Public Type gtypeCommonVariant
     TCPDefaultPort As Long      '默认端口号
     TCPWaitTime As Long     '连接确认等待时间
     
-    TCPStateConnected As Boolean     '连接成功标识
+    TCPStateConnected As Boolean     '客户端连接服务端成功标识
     TCPStateServerStarted As Boolean '服务器启动标识
     
     FTChunkSize As Long   '文件传输时的分块大小
@@ -349,7 +349,7 @@ Public Type gtypeCommonVariant
     WindowHeight As Long    '窗口默认高度
     
     CloseWindow As Boolean '是否真正关闭窗口。或者说是否点击了窗口右上角的关闭按钮
-    ClientLoginOK As Boolean '客户端已成功登陆系统
+    ClientLoginShow As Boolean '显示客户端登陆窗口
     
     ParaBlnWindowMinHide As Boolean '主窗口最小化时是否隐藏
     ParaBlnWindowCloseMin As Boolean    '主窗口点击关闭按钮时最小化

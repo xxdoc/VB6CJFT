@@ -2,7 +2,7 @@ Attribute VB_Name = "modSub"
 Option Explicit
 
 
-Public Sub Main()
+Public Sub Main(Optional ByVal blnLoad As Boolean = True)
     
     Dim strTemp As String
     
@@ -297,8 +297,8 @@ Public Sub gsAlarmAndLogEx(Optional ByVal strErrDescription As String, Optional 
     '自定义异常提示并写下日志
     
     Err.Clear
-    Err.Number = vbObjectError + 100001 '固定一个自定义异常号码
-    Err.Description = strErrDescription
+    If Err.Number = 0 Then Err.Number = vbObjectError + 100001 '固定一个自定义异常号码
+    If Len(Err.Description) = 0 Then Err.Description = strErrDescription
     Call gsAlarmAndLog(strErrTitle, blnMsgBox, MsgButton)
     
 End Sub
@@ -557,6 +557,8 @@ Public Sub gsGridToExcel(ByRef gridControl As Control, Optional ByVal TimeCol As
     Dim blnFlexCell As Boolean
     Dim R As Long, C As Long, i As Long, J As Long
     
+    If gridControl Is Nothing Then Exit Sub
+    
     On Error Resume Next
     Screen.MousePointer = 13
     
@@ -615,6 +617,8 @@ Public Sub gsGridExportTo(ByRef gridControl As FlexCell.Grid, ByVal ExportID As 
     Dim K As Long
     Dim blnOK As Boolean
     
+    If gridControl Is Nothing Then Exit Sub
+    
     For K = 1 To 8
         strFileName = strFileName & gfBackOneChar(udNumber + udUpperCase) '文件名中的8个随机字符，不含小写字母
     Next
@@ -667,6 +671,8 @@ Public Sub gsGridToText(ByRef gridControl As Control)
     Dim R As Long, C As Long, i As Long, J As Long
     Dim strTxt As String
     
+    If gridControl Is Nothing Then Exit Sub
+    
     For i = 1 To 8
         strFileName = strFileName & gfBackOneChar(udNumber + udUpperCase) '文件名中的8个随机字符，不含小写字母
     Next
@@ -714,8 +720,7 @@ Public Sub gsGridToWord(ByRef gridControl As Control)
     Dim i As Long, J As Long
     Dim blnFlexCell As Boolean
     
-    lngRows = gridControl.Rows
-    lngCols = gridControl.Cols
+    If gridControl Is Nothing Then Exit Sub
     
     On Error Resume Next
 '    Set wordApp = New Word.Application
@@ -724,6 +729,9 @@ Public Sub gsGridToWord(ByRef gridControl As Control)
     Set tbOut = docOut.Tables.Add(docOut.Range, lngRows, lngCols, True)
     
     If TypeOf gridControl Is FlexCell.Grid Then blnFlexCell = True
+    
+    lngRows = gridControl.Rows
+    lngCols = gridControl.Cols
     
     If blnFlexCell Then
         For i = 0 To lngRows - 1

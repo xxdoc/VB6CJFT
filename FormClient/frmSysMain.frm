@@ -14,12 +14,12 @@ Begin VB.MDIForm frmSysMain
    LinkTopic       =   "MDIForm1"
    StartUpPosition =   3  '窗口缺省
    Begin VB.Timer Timer1 
-      Index           =   0
+      Index           =   1
       Left            =   2400
       Top             =   2880
    End
    Begin MSWinsockLib.Winsock Winsock1 
-      Index           =   0
+      Index           =   1
       Left            =   1680
       Top             =   2880
       _ExtentX        =   741
@@ -455,6 +455,8 @@ Private Sub msAddAction(ByRef cbsBars As XtremeCommandBars.CommandBars)
         .Add gID.StatusBarPaneTime, "系统时间", "", "", ""
         .Add gID.StatusBarPaneIP, "本机IP地址", "", "", ""
         .Add gID.StatusBarPanePort, "连接服务器端口", "", "", ""
+        .Add gID.StatusBarPaneConnectState, "连接服务器状态", "", "", ""
+        .Add gID.StatusBarPaneConnectButton, "与服务器建立连接按钮", "", "", ""
         .Add gID.StatusBarPaneReStartButton, "服务自动/手动重启模式切换按钮", "", "", ""
         
         .Add gID.IconPopupMenu, "托盘图标菜单", "", "", ""
@@ -646,6 +648,91 @@ Private Sub msAddToolBar(ByRef cbsBars As XtremeCommandBars.CommandBars)
     Set cbsActions = Nothing
 End Sub
 
+Private Sub msAddXtrStatusBar(ByRef cbsBars As XtremeCommandBars.CommandBars)
+    '创建状态栏
+    
+    Dim cbsActions As XtremeCommandBars.CommandBarActions  'cbs控件Actions集合的引用
+    Dim BarPane As XtremeCommandBars.StatusBarPane
+    
+    Set cbsActions = cbsBars.Actions
+    Set mXtrStatusBar = cbsBars.StatusBar
+    With mXtrStatusBar
+        .AddPane 0      '系统Pane，显示CommandBarActions的Description
+        .SetPaneStyle 0, SBPS_STRETCH
+        .SetPaneText 0, "Hello"
+        .IdleText = "Hello"
+        
+        .AddPane gID.StatusBarPaneUserInfo
+        .SetPaneText gID.StatusBarPaneUserInfo, "中华人民"
+        .FindPane(gID.StatusBarPaneUserInfo).Width = 60
+        
+        .AddPane gID.StatusBarPaneIP
+        .SetPaneText gID.StatusBarPaneIP, Me.Winsock1.Item(1).LocalIP  'gVar.TCPSetIP
+        .FindPane(gID.StatusBarPaneIP).Width = 90
+        
+        .AddPane gID.StatusBarPanePort
+        .SetPaneText gID.StatusBarPanePort, gVar.TCPSetPort
+        .FindPane(gID.StatusBarPanePort).Width = 60
+        
+        .AddPane gID.StatusBarPaneConnectState
+        .SetPaneText gID.StatusBarPaneConnectState, gVar.ClientStateDisConnected
+        .FindPane(gID.StatusBarPaneConnectState).Width = 60
+        
+'''        .AddPane gID.StatusBarPaneReStartButton
+'''        .SetPaneText gID.StatusBarPaneReStartButton, IIf(gVar.ParaBlnAutoReStartServer, "自", "手") & "动重启服务模式"
+'''        .FindPane(gID.StatusBarPaneReStartButton).Width = 120
+'''        .FindPane(gID.StatusBarPaneReStartButton).BackgroundColor = vbCyan
+'''        .FindPane(gID.StatusBarPaneReStartButton).Button = True
+        
+'''        .AddPane gID.StatusBarPaneServerState
+'''        .FindPane(gID.StatusBarPaneServerState).Text = gVar.ServerStateNotStarted
+'''        .FindPane(gID.StatusBarPaneServerState).Width = 60
+        
+'''        .AddPane gID.StatusBarPaneServerButton
+'''        .FindPane(gID.StatusBarPaneServerButton).Text = gVar.ServerButtonStart
+'''        .FindPane(gID.StatusBarPaneServerButton).Width = 60
+'''        .FindPane(gID.StatusBarPaneServerButton).Button = True
+        
+        .AddProgressPane gID.StatusBarPaneProgress
+                
+        .AddPane gID.StatusBarPaneProgressText
+        .SetPaneText gID.StatusBarPaneProgressText, "0%"
+        .FindPane(gID.StatusBarPaneProgressText).Width = 60
+        
+        .AddPane 59137  'CapsLock键的状态
+        .AddPane 59138  'NumLK键的状态
+        .AddPane 59139  'ScrLK键的状态
+        .FindPane(0).Caption = "Idle Text"
+        .FindPane(59137).Caption = "Caps Lock键状态"
+        .FindPane(59138).Caption = "Num LocK键状态"
+        .FindPane(59139).Caption = "Scroll LocK键状态"
+        
+        .Visible = True
+        .EnableCustomization True
+    End With
+    
+    For Each BarPane In mXtrStatusBar     '设置Caption、ToolTip、Alignment属性
+        If Len(BarPane.Caption) = 0 Then BarPane.Caption = cbsActions(BarPane.ID).Caption
+        BarPane.ToolTip = BarPane.Caption
+        If BarPane.ID <> 0 Then BarPane.Alignment = xtpAlignmentCenter
+    Next
+    
+    Set cbsActions = Nothing
+    Set BarPane = Nothing
+End Sub
+
+Private Sub msConnectToServer(ByRef sckCon As MSWinsockLib.Winsock, Optional ByVal blnConnect As Boolean = False)
+    '启动与服务器的连接
+    
+    If Not blnConnect Then Exit Sub
+    With sckCon
+        If .State <> 0 Then .Close
+        .RemoteHost = gVar.TCPSetIP
+        .RemotePort = gVar.TCPSetPort
+        .Connect
+    End With
+End Sub
+
 Private Sub msLeftClick(ByVal CID As Long, ByRef cbsBars As XtremeCommandBars.CommandBars)
     'CommandBars单击命令响应公共过程
     
@@ -664,7 +751,7 @@ Private Sub msLeftClick(ByVal CID As Long, ByRef cbsBars As XtremeCommandBars.Co
                 If MsgBox("确定重新启动服务端程序吗？", vbQuestion + vbOKCancel, "重启主程序询问") = vbOK Then
                     gVar.CloseWindow = True
                     Unload Me
-                    Me.Show
+                    Load Me
                 End If
             Case .SysLoginOut
                 If MsgBox("确定退出服务端程序吗？", vbQuestion + vbOKCancel, "关闭主程序询问") = vbOK Then
@@ -687,20 +774,25 @@ Private Sub msLeftClick(ByVal CID As Long, ByRef cbsBars As XtremeCommandBars.Co
                            "版本：" & App.Major & "." & App.Minor & "." & App.Revision & vbCrLf & _
                            "版权所有：XMH"
                 MsgBox strAbout, vbInformation, "关于" & App.Title
-                
-            Case .SysExportToCSV To .SysExportToXML
-                Call gsGridExportTo(Screen.ActiveControl, CID)
-            Case .SysExportToText
-                If MsgBox("是否将当前表格内容导出至txt文本文档？", vbQuestion + vbYesNo, "询问") = vbYes Then Call gsGridToText(Screen.ActiveControl)
-            Case .SysExportToWord
-                If MsgBox("是否将当前表格内容导出至Word文档？", vbQuestion + vbYesNo, "询问") = vbYes Then Call gsGridToWord(Screen.ActiveControl)
-                
-            Case .SysPrint
-                If MsgBox("确定打印当前表格内容吗？", vbQuestion + vbOKCancel, "打印询问") = vbOK Then Call gsGridPrint
-            Case .SysPrintPreview
-                Call gsGridPrintPreview
-            Case .SysPrintPageSet
-                Call gsGridPageSet
+            
+            Case .SysExportToCSV To .SysExportToWord, .SysPrintPageSet To .SysPrint
+                If Screen.ActiveControl Is Nothing Then Exit Sub
+                If Not (TypeOf Screen.ActiveControl Is FlexCell.Grid) Then Exit Sub
+                Select Case CID
+                    Case .SysExportToCSV To .SysExportToXML
+                        Call gsGridExportTo(Screen.ActiveControl, CID)
+                    Case .SysExportToText
+                        If MsgBox("是否将当前表格内容导出至txt文本文档？", vbQuestion + vbYesNo, "询问") = vbYes Then Call gsGridToText(Screen.ActiveControl)
+                    Case .SysExportToWord
+                        If MsgBox("是否将当前表格内容导出至Word文档？", vbQuestion + vbYesNo, "询问") = vbYes Then Call gsGridToWord(Screen.ActiveControl)
+                        
+                    Case .SysPrint
+                        If MsgBox("确定打印当前表格内容吗？", vbQuestion + vbOKCancel, "打印询问") = vbOK Then Call gsGridPrint
+                    Case .SysPrintPreview
+                        Call gsGridPrintPreview
+                    Case .SysPrintPageSet
+                        Call gsGridPageSet
+                End Select
                 
             Case Else
                 strKey = LCase(cbsActions.Action(CID).Key)
@@ -770,73 +862,30 @@ Private Sub msResetLayout(ByRef cbsBars As XtremeCommandBars.CommandBars)
     Set cBar = Nothing
 End Sub
 
-Private Sub msAddXtrStatusBar(ByRef cbsBars As XtremeCommandBars.CommandBars)
-    '创建状态栏
+Private Sub msSetClientState(ByVal ColorSet As Long)
+    '设置状态栏中客户端连接服务端的状态
     
-    Dim cbsActions As XtremeCommandBars.CommandBarActions  'cbs控件Actions集合的引用
-    Dim BarPane As XtremeCommandBars.StatusBarPane
+    Dim paneState As XtremeCommandBars.StatusBarPane
     
-    Set cbsActions = cbsBars.Actions
-    Set mXtrStatusBar = cbsBars.StatusBar
-    With mXtrStatusBar
-        .AddPane 0      '系统Pane，显示CommandBarActions的Description
-        .SetPaneStyle 0, SBPS_STRETCH
-        .SetPaneText 0, "Hello"
-        .IdleText = "Hello"
-        
-        .AddPane gID.StatusBarPaneUserInfo
-        .SetPaneText gID.StatusBarPaneUserInfo, "中华人民"
-        .FindPane(gID.StatusBarPaneUserInfo).Width = 60
-        
-        .AddPane gID.StatusBarPaneIP
-        .SetPaneText gID.StatusBarPaneIP, Me.Winsock1.Item(0).LocalIP  'gVar.TCPSetIP
-        .FindPane(gID.StatusBarPaneIP).Width = 90
-        
-        .AddPane gID.StatusBarPanePort
-        .SetPaneText gID.StatusBarPanePort, gVar.TCPSetPort
-        .FindPane(gID.StatusBarPanePort).Width = 60
-        
-'''        .AddPane gID.StatusBarPaneReStartButton
-'''        .SetPaneText gID.StatusBarPaneReStartButton, IIf(gVar.ParaBlnAutoReStartServer, "自", "手") & "动重启服务模式"
-'''        .FindPane(gID.StatusBarPaneReStartButton).Width = 120
-'''        .FindPane(gID.StatusBarPaneReStartButton).BackgroundColor = vbCyan
-'''        .FindPane(gID.StatusBarPaneReStartButton).Button = True
-        
-'''        .AddPane gID.StatusBarPaneServerState
-'''        .FindPane(gID.StatusBarPaneServerState).Text = gVar.ServerStateNotStarted
-'''        .FindPane(gID.StatusBarPaneServerState).Width = 60
-        
-'''        .AddPane gID.StatusBarPaneServerButton
-'''        .FindPane(gID.StatusBarPaneServerButton).Text = gVar.ServerButtonStart
-'''        .FindPane(gID.StatusBarPaneServerButton).Width = 60
-'''        .FindPane(gID.StatusBarPaneServerButton).Button = True
-        
-        .AddProgressPane gID.StatusBarPaneProgress
-                
-        .AddPane gID.StatusBarPaneProgressText
-        .SetPaneText gID.StatusBarPaneProgressText, "0%"
-        .FindPane(gID.StatusBarPaneProgressText).Width = 60
-        
-        .AddPane 59137  'CapsLock键的状态
-        .AddPane 59138  'NumLK键的状态
-        .AddPane 59139  'ScrLK键的状态
-        .FindPane(0).Caption = "Idle Text"
-        .FindPane(59137).Caption = "Caps Lock键状态"
-        .FindPane(59138).Caption = "Num LocK键状态"
-        .FindPane(59139).Caption = "Scroll LocK键状态"
-        
-        .Visible = True
-        .EnableCustomization True
+    Set paneState = mXtrStatusBar.FindPane(gID.StatusBarPaneConnectState)
+    With paneState
+        If ColorSet = vbGreen Then  '已连接
+            .Text = gVar.ClientStateConnected
+            .BackgroundColor = ColorSet
+            gVar.TCPStateConnected = True   '用变量记录状态
+        Else    '其它
+            gVar.TCPStateConnected = False
+            If ColorSet = vbRed Then    '连接异常
+                .Text = gVar.ClientStateConnectError
+                .BackgroundColor = ColorSet
+            Else    '未连接等
+                .Text = gVar.ClientStateDisConnected
+                .BackgroundColor = vbYellow
+            End If
+        End If
     End With
+    Set paneState = Nothing
     
-    For Each BarPane In mXtrStatusBar     '设置Caption、ToolTip、Alignment属性
-        If Len(BarPane.Caption) = 0 Then BarPane.Caption = cbsActions(BarPane.ID).Caption
-        BarPane.ToolTip = BarPane.Caption
-        If BarPane.ID <> 0 Then BarPane.Alignment = xtpAlignmentCenter
-    Next
-    
-    Set cbsActions = Nothing
-    Set BarPane = Nothing
 End Sub
 
 
@@ -845,17 +894,42 @@ Private Sub CommandBars1_Execute(ByVal Control As XtremeCommandBars.ICommandBarC
     Call msLeftClick(Control.ID, Me.CommandBars1)
 End Sub
 
+Private Sub CommandBars1_Update(ByVal Control As XtremeCommandBars.ICommandBarControl)
+    'CommandBars控件的Action状态的切换
+    
+    Dim blnFC As Boolean    '判断是否为FC表格
+    Dim cbsActions As XtremeCommandBars.CommandBarActions  'cbs控件Actions集合的引用
+    
+    Set cbsActions = Me.CommandBars1.Actions
+    If Screen.ActiveControl Is Nothing Then
+        blnFC = False
+    Else
+        blnFC = TypeOf Screen.ActiveControl Is FlexCell.Grid    '当前活动控件是FC表格
+    End If
+    With gID
+        For mlngID = .SysExportToCSV To .SysExportToWord
+            cbsActions(mlngID).Enabled = blnFC  '活动控件是FC表格则激活对应Action，否则使其不可用
+        Next
+        For mlngID = .SysPrintPageSet To .SysPrint
+            cbsActions(mlngID).Enabled = blnFC
+        Next
+    End With
+End Sub
+
 Private Sub MDIForm_Load()
     '窗体加载
     
     Dim cbsBars As XtremeCommandBars.CommandBars
+    Dim strUpdate As String
     
-    Timer1.Item(0).Interval = 1000  '计时器循环时间
-    Call Main   '初始化全局公用变量
+    ReDim gArr(1)   '初始化数组。客户端统一使用下标1，包括Timer1控件与Winsocket控件
+    Timer1.Item(1).Interval = 1000  '计时器循环时间
     Set gWind = Me  '指定主窗体给全局引用对象
+    
     XtremeCommandBars.CommandBarsGlobalSettings.App = App '一个默认设置
     Set cbsBars = Me.CommandBars1
     
+    Call Main   '初始化全局公用变量
     Call msLoadParameter(True)  '加载配置参数
     Call msAddAction(cbsBars)   '创建Actions集合
     Call msAddMenu(cbsBars)     '创建菜单栏
@@ -876,33 +950,48 @@ Private Sub MDIForm_Load()
     
     '注册表信息加载-CommandBars设置
     Call cbsBars.LoadCommandBars(gVar.RegKeyCommandBars, gVar.RegAppName, gVar.RegKeyCBSClientSetting)
-
-    Call gsFormSizeLoad(Me, False) '注册表信息加载-窗口位置大小
-    
-    
-    '检查是否为试用版******************************
-    '==============================================
-    
-''    If gVar.ClientLoginOK Then  '系统登陆成功
-        Call gfNotifyIconAdd(Me)    '添加托盘图标
-''    Else
-''        Me.Hide
-''        frmSysLogin.Show
-''    End If
     
     Set cbsBars = Nothing   '销毁使用完的对象
+    
+    Call gsFormSizeLoad(Me, False) '注册表信息加载-窗口位置大小
+    
+    Call msConnectToServer(Me.Winsock1.Item(1), True)      '与务器建立连接
+    
+    strUpdate = gVar.AppPath & gVar.EXENameOfUpdate & " " & gVar.EXENameOfClient & _
+            gVar.CmdLineSeparator & gVar.CmdLineParaOfHide      '隐式打开更新检测程序
+    If Not gfShell(strUpdate) Then
+        Rem MsgBox "更新程序启动异常！", vbExclamation, "警告"
+        Rem Debug.Print strUpdate
+        Call gsAlarmAndLog("更新程序启动异常", False)
+    End If
+    
+    '检查是否为试用版*******************************
+    '==============================================
+    
+    
+    '==============================================
+    
+    Call gfNotifyIconAdd(Me)    '添加托盘图标
+    Me.Hide
+    
+    If LCase(App.EXEName & ".exe") <> LCase(gVar.EXENameOfClient) Then
+        MsgBox "不可擅自修改可执行的应用程序文件名！", vbCritical, "严重警报"
+        Unload Me   '防止exe文件名被改
+    End If
+    
 End Sub
 
-Private Sub MDIForm_MouseMove(Button As Integer, Shift As Integer, x As Single, y As Single)
-    '响应托盘图标的菜单
+Private Sub MDIForm_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
+    '响应托盘图标左键、右键动作，托盘菜单
     Dim sngMsg As Single
     
-    sngMsg = x / Screen.TwipsPerPixelX
+    If Y <> 0 Then Exit Sub    '似乎此句可限制住鼠标一定是在托盘图标上，不是在窗体上
+    sngMsg = X / Screen.TwipsPerPixelX
     Select Case sngMsg
         Case WM_RBUTTONUP
             mcbsPopupIcon.ShowPopup  '右键弹出Popup菜单
-
         Case WM_LBUTTONDBLCLK   '左键双击托盘图标时 窗口最显示/最小化 切换
+            Rem If Button <> vbLeftButton Then Exit Sub '窗口不明原因地偶尔自动最小化了，似乎此句可限制住
             With Me
                 If .WindowState = vbMinimized Then
                     .WindowState = vbNormal
@@ -955,7 +1044,9 @@ Private Sub MDIForm_Unload(Cancel As Integer)
     Call gsFormSizeSave(Me, False) '保存注册表信息-窗口位置大小
     Call gsSaveCommandbarsTheme(Me.CommandBars1, False)   '保存CommandBars的风格主题
     
-    gVar.CloseWindow = False    '清除关闭窗口状态
+    gVar.CloseWindow = False    '清除状态-关闭窗口
+    gVar.ClientLoginShow = False '清除状态-显示登陆窗口
+    Set gVar.rsURF = Nothing    '清除权限信息
     Call SkinFramework1.LoadSkin("", "")    '清空皮肤
     Set mXtrStatusBar = Nothing  '清除状态栏
     Set mcbsPopupIcon = Nothing '清除Popup菜单
@@ -975,10 +1066,10 @@ Private Sub mXtrStatusBar_PaneClick(ByVal Pane As XtremeCommandBars.StatusBarPan
         If MsgBox("是否" & Pane.Text & "？" & strMsg, vbQuestion + vbYesNo, "重启/断开服务询问") = vbNo Then Exit Sub
         If Pane.Text = gVar.ServerButtonClose Then     '关闭服务
             Pane.Text = gVar.ServerButtonStart
-            Call msCloseAllConnect(True, True)
+            
         ElseIf Pane.Text = gVar.ServerButtonStart Then     '开启服务
             Pane.Text = gVar.ServerButtonClose
-            Call msStartServer(Me.Winsock1.Item(0))
+            
         End If
         
     ElseIf Pane.ID = gID.StatusBarPaneReStartButton Then    '手动/自动重启服务模式
@@ -990,4 +1081,139 @@ Private Sub mXtrStatusBar_PaneClick(ByVal Pane As XtremeCommandBars.StatusBarPan
         End If
         
     End If
+End Sub
+
+Private Sub Timer1_Timer(Index As Integer)
+    Const conCon As Byte = 1    '连接状态检测间隔conConn秒
+    Static byteCon As Byte
+    
+    byteCon = byteCon + 1
+    
+    If byteCon >= conCon Then
+        With Me.Winsock1.Item(1)
+            If .State = 7 Then  '已连接
+                Call msSetClientState(vbGreen)
+                If Not gVar.ClientLoginShow Then '弹出登陆窗口
+                    If gVar.TCPStateConnected Then
+                        If gArr(Index).Connected Then
+                            frmSysLogin.Show vbModeless, Me
+                            gVar.ClientLoginShow = True
+                        End If
+                    End If
+                End If
+            ElseIf .State = 9 Then  '连接异常
+                Call msSetClientState(vbRed)
+            Else    '未连接等
+                Call msSetClientState(vbYellow)
+            End If
+        End With
+        byteCon = 0 '清零静态累积变量
+    End If
+    
+End Sub
+
+Private Sub Winsock1_Close(Index As Integer)
+    '连接关闭时清空传输信息
+    If UBound(gArr) = 1 Then gArr(1) = gArr(0)
+End Sub
+
+Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
+    Dim strGet As String
+    Dim byteGet() As Byte
+    
+    With gArr(Index)
+        If Not .FileTransmitState Then
+            '字符信息传输状态↓
+            
+            Me.Winsock1.Item(Index).GetData strGet  '接收字符
+            
+            If InStr(strGet, gVar.PTClientConfirm) > 0 Then '收到要回复服务端确认连接的信息
+                Call gfSendInfo(gVar.PTClientIsTrue, Me.Winsock1.Item(Index))
+                gArr(Index).Connected = True
+            
+            ElseIf InStr(strGet, gVar.PTFileStart) > 0 Then '可以发送文件给服务端了的状态
+                Call gfSendFile(.FilePath, Me.Winsock1.Item(Index)) '发送文件给服务端
+                Call gsFormEnable(Me, False)    '禁止客户端再操作
+                
+            ElseIf InStr(strGet, gVar.PTFileExist) > 0 Then '服务端发来客户端想要的文件存在
+                Dim strSize As String, lngInstrSize As Long
+                
+                lngInstrSize = InStr(strGet, gVar.PTFileSize) '获取客户端想要的存在于服务端的文件的大小
+                If lngInstrSize > 0 Then
+                    strSize = Mid(strGet, lngInstrSize + Len(gVar.PTFileSize))
+                    If IsNumeric(strSize) Then
+                        .FileSizeTotal = Val(strSize)
+                        Call gfSendInfo(gVar.PTFileSend, Me.Winsock1.Item(Index)) '通知服务端可以发送过来了
+                        '初始化进度条
+                        
+                        .FileTransmitState = True
+                        Call gsFormEnable(Me, False)    '禁止客户端再操作
+                    End If
+                End If
+                
+            ElseIf InStr(strGet, gVar.PTFileNoExist) > 0 Then   '
+                MsgBox "需要文件<" & .FileName & ">在服务端不存在！", vbExclamation, "文件警告"
+                gArr(Index) = gArr(0)
+                
+            End If
+            
+            Debug.Print "Client GetInfo:" & strGet, bytesTotal
+            '字符信息传输状态↑
+        Else
+            '文件传输状态↓
+            
+            If .FileNumber = 0 Then '申请文件号
+                .FileNumber = FreeFile
+                Open .FilePath For Binary As #.FileNumber
+            End If
+            
+            ReDim byteGet(bytesTotal - 1)   '重定义数组大小
+            Me.Winsock1.Item(Index).GetData byteGet, vbArray + vbByte   '接收文件信息并放入数组
+            Put #.FileNumber, , byteGet '保存进文件中
+            .FileSizeCompleted = .FileSizeCompleted + bytesTotal    '记录已传输大小
+            '更新进度条
+            
+            If .FileSizeCompleted >= .FileSizeTotal Then    '传输完成后的一些处理
+                Close #.FileNumber
+                Call gsFormEnable(Me, True) '解除客户端的限制
+                gArr(Index) = gArr(0)
+                Call gfSendInfo(gVar.PTFileEnd, Me.Winsock1.Item(Index)) '发送结束标志
+                Debug.Print "Client Received Over"
+            End If
+            
+            '文件传输状态↑
+        End If
+    End With
+    
+End Sub
+
+Private Sub Winsock1_Error(Index As Integer, ByVal Number As Integer, Description As String, ByVal Scode As Long, ByVal Source As String, ByVal HelpFile As String, ByVal HelpContext As Long, CancelDisplay As Boolean)
+    '连接异常处理
+    
+    If Index <> 0 Then
+        If gArr(Index).FileTransmitState Then   '异常时清空文件传输信息
+            Debug.Print "ClientWinsockError:" & Index & "--" & Err.Number & "  " & Err.Description
+            Close
+            gArr(Index) = gArr(0)
+            Call gsFormEnable(Me, True)
+            Call gsAlarmAndLog("与服务器连接发生异常", False)
+        End If
+    End If
+End Sub
+
+Private Sub Winsock1_SendComplete(Index As Integer)
+    '发送完处理
+    
+    If Index = 0 Then Exit Sub
+    With gArr(Index)
+        If .FileTransmitState Then
+            If .FileSizeCompleted < .FileSizeTotal Then
+                Call gfSendFile(.FilePath, Me.Winsock1.Item(Index))
+            Else
+                gArr(Index) = gArr(0)
+                Call gsFormEnable(Me, True)
+                Debug.Print "Client Send File Over"
+            End If
+        End If
+    End With
 End Sub

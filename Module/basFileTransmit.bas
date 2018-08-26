@@ -718,7 +718,7 @@ Public Function gfVersionCompare(ByVal strVerCL As String, ByVal strVerSV As Str
     
 End Function
 
-Public Sub gsFormEnable(frmCur As Form, Optional ByVal blnState As Boolean)
+Public Sub gsFormEnable(frmCur As Form, Optional ByVal blnState As Boolean = False)
     With frmCur
         If blnState Then
             .Enabled = True

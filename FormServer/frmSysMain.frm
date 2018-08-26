@@ -1107,6 +1107,28 @@ Private Sub CommandBars1_Resize()
     
 End Sub
 
+Private Sub CommandBars1_Update(ByVal Control As XtremeCommandBars.ICommandBarControl)
+    'CommandBars控件的Action状态的切换
+    
+    Dim blnFC As Boolean
+    Dim cbsActions As XtremeCommandBars.CommandBarActions  'cbs控件Actions集合的引用
+    
+    Set cbsActions = Me.CommandBars1.Actions
+    If Screen.ActiveControl Is Nothing Then
+        blnFC = False
+    Else
+        blnFC = TypeOf Screen.ActiveControl Is FlexCell.Grid
+    End If
+    With gID
+        For mlngID = .SysExportToCSV To .SysExportToWord
+            cbsActions(mlngID).Enabled = blnFC
+        Next
+        For mlngID = .SysPrintPageSet To .SysPrint
+            cbsActions(mlngID).Enabled = blnFC
+        Next
+    End With
+End Sub
+
 Private Sub Form_Load()
     '窗体加载
     
@@ -1163,6 +1185,7 @@ Private Sub Form_MouseMove(Button As Integer, Shift As Integer, X As Single, Y A
     '响应托盘图标的菜单
     Dim sngMsg As Single
     
+    If Y <> 0 Then Exit Sub    '似乎此句可限制住鼠标一定是在托盘图标上，不是在窗体上
     sngMsg = X / Screen.TwipsPerPixelX
     Select Case sngMsg
         Case WM_RBUTTONUP
@@ -1309,8 +1332,8 @@ Private Sub Timer1_Timer(Index As Integer)
             If Not ConfirmOK(Index) Then ConfirmTime(Index) = ConfirmTime(Index) + 1
             If gVar.ParaBlnLimitClientConnect Then CountTime(Index) = CountTime(Index) + 1
             
-            If ConfirmTime(Index) > gVar.TCPWaitTime Then
-                If Not gArr(Index).Connected Then
+            If ConfirmTime(Index) > gVar.TCPWaitTime Then   '确认是客户端发来的连接
+                If Not gArr(Index).Connected Then   '不是客户端则关闭
                     For Each sckClose In Me.Winsock1
                         If sckClose.Index = Index Then
                             Call Winsock1_Close(Index) 'sckClose.Close

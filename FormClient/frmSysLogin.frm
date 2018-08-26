@@ -109,12 +109,16 @@ Attribute VB_Exposed = False
 Option Explicit
 
 Private Sub Command1_Click()
-    Load gWind
     gWind.Show
     Unload Me
 End Sub
 
 Private Sub Command2_Click()
+    gVar.CloseWindow = True
     Unload Me
     Unload gWind
 End Sub
+
+'Private Sub Form_Load()
+'    gWind.Hide
+'End Sub
