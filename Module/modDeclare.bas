@@ -307,6 +307,7 @@ Public Type gtypeCommonVariant
     RegKeyParaAutoStartupAtBoot As String   '开机自动启动
     RegKeyParaLimitClientConnect As String  '限制客户端连接
     RegKeyParaLimitClientConnectTime As String '限制客户端连接时长
+    RegKeyParaLimitClientConnectNumber As String '限制客户端连接数
     
     AppPath As String           'App路径，确保最后字符为"\"
     FolderNameTemp As String    '文件夹名称：Temp
@@ -357,6 +358,7 @@ Public Type gtypeCommonVariant
     ParaBlnAutoStartupAtBoot As Boolean '开机自动启动
     ParaBlnLimitClientConnect As Boolean '限制客户端连接时间
     ParaLimitClientConnectTime As Long  '限制客户端最大连续连接时长是多少
+    
     
 End Type
 

@@ -749,14 +749,12 @@ Private Sub msLeftClick(ByVal CID As Long, ByRef cbsBars As XtremeCommandBars.Co
                 
             Case .SysLoginAgain
                 If MsgBox("确定重新启动服务端程序吗？", vbQuestion + vbOKCancel, "重启主程序询问") = vbOK Then
-                    gVar.CloseWindow = True
-                    Unload Me
+                    Call msUnloadMe(True)
                     Load Me
                 End If
             Case .SysLoginOut
                 If MsgBox("确定退出服务端程序吗？", vbQuestion + vbOKCancel, "关闭主程序询问") = vbOK Then
-                    gVar.CloseWindow = True
-                    Unload Me
+                    Call msUnloadMe(True)
                 End If
                 
             Case .IconPopupMenuMaxWindow
@@ -888,6 +886,13 @@ Private Sub msSetClientState(ByVal ColorSet As Long)
     
 End Sub
 
+Private Sub msUnloadMe(Optional ByVal blnUnload As Boolean = True)
+    '卸载窗体
+    If Not blnUnload Then Exit Sub
+    gVar.CloseWindow = True
+    Unload Me
+End Sub
+
 
 Private Sub CommandBars1_Execute(ByVal Control As XtremeCommandBars.ICommandBarControl)
     '命令单击事件
@@ -976,7 +981,7 @@ Private Sub MDIForm_Load()
     
     If LCase(App.EXEName & ".exe") <> LCase(gVar.EXENameOfClient) Then
         MsgBox "不可擅自修改可执行的应用程序文件名！", vbCritical, "严重警报"
-        Unload Me   '防止exe文件名被改
+        Call msUnloadMe(True)    '防止exe文件名被改
     End If
     
 End Sub
@@ -1052,42 +1057,18 @@ Private Sub MDIForm_Unload(Cancel As Integer)
     Set mcbsPopupIcon = Nothing '清除Popup菜单
     Call gfNotifyIconDelete(Me) '删除托盘图标
     gNotifyIconData = resetNotifyIconData   '清空托盘气泡信息。否则重启程序时会自动弹出？而且只能放上句删除托盘图标语句的后面?
-    ReDim gArr(0)
+    gArr(1) = gArr(0)
     Set gWind = Nothing '清除全局窗体引用
     
-End Sub
-
-Private Sub mXtrStatusBar_PaneClick(ByVal Pane As XtremeCommandBars.StatusBarPane)
-    '状态栏按钮事件
-    Dim strMsg As String
-    
-    If Pane.ID = gID.StatusBarPaneServerButton Then '断开/开启服务
-        If Pane.Text = gVar.ServerButtonClose Then strMsg = "关闭后会断开所有用户的连接。"
-        If MsgBox("是否" & Pane.Text & "？" & strMsg, vbQuestion + vbYesNo, "重启/断开服务询问") = vbNo Then Exit Sub
-        If Pane.Text = gVar.ServerButtonClose Then     '关闭服务
-            Pane.Text = gVar.ServerButtonStart
-            
-        ElseIf Pane.Text = gVar.ServerButtonStart Then     '开启服务
-            Pane.Text = gVar.ServerButtonClose
-            
-        End If
-        
-    ElseIf Pane.ID = gID.StatusBarPaneReStartButton Then    '手动/自动重启服务模式
-        strMsg = "是否切换成" & IIf(gVar.ParaBlnAutoReStartServer, "手", "自") & "动重启服务模式？"
-        If MsgBox(strMsg, vbQuestion + vbYesNo, "模式切换询问") = vbYes Then
-            gVar.ParaBlnAutoReStartServer = Not gVar.ParaBlnAutoReStartServer
-            mXtrStatusBar.FindPane(gID.StatusBarPaneReStartButton).Text = IIf(gVar.ParaBlnAutoReStartServer, "自", "手") & "动重启服务模式"
-            Call SaveSetting(gVar.RegAppName, gVar.RegSectionTCP, gVar.RegKeyParaAutoReStartServer, IIf(gVar.ParaBlnAutoReStartServer, 1, 0))
-        End If
-        
-    End If
 End Sub
 
 Private Sub Timer1_Timer(Index As Integer)
     Const conCon As Byte = 1    '连接状态检测间隔conConn秒
     Static byteCon As Byte
+    Static byteChk As Byte
     
     byteCon = byteCon + 1
+    byteChk = byteChk + 1
     
     If byteCon >= conCon Then
         With Me.Winsock1.Item(1)
@@ -1110,6 +1091,14 @@ Private Sub Timer1_Timer(Index As Integer)
         byteCon = 0 '清零静态累积变量
     End If
     
+    If byteChk > (gVar.TCPWaitTime + 2) Then  '因为服务器端也是等待gVar.TCPWaitTime才断开连接，这里延迟一点
+        byteChk = 0
+        If Not gVar.TCPStateConnected Then
+            Call gsAlarmAndLogEx("与服务器建立连接失败，请确认服务端程序已启动", "连接警示")
+            Call msUnloadMe(True)
+        End If
+    End If
+    
 End Sub
 
 Private Sub Winsock1_Close(Index As Integer)
@@ -1130,7 +1119,14 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
             If InStr(strGet, gVar.PTClientConfirm) > 0 Then '收到要回复服务端确认连接的信息
                 Call gfSendInfo(gVar.PTClientIsTrue, Me.Winsock1.Item(Index))
                 gArr(Index).Connected = True
+            ElseIf InStr(strGet, gVar.PTConnectIsFull) Then '收到服务端发来的连接数已满
+                MsgBox "客户端与服务端连接数受限，请其他用户退出后再试！", vbCritical, "连接数已满警告"
+                Call msUnloadMe(True)
             
+            ElseIf InStr(strGet, gVar.PTConnectTimeOut) Then '连续连接时间已到
+                MsgBox "与服务器连续连接时间已到，请重新登陆！", vbExclamation, "连接时间限制提示"
+                Call msUnloadMe(True)
+                
             ElseIf InStr(strGet, gVar.PTFileStart) > 0 Then '可以发送文件给服务端了的状态
                 Call gfSendFile(.FilePath, Me.Winsock1.Item(Index)) '发送文件给服务端
                 Call gsFormEnable(Me, False)    '禁止客户端再操作

@@ -66,6 +66,7 @@ Private Sub msLoadParameter(Optional ByVal blnLoad As Boolean = True)
         
         .Cell(13, 1).Text = gVar.ParaBlnLimitClientConnect '限制客户端连接
         .Cell(13, 7).Text = gVar.ParaLimitClientConnectTime '限制客户端连接时长
+        .Cell(14, 3).Text = gVar.TCPConnectMax '限制客户端连接数
         
     End With
     
@@ -93,6 +94,8 @@ Private Sub msSaveParameter(Optional ByVal blnSave As Boolean = True)
         gVar.ParaBlnLimitClientConnect = .Cell(13, 1).Text '限制客户端连接
         tempVal = Val(.Cell(13, 7).Text)
         gVar.ParaLimitClientConnectTime = IIf(tempVal < 1 Or tempVal > 60, 30, tempVal) '限制客户端连接时长
+        tempVal = Val(.Cell(14, 3).Text)
+        gVar.TCPConnectMax = IIf(tempVal < 1 Or tempVal > 20, 2, tempVal) '限制客户端连接数
         
     End With
     
@@ -116,6 +119,7 @@ Private Sub msSaveParameter(Optional ByVal blnSave As Boolean = True)
         
         Call SaveSetting(.RegAppName, .RegSectionTCP, .RegKeyParaLimitClientConnect, IIf(.ParaBlnLimitClientConnect, 1, 0)) '限制客户端连接
         Call SaveSetting(.RegAppName, .RegSectionTCP, .RegKeyParaLimitClientConnectTime, .ParaLimitClientConnectTime) '限制客户端连接时长
+        Call SaveSetting(.RegAppName, .RegSectionTCP, .RegKeyParaLimitClientConnectNumber, .TCPConnectMax) '限制客户端连接数
         
     End With
     

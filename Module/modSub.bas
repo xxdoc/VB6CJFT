@@ -240,6 +240,7 @@ Public Sub Main(Optional ByVal blnLoad As Boolean = True)
         .RegKeyParaAutoStartupAtBoot = "AutoStartupAtBoot"
         .RegKeyParaLimitClientConnect = "LimitClientConnect"
         .RegKeyParaLimitClientConnectTime = "LimitClientConnectTime"
+        .RegKeyParaLimitClientConnectNumber = "LimitClientConnectNumber"
         
         .AppPath = App.Path & IIf(Right(App.Path, 1) = "\", "", "\")
         

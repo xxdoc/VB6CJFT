@@ -963,6 +963,7 @@ Private Sub msLoadParameter(Optional ByVal blnLoad As Boolean = True)
         
         .ParaBlnLimitClientConnect = Val(GetSetting(.RegAppName, .RegSectionTCP, .RegKeyParaLimitClientConnect, 0)) '限制客户端连接
         .ParaLimitClientConnectTime = gfGetRegNumericValue(.RegAppName, .RegSectionTCP, .RegKeyParaLimitClientConnectTime, True, 30, 1, 60) '限制客户端连接时长
+        .TCPConnectMax = gfGetRegNumericValue(.RegAppName, .RegSectionTCP, .RegKeyParaLimitClientConnectNumber, True, 2, 1) '限制客户端连接数
         
     End With
 End Sub
@@ -1044,6 +1045,7 @@ End Sub
 
 Private Sub msStartServer(ByRef sckCon As MSWinsockLib.Winsock)
     '开启服务
+'    On Error Resume Next
     With sckCon
         If .State <> 0 Then .Close  '先关闭
         .LocalPort = gVar.TCPSetPort
