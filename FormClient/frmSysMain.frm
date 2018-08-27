@@ -748,12 +748,12 @@ Private Sub msLeftClick(ByVal CID As Long, ByRef cbsBars As XtremeCommandBars.Co
                 Call msResetLayout(cbsBars)
                 
             Case .SysLoginAgain
-                If MsgBox("确定重新启动服务端程序吗？", vbQuestion + vbOKCancel, "重启主程序询问") = vbOK Then
+                If MsgBox("确定重新启动客户端程序吗？", vbQuestion + vbOKCancel, "重启主程序询问") = vbOK Then
                     Call msUnloadMe(True)
                     Load Me
                 End If
             Case .SysLoginOut
-                If MsgBox("确定退出服务端程序吗？", vbQuestion + vbOKCancel, "关闭主程序询问") = vbOK Then
+                If MsgBox("确定退出客户端程序吗？", vbQuestion + vbOKCancel, "关闭主程序询问") = vbOK Then
                     Call msUnloadMe(True)
                 End If
                 
@@ -1120,12 +1120,15 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
                 Call gfSendInfo(gVar.PTClientIsTrue, Me.Winsock1.Item(Index))
                 gArr(Index).Connected = True
             ElseIf InStr(strGet, gVar.PTConnectIsFull) Then '收到服务端发来的连接数已满
+                Me.Timer1.Item(Index).Enabled = False
                 MsgBox "客户端与服务端连接数受限，请其他用户退出后再试！", vbCritical, "连接数已满警告"
                 Call msUnloadMe(True)
             
             ElseIf InStr(strGet, gVar.PTConnectTimeOut) Then '连续连接时间已到
+                Me.Timer1.Item(Index).Enabled = False
                 MsgBox "与服务器连续连接时间已到，请重新登陆！", vbExclamation, "连接时间限制提示"
                 Call msUnloadMe(True)
+                Load Me
                 
             ElseIf InStr(strGet, gVar.PTFileStart) > 0 Then '可以发送文件给服务端了的状态
                 Call gfSendFile(.FilePath, Me.Winsock1.Item(Index)) '发送文件给服务端
