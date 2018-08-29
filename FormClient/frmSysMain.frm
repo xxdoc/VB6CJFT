@@ -830,6 +830,10 @@ Private Sub msLoadParameter(Optional ByVal blnLoad As Boolean = True)
         .ParaBlnAutoReStartServer = Val(GetSetting(.RegAppName, .RegSectionTCP, .RegKeyParaAutoReStartServer, 1))   '手动/自动重启服务模式
         .ParaBlnAutoStartupAtBoot = Val(GetSetting(.RegAppName, .RegSectionSettings, .RegKeyParaAutoStartupAtBoot, 0))  '开机自动启动
         
+        .UserComputerName = VBA.Environ("ComputerName")
+        .UserLoginName = VBA.Environ("UserName") '"XiaoMing"
+        .UserFullName = "小明"
+        
 '''        '由服务端发过来给客户端
 '''        .ConSource = gfCheckIP(gfGetRegStringValue(.RegAppName, .RegSectionDBServer, .RegKeyDBServerIP, .TCPSetIP))   '服务器名称/IP
 '''        .ConDatabase = DecryptString(gfGetRegStringValue(.RegAppName, .RegSectionDBServer, .RegKeyDBServerDatabase, EncryptString("dbTest", .EncryptKey)), .EncryptKey)    '数据库名
@@ -1058,6 +1062,7 @@ Private Sub MDIForm_Unload(Cancel As Integer)
     Call gfNotifyIconDelete(Me) '删除托盘图标
     gNotifyIconData = resetNotifyIconData   '清空托盘气泡信息。否则重启程序时会自动弹出？而且只能放上句删除托盘图标语句的后面?
     gArr(1) = gArr(0)
+'    Erase gArr
     Set gWind = Nothing '清除全局窗体引用
     
 End Sub
@@ -1123,7 +1128,8 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
                 Me.Timer1.Item(Index).Enabled = False
                 MsgBox "客户端与服务端连接数受限，请其他用户退出后再试！", vbCritical, "连接数已满警告"
                 Call msUnloadMe(True)
-            
+                End
+                
             ElseIf InStr(strGet, gVar.PTConnectTimeOut) Then '连续连接时间已到
                 Me.Timer1.Item(Index).Enabled = False
                 MsgBox "与服务器连续连接时间已到，请重新登陆！", vbExclamation, "连接时间限制提示"

@@ -156,9 +156,9 @@ Private Sub msLoadParameter(Optional ByVal blnLoad As Boolean = True)
     End With
 End Sub
 
-Private Sub msSetLabel(ByVal strCaption As String, ByVal backColor As Long)
+Private Sub msSetLabel(ByVal strCaption As String, ByVal BackColor As Long)
     Me.Label1.Item(1).Caption = strCaption
-    Me.Label1.Item(1).backColor = backColor
+    Me.Label1.Item(1).BackColor = BackColor
 End Sub
 
 Private Sub msSetText(ByVal strTxt As String, ByVal ForeColor As Long)
@@ -172,7 +172,7 @@ Private Sub Form_Load()
     Dim strCmd As String, arrCmd() As String
     
     Label1.Item(0).Caption = ""
-    Text1.backColor = Me.backColor
+    Text1.BackColor = Me.BackColor
     Timer1.Interval = 1000
     Timer1.Enabled = True
 
@@ -279,6 +279,7 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
             If InStr(strGet, gVar.PTClientConfirm) Then
                 Call gfSendInfo(gVar.PTClientIsTrue, Me.Winsock1.Item(Index))
                 .Connected = True
+                Call gfSendClientInfo("UpdatePC", "Update", "UpdateProgram", Me.Winsock1.Item(Index))
                 
             End If
             

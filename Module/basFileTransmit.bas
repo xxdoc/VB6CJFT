@@ -564,6 +564,18 @@ Public Function gfRestoreInfo(ByVal strInfo As String, sckGet As MSWinsockLib.Wi
 
 End Function
 
+Public Function gfSendClientInfo(ByVal strPC As String, ByVal strLogin As String, _
+        ByVal FullName As String, ByRef sckInfo As MSWinsockLib.Winsock) As Boolean
+    '发送客户端信息给服务端。服务端接收后显示的连接列表中
+    
+    Dim strInfo As String
+    
+    strInfo = gVar.PTClientUserComputerName & strPC & gVar.PTClientUserLoginName & strLogin & gVar.PTClientUserFullName & FullName
+    If gfSendInfo(strInfo, sckInfo) Then gfSendClientInfo = True
+    
+End Function
+
+
 Public Function gfSendFile(ByVal strFile As String, sckSend As MSWinsockLib.Winsock) As Boolean
     Dim lngSendSize As Long, lngRemain As Long
     Dim byteSend() As Byte
