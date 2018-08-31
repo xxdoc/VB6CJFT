@@ -503,6 +503,37 @@ Public Function gfRegOperate(ByVal RegHKEY As genumRegRootDirectory, ByVal lpSub
     
 End Function
 
+Public Function gfRestoreDBInfo(ByVal strInfo As String) As Boolean
+    '还原数据库连接信息
+    Dim lngSrc As Long, lngDB As Long, lngID As Long, lngPWD As Long
+    Dim strSrc As String, strDB As String, strID As String, strPWD As String
+        
+    On Error Resume Next    '解密非正常密文时可能出错
+    
+    lngSrc = InStr(strInfo, gVar.PTDBDataSource) '数据库服务器地址
+    lngDB = InStr(strInfo, gVar.PTDBDatabase)   '数据库名
+    lngID = InStr(strInfo, gVar.PTDBUserID)     '数据库访问账号
+    lngPWD = InStr(strInfo, gVar.PTDBPassword)  '数据库访问密码
+    
+    If Not (lngSrc > 0 And lngDB > lngSrc And lngID > lngDB And lngPWD > lngID) Then Exit Function '信息中的顺序不对
+    strSrc = Mid(strInfo, Len(gVar.PTDBDataSource) + lngSrc, lngDB - lngSrc - Len(gVar.PTDBDataSource))
+    gVar.ConSource = EncryptString(strSrc, gVar.EncryptKey)
+    
+    strDB = Mid(strInfo, lngDB + Len(gVar.PTDBDatabase), lngID - lngDB - Len(gVar.PTDBDatabase))
+    gVar.ConDatabase = EncryptString(strDB, gVar.EncryptKey)
+    
+    strID = Mid(strInfo, lngID + Len(gVar.PTDBUserID), lngPWD - lngID - Len(gVar.PTDBUserID))
+    gVar.ConUserID = EncryptString(strID, gVar.EncryptKey)
+    
+    strPWD = Mid(strInfo, lngPWD + Len(gVar.PTDBPassword))
+    gVar.ConPassword = EncryptString(strPWD, gVar.EncryptKey)
+    
+    gVar.ConString = "Provider=SQLOLEDB;Persist Security Info=False;Data Source=" & .ConSource & _
+                    ";UID=" & .ConUserID & ";PWD=" & .ConPassword & _
+                    ";DataBase=" & .ConDatabase & ";"   '''在64位系统上Data Source中间要空格隔开才能建立连接
+    
+    If Err.Number = 0 Then gfRestoreDBInfo = True
+End Function
 
 Public Function gfRestoreInfo(ByVal strInfo As String, sckGet As MSWinsockLib.Winsock) As Boolean
     '还原接收到的文件信息

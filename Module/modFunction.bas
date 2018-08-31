@@ -80,6 +80,33 @@ Public Function gfAsciiSub(ByVal strIn As String) As String
     
 End Function
 
+Public Function gfBackComputerInfo(Optional ByVal cType As genumComputerInfoType = ciComputerName, _
+        Optional ByVal UseDefault As Boolean = True, Optional ByVal DefaultValue As String = "Null") As String
+    '返回指定的电脑上的信息
+    
+    Dim strBack As String, strBuffer As String * 255
+    
+    If cType = ciComputerName Then  '计算机名称
+        strBack = VBA.Environ("ComputerName")   '直接VBA函数获取
+        If Len(strBack) = 0 Then
+            Call GetComputerName(strBuffer, 255) '若获取失败则用API函数再获取一次
+            strBack = strBuffer
+        End If
+    ElseIf cType = ciUserName Then  '计算机当前用户名
+        strBack = VBA.Environ("UserName")
+        If Len(strBack) = 0 Then
+            Call GetUserName(strBuffer, 255)
+            strBack = strBuffer
+        End If
+    End If
+    
+    If Len(strBack) = 0 Then  '如果为空时是否使用默认值
+        If UseDefault Then strBack = DefaultValue
+    End If
+    gfBackComputerInfo = strBack
+    
+End Function
+
 
 Public Function gfBackConnection(ByVal strCon As String, _
         Optional ByVal CursorLocation As CursorLocationEnum = adUseClient) As ADODB.Connection

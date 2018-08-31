@@ -153,6 +153,10 @@ Private Sub msLoadParameter(Optional ByVal blnLoad As Boolean = True)
         .TCPDefaultIP = Me.Winsock1.Item(0).LocalIP '本机IP地址
         .TCPSetIP = gfCheckIP(GetSetting(.RegAppName, .RegSectionTCP, .RegKeyTCPIP, .TCPDefaultIP)) '要连接服务端IP地址
         .TCPSetPort = gfGetRegNumericValue(.RegAppName, .RegSectionTCP, .RegKeyTCPPort, , .TCPDefaultPort, 10000, 65535) '要连接的服务器端口
+        
+        .UserComputerName = gfBackComputerInfo(ciComputerName)
+        .UserLoginName = gfBackComputerInfo(ciUserName)
+        .UserFullName = "UpdateProgram"
     End With
 End Sub
 
@@ -261,6 +265,8 @@ Private Sub Winsock1_Close(Index As Integer)
         mblnCheckStart = False
     End If
     Label1.Item(0).Caption = ""
+    
+    If mblnHide Then Unload Me  '异常时卸载
 End Sub
 
 
@@ -357,5 +363,6 @@ Private Sub Winsock1_Error(Index As Integer, ByVal Number As Integer, Descriptio
             Close #gArr(Index).FileNumber
             gArr(Index) = gArr(0)
         End If
+        If mblnHide Then Unload Me  '异常时卸载
     End If
 End Sub

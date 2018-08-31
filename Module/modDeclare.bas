@@ -89,6 +89,15 @@ End Enum
 
 Public Declare Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)  '程序暂停运行（毫秒）
 
+'返回电脑信息API
+Public Declare Function GetComputerName Lib "kernel32" Alias "GetComputerNameA" (ByVal lpBuffer As String, nSize As Long) As Long
+Public Declare Function GetUserName Lib "advapi32.dll" Alias "GetUserNameA" (ByVal lpBuffer As String, nSize As Long) As Long
+
+Public Enum genumComputerInfoType   '要返回的电脑上的信息类别
+    ciComputerName
+    ciUserName
+End Enum
+
 
 '''以下API函数Shell_NotifyIcon与一堆常量、枚举、结构体都有关托盘
 Public Declare Function Shell_NotifyIcon Lib "shell32.dll" Alias "Shell_NotifyIconA" (ByVal dwMessage As Long, _
@@ -243,6 +252,11 @@ Public Type gtypeCommonVariant
     
     PTClientConfirm As String   '协议：客户端确认
     PTClientIsTrue As String    '协议：客户端给服务端的确认
+    
+    PTDBDataSource As String    '协议：数据库服务器地址
+    PTDBDatabase As String      '协议：数据库名
+    PTDBUserID As String        '协议：数据库访问账号
+    PTDBPassword As String      '协议：数据库访问密码
     
     PTConnectIsFull As String   '协议：连接数已满
     PTConnectTimeOut As String  '协议：连续连接时间到
@@ -553,7 +567,7 @@ Public Enum genumGridExportType 'Flexcell Grid导出文件的类型
     fcXML
 End Enum
 
-Public Enum genumNumber
+Public Enum genumNumber '顺序数字
     eZero = 0
     eOne = 1
     eTwo = 2

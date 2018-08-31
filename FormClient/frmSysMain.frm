@@ -395,7 +395,7 @@ Dim mlngID As Long  '循环变量ID
 Dim WithEvents mXtrStatusBar As XtremeCommandBars.StatusBar  '状态栏控件
 Attribute mXtrStatusBar.VB_VarHelpID = -1
 Dim mcbsPopupIcon As XtremeCommandBars.CommandBar    '托盘图标Pupup菜单
-
+Dim mblnReLoad As Boolean   '接收到服务端发来的重启客户端标志
 
 
 Private Sub msAddAction(ByRef cbsBars As XtremeCommandBars.CommandBars)
@@ -663,7 +663,7 @@ Private Sub msAddXtrStatusBar(ByRef cbsBars As XtremeCommandBars.CommandBars)
         .IdleText = "Hello"
         
         .AddPane gID.StatusBarPaneUserInfo
-        .SetPaneText gID.StatusBarPaneUserInfo, "中华人民"
+        .SetPaneText gID.StatusBarPaneUserInfo, gVar.UserFullName
         .FindPane(gID.StatusBarPaneUserInfo).Width = 60
         
         .AddPane gID.StatusBarPaneIP
@@ -830,9 +830,9 @@ Private Sub msLoadParameter(Optional ByVal blnLoad As Boolean = True)
         .ParaBlnAutoReStartServer = Val(GetSetting(.RegAppName, .RegSectionTCP, .RegKeyParaAutoReStartServer, 1))   '手动/自动重启服务模式
         .ParaBlnAutoStartupAtBoot = Val(GetSetting(.RegAppName, .RegSectionSettings, .RegKeyParaAutoStartupAtBoot, 0))  '开机自动启动
         
-        .UserComputerName = VBA.Environ("ComputerName")
-        .UserLoginName = VBA.Environ("UserName") '"XiaoMing"
-        .UserFullName = "小明"
+        .UserComputerName = gfBackComputerInfo(ciComputerName)
+        .UserLoginName = "DefaultName"
+        .UserFullName = "XXX"
         
 '''        '由服务端发过来给客户端
 '''        .ConSource = gfCheckIP(gfGetRegStringValue(.RegAppName, .RegSectionDBServer, .RegKeyDBServerIP, .TCPSetIP))   '服务器名称/IP
@@ -1053,6 +1053,7 @@ Private Sub MDIForm_Unload(Cancel As Integer)
     Call gsFormSizeSave(Me, False) '保存注册表信息-窗口位置大小
     Call gsSaveCommandbarsTheme(Me.CommandBars1, False)   '保存CommandBars的风格主题
     
+    mblnReLoad = False  '清除重启状态
     gVar.CloseWindow = False    '清除状态-关闭窗口
     gVar.ClientLoginShow = False '清除状态-显示登陆窗口
     Set gVar.rsURF = Nothing    '清除权限信息
@@ -1062,7 +1063,6 @@ Private Sub MDIForm_Unload(Cancel As Integer)
     Call gfNotifyIconDelete(Me) '删除托盘图标
     gNotifyIconData = resetNotifyIconData   '清空托盘气泡信息。否则重启程序时会自动弹出？而且只能放上句删除托盘图标语句的后面?
     gArr(1) = gArr(0)
-'    Erase gArr
     Set gWind = Nothing '清除全局窗体引用
     
 End Sub
@@ -1104,6 +1104,12 @@ Private Sub Timer1_Timer(Index As Integer)
         End If
     End If
     
+    '重启。在Winsock控件中的gArr的with语句中重启时无法清空gArr数组，权宜放此处
+    If mblnReLoad Then
+        Call msUnloadMe(True)
+        Load Me
+    End If
+    
 End Sub
 
 Private Sub Winsock1_Close(Index As Integer)
@@ -1124,17 +1130,21 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
             If InStr(strGet, gVar.PTClientConfirm) > 0 Then '收到要回复服务端确认连接的信息
                 Call gfSendInfo(gVar.PTClientIsTrue, Me.Winsock1.Item(Index))
                 gArr(Index).Connected = True
+                
             ElseIf InStr(strGet, gVar.PTConnectIsFull) Then '收到服务端发来的连接数已满
                 Me.Timer1.Item(Index).Enabled = False
                 MsgBox "客户端与服务端连接数受限，请其他用户退出后再试！", vbCritical, "连接数已满警告"
                 Call msUnloadMe(True)
-                End
+                Rem End '硬结束程序，以防万一？
+
+            ElseIf InStr(strGet, gVar.PTDBDataSource) Then  '收到服务器发来的数据库连接信息
+                Call gfRestoreDBInfo(strGet)
                 
             ElseIf InStr(strGet, gVar.PTConnectTimeOut) Then '连续连接时间已到
                 Me.Timer1.Item(Index).Enabled = False
                 MsgBox "与服务器连续连接时间已到，请重新登陆！", vbExclamation, "连接时间限制提示"
-                Call msUnloadMe(True)
-                Load Me
+                Me.Timer1.Item(Index).Enabled = True
+                mblnReLoad = True
                 
             ElseIf InStr(strGet, gVar.PTFileStart) > 0 Then '可以发送文件给服务端了的状态
                 Call gfSendFile(.FilePath, Me.Winsock1.Item(Index)) '发送文件给服务端
