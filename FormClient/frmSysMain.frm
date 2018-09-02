@@ -1,8 +1,8 @@
 VERSION 5.00
 Object = "{248DD890-BB45-11CF-9ABC-0080C7E7B78D}#1.0#0"; "MSWINSCK.OCX"
-Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.2#0"; "MSCOMCTL.OCX"
 Object = "{555E8FCC-830E-45CC-AF00-A012D5AE7451}#15.3#0"; "Codejock.CommandBars.v15.3.1.ocx"
 Object = "{BD0C1912-66C3-49CC-8B12-7B347BF6C846}#15.3#0"; "Codejock.SkinFramework.v15.3.1.ocx"
+Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.0#0"; "MSCOMCTL.OCX"
 Begin VB.MDIForm frmSysMain 
    BackColor       =   &H8000000C&
    Caption         =   "FFC"
@@ -396,6 +396,7 @@ Dim WithEvents mXtrStatusBar As XtremeCommandBars.StatusBar  '状态栏控件
 Attribute mXtrStatusBar.VB_VarHelpID = -1
 Dim mcbsPopupIcon As XtremeCommandBars.CommandBar    '托盘图标Pupup菜单
 Dim mblnReLoad As Boolean   '接收到服务端发来的重启客户端标志
+Dim mblnUpdateOver As Boolean   '更新程序是否运行完成
 
 
 Private Sub msAddAction(ByRef cbsBars As XtremeCommandBars.CommandBars)
@@ -964,8 +965,7 @@ Private Sub MDIForm_Load()
     
     Call gsFormSizeLoad(Me, False) '注册表信息加载-窗口位置大小
     
-    Call msConnectToServer(Me.Winsock1.Item(1), True)      '与务器建立连接
-    
+    '更新检查
     strUpdate = gVar.AppPath & gVar.EXENameOfUpdate & " " & gVar.EXENameOfClient & _
             gVar.CmdLineSeparator & gVar.CmdLineParaOfHide      '隐式打开更新检测程序
     If Not gfShell(strUpdate) Then
@@ -1054,6 +1054,7 @@ Private Sub MDIForm_Unload(Cancel As Integer)
     Call gsSaveCommandbarsTheme(Me.CommandBars1, False)   '保存CommandBars的风格主题
     
     mblnReLoad = False  '清除重启状态
+    mblnUpdateOver = False '清除更新程序状态
     gVar.CloseWindow = False    '清除状态-关闭窗口
     gVar.ClientLoginShow = False '清除状态-显示登陆窗口
     Set gVar.rsURF = Nothing    '清除权限信息
@@ -1076,6 +1077,11 @@ Private Sub Timer1_Timer(Index As Integer)
     byteChk = byteChk + 1
     
     If byteCon >= conCon Then
+        If (Not mblnUpdateOver) And (Not gfAppExist(gVar.EXENameOfUpdate)) Then '权且如此,仅判断进程是否存在是不全面的
+            mblnUpdateOver = True   '更新程序已运行完成标志
+            Call msConnectToServer(Me.Winsock1.Item(1), True)      '与务器建立连接
+        End If
+             
         With Me.Winsock1.Item(1)
             If .State = 7 Then  '已连接
                 Call msSetClientState(vbGreen)
@@ -1211,8 +1217,8 @@ Private Sub Winsock1_Error(Index As Integer, ByVal Number As Integer, Descriptio
             Close
             gArr(Index) = gArr(0)
             Call gsFormEnable(Me, True)
-            Call gsAlarmAndLog("与服务器连接发生异常", False)
         End If
+        Call gsAlarmAndLog("与服务器连接发生异常", True)
     End If
 End Sub
 

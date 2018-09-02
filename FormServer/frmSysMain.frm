@@ -1,9 +1,9 @@
 VERSION 5.00
 Object = "{248DD890-BB45-11CF-9ABC-0080C7E7B78D}#1.0#0"; "MSWINSCK.OCX"
 Object = "{E08BA07E-6463-4EAB-8437-99F08000BAD9}#1.9#0"; "FlexCell.ocx"
-Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.2#0"; "MSCOMCTL.OCX"
 Object = "{555E8FCC-830E-45CC-AF00-A012D5AE7451}#15.3#0"; "Codejock.CommandBars.v15.3.1.ocx"
 Object = "{BD0C1912-66C3-49CC-8B12-7B347BF6C846}#15.3#0"; "Codejock.SkinFramework.v15.3.1.ocx"
+Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.0#0"; "MSCOMCTL.OCX"
 Begin VB.Form frmSysMain 
    Caption         =   "Main服务端"
    ClientHeight    =   5040
@@ -41,8 +41,8 @@ Begin VB.Form frmSysMain
       Rows            =   30
    End
    Begin MSComctlLib.ImageList ImageList1 
-      Left            =   3240
-      Top             =   3720
+      Left            =   3360
+      Top             =   3840
       _ExtentX        =   1005
       _ExtentY        =   1005
       BackColor       =   -2147483643
@@ -759,7 +759,7 @@ Private Sub msCloseAllConnect(Optional ByVal blnClose As Boolean = True, _
     For Each sckDel In Me.Winsock1
         If sckDel.Index = 0 Then
             If blnCloseListen Then
-                sckDel.Close    '关闭侦听
+                sckDel.Close     '关闭侦听
             End If
         Else
             If sckDel.State <> 0 Then sckDel.Close  '先关闭连接
@@ -767,7 +767,7 @@ Private Sub msCloseAllConnect(Optional ByVal blnClose As Boolean = True, _
             Unload sckDel   '卸载对应控件
         End If
     Next
-    
+            
     With Me.Grid1
         .AutoRedraw = False
         .ReadOnly = False   '不取消锁定好像清除不了表格中内容。但可写入？

@@ -307,6 +307,28 @@ End Sub
 '要求Winsock控件在客户端与服务端都必须建成数组，且其Index值与对应的数组变量的下标要相同
 '''===============================================================================
 
+Public Function gfAppExist(ByVal strName As String) As Boolean
+    '指定应用程序进程是否存在
+    
+    Dim RetVal As Long
+    Dim objWMIService As Object
+    Dim colProcessList As Object
+    Dim objProcess As Object
+    
+    On Error GoTo LineErr
+    
+    Set objWMIService = GetObject("winmgmts:\\.\root\cimv2")
+    Set colProcessList = objWMIService.ExecQuery("select * from Win32_Process where Name='" & strName & "' ")
+    For Each objProcess In colProcessList
+        gfAppExist = True   '存在该进程名时
+    Next
+    
+LineErr:
+    Set objProcess = Nothing
+    Set colProcessList = Nothing
+    Set objWMIService = Nothing
+End Function
+
 Public Function gfBackVersion(ByVal strFile As String) As String
     '返回文件的版本号
     Dim objFile As Scripting.FileSystemObject
@@ -510,28 +532,29 @@ Public Function gfRestoreDBInfo(ByVal strInfo As String) As Boolean
         
     On Error Resume Next    '解密非正常密文时可能出错
     
-    lngSrc = InStr(strInfo, gVar.PTDBDataSource) '数据库服务器地址
-    lngDB = InStr(strInfo, gVar.PTDBDatabase)   '数据库名
-    lngID = InStr(strInfo, gVar.PTDBUserID)     '数据库访问账号
-    lngPWD = InStr(strInfo, gVar.PTDBPassword)  '数据库访问密码
-    
-    If Not (lngSrc > 0 And lngDB > lngSrc And lngID > lngDB And lngPWD > lngID) Then Exit Function '信息中的顺序不对
-    strSrc = Mid(strInfo, Len(gVar.PTDBDataSource) + lngSrc, lngDB - lngSrc - Len(gVar.PTDBDataSource))
-    gVar.ConSource = EncryptString(strSrc, gVar.EncryptKey)
-    
-    strDB = Mid(strInfo, lngDB + Len(gVar.PTDBDatabase), lngID - lngDB - Len(gVar.PTDBDatabase))
-    gVar.ConDatabase = EncryptString(strDB, gVar.EncryptKey)
-    
-    strID = Mid(strInfo, lngID + Len(gVar.PTDBUserID), lngPWD - lngID - Len(gVar.PTDBUserID))
-    gVar.ConUserID = EncryptString(strID, gVar.EncryptKey)
-    
-    strPWD = Mid(strInfo, lngPWD + Len(gVar.PTDBPassword))
-    gVar.ConPassword = EncryptString(strPWD, gVar.EncryptKey)
-    
-    gVar.ConString = "Provider=SQLOLEDB;Persist Security Info=False;Data Source=" & .ConSource & _
-                    ";UID=" & .ConUserID & ";PWD=" & .ConPassword & _
-                    ";DataBase=" & .ConDatabase & ";"   '''在64位系统上Data Source中间要空格隔开才能建立连接
-    
+    With gVar
+        lngSrc = InStr(strInfo, .PTDBDataSource) '数据库服务器地址
+        lngDB = InStr(strInfo, .PTDBDatabase)   '数据库名
+        lngID = InStr(strInfo, .PTDBUserID)     '数据库访问账号
+        lngPWD = InStr(strInfo, .PTDBPassword)  '数据库访问密码
+        
+        If Not (lngSrc > 0 And lngDB > lngSrc And lngID > lngDB And lngPWD > lngID) Then Exit Function '信息中的顺序不对
+        strSrc = Mid(strInfo, Len(.PTDBDataSource) + lngSrc, lngDB - lngSrc - Len(.PTDBDataSource))
+        .ConSource = EncryptString(strSrc, .EncryptKey)
+        
+        strDB = Mid(strInfo, lngDB + Len(.PTDBDatabase), lngID - lngDB - Len(.PTDBDatabase))
+        .ConDatabase = EncryptString(strDB, .EncryptKey)
+        
+        strID = Mid(strInfo, lngID + Len(.PTDBUserID), lngPWD - lngID - Len(.PTDBUserID))
+        .ConUserID = EncryptString(strID, .EncryptKey)
+        
+        strPWD = Mid(strInfo, lngPWD + Len(.PTDBPassword))
+        .ConPassword = EncryptString(strPWD, .EncryptKey)
+        
+        .ConString = "Provider=SQLOLEDB;Persist Security Info=False;Data Source=" & .ConSource & _
+                        ";UID=" & .ConUserID & ";PWD=" & .ConPassword & _
+                        ";DataBase=" & .ConDatabase & ";"   '''在64位系统上Data Source中间要空格隔开才能建立连接
+    End With
     If Err.Number = 0 Then gfRestoreDBInfo = True
 End Function
 
