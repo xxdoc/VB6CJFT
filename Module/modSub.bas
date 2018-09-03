@@ -187,6 +187,11 @@ Public Sub Main(Optional ByVal blnLoad As Boolean = True)
         .PTClientUserFullName = "<ClientUserFullName>"
         .PTClientUserLoginName = "<ClientUserLoginName>"
         
+        .PTDBDatabase = "<DBDatabase>"
+        .PTDBDataSource = "<DBDataSource>"
+        .PTDBPassword = "<DBPassword>"
+        .PTDBUserID = "<DBUserID>"
+        
         .EXENameOfClient = "FFC.exe"
         .EXENameOfServer = "FFS.exe"
         .EXENameOfSetup = "FFSetup.exe"

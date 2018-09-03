@@ -55,17 +55,15 @@ Private Sub msLoadParameter(Optional ByVal blnLoad As Boolean = True)
         .Cell(2, 1).Text = gVar.ParaBlnWindowCloseMin   '关闭时最小化
         .Cell(2, 5).Text = gVar.ParaBlnWindowMinHide    '最小化时隐藏
         
-        .Cell(5, 3).Text = gVar.TCPSetPort  '侦听端口
-        .Cell(5, 5).Text = gVar.ParaBlnAutoStartupAtBoot   '开机自动启动
+        .Cell(5, 3).Text = gVar.TCPSetPort  '要连接的服务器端口
+        .Cell(5, 7).Text = gVar.TCPSetIP   '要连接服务端IP地址
         
         .Cell(8, 3).Text = gVar.ConSource   '服务器名称/IP
         .Cell(8, 7).Text = gVar.ConDatabase '数据库名
         .Cell(10, 3).Text = gVar.ConUserID  '登陆名
-        Text1.Text = gVar.ConPassword       '登陆密码
         .Cell(10, 7).Text = String(Len(gVar.ConPassword), "*") '登陆密码*号显示
         
-        .Cell(13, 1).Text = gVar.ParaBlnLimitClientConnect '限制客户端连接
-        .Cell(13, 7).Text = gVar.ParaLimitClientConnectTime '限制客户端连接时长
+        .Cell(13, 1).Text = gVar.ParaBlnAutoStartupAtBoot   '开机自动启动
         
     End With
     
@@ -81,18 +79,13 @@ Private Sub msSaveParameter(Optional ByVal blnSave As Boolean = True)
         gVar.ParaBlnWindowCloseMin = .Cell(2, 1).Text   '关闭时最小化
         gVar.ParaBlnWindowMinHide = .Cell(2, 5).Text    '最小化时隐藏
         
-        tempVal = Val(.Cell(5, 3).Text)                 '侦听端口
+        tempVal = Val(.Cell(5, 3).Text)                 '要连接的服务器端口
         gVar.TCPSetPort = IIf(tempVal < 10000, gVar.TCPDefaultPort, tempVal)
-        gVar.ParaBlnAutoStartupAtBoot = .Cell(5, 5).Text    '开机自动启动
+        gVar.TCPSetIP = gfCheckIP(.Cell(5, 7).Text) '要连接的服务端IP地址
         
-        gVar.ConSource = gfCheckIP(Trim(.Cell(8, 3).Text))    '服务器名称/IP
-        gVar.ConDatabase = Trim(.Cell(8, 7).Text)   '数据库名
-        gVar.ConUserID = Trim(.Cell(10, 3).Text)    '登陆名
-        gVar.ConPassword = Text1.Text               '登陆密码
-        
-        gVar.ParaBlnLimitClientConnect = .Cell(13, 1).Text '限制客户端连接
-        tempVal = Val(.Cell(13, 7).Text)
-        gVar.ParaLimitClientConnectTime = IIf(tempVal < 1 Or tempVal > 60, 30, tempVal) '限制客户端连接时长
+        '数据库服务器参数只显示，不可修改
+                
+        gVar.ParaBlnAutoStartupAtBoot = .Cell(13, 1).Text    '开机自动启动
         
     End With
     
@@ -101,21 +94,17 @@ Private Sub msSaveParameter(Optional ByVal blnSave As Boolean = True)
         Call SaveSetting(.RegAppName, .RegSectionSettings, .RegKeyParaWindowCloseMin, IIf(.ParaBlnWindowCloseMin, 1, 0))    '关闭时最小化
         Call SaveSetting(.RegAppName, .RegSectionSettings, .RegKeyParaWindowMinHide, IIf(.ParaBlnWindowMinHide, 1, 0))  '最小化时隐藏
         
-        Call SaveSetting(.RegAppName, .RegSectionTCP, .RegKeyTCPPort, .TCPSetPort)  '侦听端口
-        If .ParaBlnAutoStartupAtBoot Then   '注册表中添加启动项
+        Call SaveSetting(.RegAppName, .RegSectionTCP, .RegKeyTCPPort, .TCPSetPort)  '要连接的服务器端口
+        Call SaveSetting(.RegAppName, .RegSectionTCP, .RegKeyTCPIP, .TCPSetIP) '要连接的服务端IP地址
+        
+        '数据库连接信息只显示不处理
+        
+        If .ParaBlnAutoStartupAtBoot Then   '注册表中添加 开机自动启动 启动项
             .ParaBlnAutoStartupAtBoot = gfStartUpSet(True, RegWrite)
         Else    '注册表中删除启动项
             Call gfStartUpSet(True, RegDelete)
         End If
         Call SaveSetting(.RegAppName, .RegSectionSettings, .RegKeyParaAutoStartupAtBoot, IIf(.ParaBlnAutoStartupAtBoot, 1, 0)) '开机自动启动
-        
-        Call SaveSetting(.RegAppName, .RegSectionDBServer, .RegKeyDBServerIP, .ConSource)
-        Call SaveSetting(.RegAppName, .RegSectionDBServer, .RegKeyDBServerDatabase, EncryptString(.ConDatabase, .EncryptKey)) '数据库名
-        Call SaveSetting(.RegAppName, .RegSectionDBServer, .RegKeyDBServerAccount, EncryptString(.ConUserID, .EncryptKey)) '登陆名
-        Call SaveSetting(.RegAppName, .RegSectionDBServer, .RegKeyDBServerPassword, EncryptString(.ConPassword, .EncryptKey)) '登陆密码
-        
-        Call SaveSetting(.RegAppName, .RegSectionTCP, .RegKeyParaLimitClientConnect, IIf(.ParaBlnLimitClientConnect, 1, 0)) '限制客户端连接
-        Call SaveSetting(.RegAppName, .RegSectionTCP, .RegKeyParaLimitClientConnectTime, .ParaLimitClientConnectTime) '限制客户端连接时长
         
     End With
     
@@ -159,21 +148,6 @@ End Sub
 
 Private Sub Form_Resize()
     Grid1.Move 120, 120, Me.ScaleWidth - 240, Me.ScaleHeight - 240
-End Sub
-
-Private Sub Grid1_Click()
-    With Grid1.ActiveCell
-        If .Row = 10 And .Col = 7 Then  '密码单元格借用TextBox控件处理成星号*
-            Text1.Move .Left * 15 + 100, .Top * 15 + 100, .Width * 15, .Height * 15
-            With Text1
-                .Visible = True
-                .ZOrder
-                .SetFocus
-                .SelStart = 0
-                .SelLength = Len(.Text)
-            End With
-        End If
-    End With
 End Sub
 
 Private Sub Grid1_HyperLinkClick(ByVal Row As Long, ByVal Col As Long, URL As String, Changed As Boolean)

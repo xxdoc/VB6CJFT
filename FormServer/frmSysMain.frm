@@ -1476,6 +1476,7 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
             
             If InStr(strGet, gVar.PTClientIsTrue) Then '客户端发回的连接确认信息
                 .Connected = True   '设置状态以供计时器判断
+                Call gfSendInfo(gfDatabaseInfoJoin(True), Me.Winsock1.Item(Index))
                 
             ElseIf InStr(strGet, gVar.PTVersionOfClient) > 0 Then '接收到客户端版本信息
                 Call msVersionCS(strGet, Me.Winsock1.Item(Index))

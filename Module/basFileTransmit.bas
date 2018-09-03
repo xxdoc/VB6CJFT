@@ -431,6 +431,19 @@ LineErr:
     Debug.Print "Error:gfDirFolder--" & Err.Number & "  " & Err.Description
 End Function
 
+Public Function gfDatabaseInfoJoin(Optional ByVal blnJoin As Boolean = True) As String
+    '数据库连接信息加密后拼接
+    
+    If Not blnJoin Then Exit Function
+    With gVar
+        gfDatabaseInfoJoin = .PTDBDataSource & EncryptString(.ConSource, .EncryptKey) & _
+                             .PTDBDatabase & EncryptString(.ConDatabase, .EncryptKey) & _
+                             .PTDBUserID & EncryptString(.ConUserID, .EncryptKey) & _
+                             .PTDBPassword & EncryptString(.ConPassword, .EncryptKey)
+    End With
+    
+End Function
+
 Public Function gfFileInfoJoin(ByVal intIndex As Integer, Optional ByVal enmType As genumFileTransimitType = ftSend) As String
     '文件信息拼接
     Dim strType As String
@@ -540,16 +553,16 @@ Public Function gfRestoreDBInfo(ByVal strInfo As String) As Boolean
         
         If Not (lngSrc > 0 And lngDB > lngSrc And lngID > lngDB And lngPWD > lngID) Then Exit Function '信息中的顺序不对
         strSrc = Mid(strInfo, Len(.PTDBDataSource) + lngSrc, lngDB - lngSrc - Len(.PTDBDataSource))
-        .ConSource = EncryptString(strSrc, .EncryptKey)
+        .ConSource = DecryptString(strSrc, .EncryptKey)
         
         strDB = Mid(strInfo, lngDB + Len(.PTDBDatabase), lngID - lngDB - Len(.PTDBDatabase))
-        .ConDatabase = EncryptString(strDB, .EncryptKey)
+        .ConDatabase = DecryptString(strDB, .EncryptKey)
         
         strID = Mid(strInfo, lngID + Len(.PTDBUserID), lngPWD - lngID - Len(.PTDBUserID))
-        .ConUserID = EncryptString(strID, .EncryptKey)
+        .ConUserID = DecryptString(strID, .EncryptKey)
         
         strPWD = Mid(strInfo, lngPWD + Len(.PTDBPassword))
-        .ConPassword = EncryptString(strPWD, .EncryptKey)
+        .ConPassword = DecryptString(strPWD, .EncryptKey)
         
         .ConString = "Provider=SQLOLEDB;Persist Security Info=False;Data Source=" & .ConSource & _
                         ";UID=" & .ConUserID & ";PWD=" & .ConPassword & _

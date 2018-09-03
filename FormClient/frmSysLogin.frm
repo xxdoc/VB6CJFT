@@ -111,6 +111,7 @@ Option Explicit
 Private Sub Command1_Click()
     gWind.Show
     Call gfSendClientInfo(gVar.UserComputerName, gVar.UserLoginName, gVar.UserFullName, gWind.Winsock1.Item(1))
+    gVar.ShowMainWindow = True
     Unload Me
 End Sub
 

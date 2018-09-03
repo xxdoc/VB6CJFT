@@ -365,6 +365,9 @@ Public Type gtypeCommonVariant
     
     CloseWindow As Boolean '是否真正关闭窗口。或者说是否点击了窗口右上角的关闭按钮
     ClientLoginShow As Boolean '显示客户端登陆窗口
+    ClientReLoad As Boolean   '接收到服务端发来的重启客户端标志
+    ShowMainWindow As Boolean '客户端成功登陆后显示过主窗体标志
+    UpdateRunOver As Boolean   '更新程序是否运行完成
     
     ParaBlnWindowMinHide As Boolean '主窗口最小化时是否隐藏
     ParaBlnWindowCloseMin As Boolean    '主窗口点击关闭按钮时最小化

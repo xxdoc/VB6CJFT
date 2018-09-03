@@ -395,8 +395,8 @@ Dim mlngID As Long  '循环变量ID
 Dim WithEvents mXtrStatusBar As XtremeCommandBars.StatusBar  '状态栏控件
 Attribute mXtrStatusBar.VB_VarHelpID = -1
 Dim mcbsPopupIcon As XtremeCommandBars.CommandBar    '托盘图标Pupup菜单
-Dim mblnReLoad As Boolean   '接收到服务端发来的重启客户端标志
-Dim mblnUpdateOver As Boolean   '更新程序是否运行完成
+
+
 
 
 Private Sub msAddAction(ByRef cbsBars As XtremeCommandBars.CommandBars)
@@ -825,7 +825,7 @@ Private Sub msLoadParameter(Optional ByVal blnLoad As Boolean = True)
         .ParaBlnWindowMinHide = Val(GetSetting(.RegAppName, .RegSectionSettings, .RegKeyParaWindowMinHide, 1))  '最小化时隐藏
         
         .TCPDefaultIP = Me.Winsock1.Item(0).LocalIP '本机IP地址
-        .TCPSetIP = gfCheckIP(GetSetting(.RegAppName, .RegSectionTCP, .RegKeyTCPIP, .TCPDefaultIP)) '要连接服务端IP地址
+        .TCPSetIP = gfCheckIP(GetSetting(.RegAppName, .RegSectionTCP, .RegKeyTCPIP, .TCPDefaultIP)) '要连接的服务端IP地址
         .TCPSetPort = gfGetRegNumericValue(.RegAppName, .RegSectionTCP, .RegKeyTCPPort, , .TCPDefaultPort, 10000, 65535) '要连接的服务器端口
         
         .ParaBlnAutoReStartServer = Val(GetSetting(.RegAppName, .RegSectionTCP, .RegKeyParaAutoReStartServer, 1))   '手动/自动重启服务模式
@@ -909,6 +909,7 @@ Private Sub CommandBars1_Update(ByVal Control As XtremeCommandBars.ICommandBarCo
     
     Dim blnFC As Boolean    '判断是否为FC表格
     Dim cbsActions As XtremeCommandBars.CommandBarActions  'cbs控件Actions集合的引用
+    Dim blnMainWindow As Boolean '判断主窗体是否已全部加载完成
     
     Set cbsActions = Me.CommandBars1.Actions
     If Screen.ActiveControl Is Nothing Then
@@ -916,6 +917,7 @@ Private Sub CommandBars1_Update(ByVal Control As XtremeCommandBars.ICommandBarCo
     Else
         blnFC = TypeOf Screen.ActiveControl Is FlexCell.Grid    '当前活动控件是FC表格
     End If
+    blnMainWindow = gVar.ShowMainWindow
     With gID
         For mlngID = .SysExportToCSV To .SysExportToWord
             cbsActions(mlngID).Enabled = blnFC  '活动控件是FC表格则激活对应Action，否则使其不可用
@@ -923,7 +925,12 @@ Private Sub CommandBars1_Update(ByVal Control As XtremeCommandBars.ICommandBarCo
         For mlngID = .SysPrintPageSet To .SysPrint
             cbsActions(mlngID).Enabled = blnFC
         Next
+        For mlngID = .IconPopupMenuMaxWindow To .IconPopupMenuShowWindow
+            cbsActions(mlngID).Enabled = blnMainWindow  '主窗体未加载完成之前，托盘图标菜单某些不可用，
+        Next
     End With
+    
+    Set cbsActions = Nothing
 End Sub
 
 Private Sub MDIForm_Load()
@@ -969,7 +976,6 @@ Private Sub MDIForm_Load()
     strUpdate = gVar.AppPath & gVar.EXENameOfUpdate & " " & gVar.EXENameOfClient & _
             gVar.CmdLineSeparator & gVar.CmdLineParaOfHide      '隐式打开更新检测程序
     If Not gfShell(strUpdate) Then
-        Rem MsgBox "更新程序启动异常！", vbExclamation, "警告"
         Rem Debug.Print strUpdate
         Call gsAlarmAndLog("更新程序启动异常", False)
     End If
@@ -981,21 +987,21 @@ Private Sub MDIForm_Load()
     '==============================================
     
     Call gfNotifyIconAdd(Me)    '添加托盘图标
-    Me.Hide
+    Me.Hide '未登陆，不显示主窗体
     
     If LCase(App.EXEName & ".exe") <> LCase(gVar.EXENameOfClient) Then
-        MsgBox "不可擅自修改可执行的应用程序文件名！", vbCritical, "严重警报"
+        Call gsAlarmAndLogEx("不可擅自修改可执行的应用程序文件名！", "严重警报", True, vbCritical)
         Call msUnloadMe(True)    '防止exe文件名被改
     End If
     
 End Sub
 
-Private Sub MDIForm_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
+Private Sub MDIForm_MouseMove(Button As Integer, Shift As Integer, x As Single, y As Single)
     '响应托盘图标左键、右键动作，托盘菜单
     Dim sngMsg As Single
     
-    If Y <> 0 Then Exit Sub    '似乎此句可限制住鼠标一定是在托盘图标上，不是在窗体上
-    sngMsg = X / Screen.TwipsPerPixelX
+    If y <> 0 Then Exit Sub    '似乎此句可限制住鼠标一定是在托盘图标上，不是在窗体上
+    sngMsg = x / Screen.TwipsPerPixelX
     Select Case sngMsg
         Case WM_RBUTTONUP
             mcbsPopupIcon.ShowPopup  '右键弹出Popup菜单
@@ -1053,17 +1059,20 @@ Private Sub MDIForm_Unload(Cancel As Integer)
     Call gsFormSizeSave(Me, False) '保存注册表信息-窗口位置大小
     Call gsSaveCommandbarsTheme(Me.CommandBars1, False)   '保存CommandBars的风格主题
     
-    mblnReLoad = False  '清除重启状态
-    mblnUpdateOver = False '清除更新程序状态
-    gVar.CloseWindow = False    '清除状态-关闭窗口
-    gVar.ClientLoginShow = False '清除状态-显示登陆窗口
+    With gVar  '清除状态
+        .ClientReLoad = False  '清除重启状态
+        .UpdateRunOver = False '清除更新程序状态
+        .CloseWindow = False    '清除状态-关闭窗口
+        .ClientLoginShow = False '清除状态-显示登陆窗口
+        .ShowMainWindow = False '清除状态-成功登陆显示主窗体
+    End With
     Set gVar.rsURF = Nothing    '清除权限信息
     Call SkinFramework1.LoadSkin("", "")    '清空皮肤
     Set mXtrStatusBar = Nothing  '清除状态栏
     Set mcbsPopupIcon = Nothing '清除Popup菜单
     Call gfNotifyIconDelete(Me) '删除托盘图标
     gNotifyIconData = resetNotifyIconData   '清空托盘气泡信息。否则重启程序时会自动弹出？而且只能放上句删除托盘图标语句的后面?
-    gArr(1) = gArr(0)
+    gArr(1) = gArr(0) '清空文件传输数组中的信息
     Set gWind = Nothing '清除全局窗体引用
     
 End Sub
@@ -1077,8 +1086,8 @@ Private Sub Timer1_Timer(Index As Integer)
     byteChk = byteChk + 1
     
     If byteCon >= conCon Then
-        If (Not mblnUpdateOver) And (Not gfAppExist(gVar.EXENameOfUpdate)) Then '权且如此,仅判断进程是否存在是不全面的
-            mblnUpdateOver = True   '更新程序已运行完成标志
+        If (Not gVar.UpdateRunOver) And (Not gfAppExist(gVar.EXENameOfUpdate)) Then '权且如此,仅判断进程是否存在是不全面的
+            gVar.UpdateRunOver = True   '更新程序已运行完成标志
             Call msConnectToServer(Me.Winsock1.Item(1), True)      '与务器建立连接
         End If
              
@@ -1111,7 +1120,7 @@ Private Sub Timer1_Timer(Index As Integer)
     End If
     
     '重启。在Winsock控件中的gArr的with语句中重启时无法清空gArr数组，权宜放此处
-    If mblnReLoad Then
+    If gVar.ClientReLoad Then
         Call msUnloadMe(True)
         Load Me
     End If
@@ -1144,13 +1153,13 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
                 Rem End '硬结束程序，以防万一？
 
             ElseIf InStr(strGet, gVar.PTDBDataSource) Then  '收到服务器发来的数据库连接信息
-                Call gfRestoreDBInfo(strGet)
+                Call gfRestoreDBInfo(strGet) '解析加密过的数据库连接信息
                 
             ElseIf InStr(strGet, gVar.PTConnectTimeOut) Then '连续连接时间已到
                 Me.Timer1.Item(Index).Enabled = False
                 MsgBox "与服务器连续连接时间已到，请重新登陆！", vbExclamation, "连接时间限制提示"
                 Me.Timer1.Item(Index).Enabled = True
-                mblnReLoad = True
+                gVar.ClientReLoad = True
                 
             ElseIf InStr(strGet, gVar.PTFileStart) > 0 Then '可以发送文件给服务端了的状态
                 Call gfSendFile(.FilePath, Me.Winsock1.Item(Index)) '发送文件给服务端
