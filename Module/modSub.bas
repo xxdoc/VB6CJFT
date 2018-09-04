@@ -247,6 +247,10 @@ Public Sub Main(Optional ByVal blnLoad As Boolean = True)
         .RegKeyParaLimitClientConnectTime = "LimitClientConnectTime"
         .RegKeyParaLimitClientConnectNumber = "LimitClientConnectNumber"
         
+        .RegKeyParaUserAutoLogin = "UserAutoLogin"
+        .RegKeyParaRememberUserList = "RememberUserList"
+        .RegKeyParaRememberUserPassword = "RememberUserPassword "
+        
         .AppPath = App.Path & IIf(Right(App.Path, 1) = "\", "", "\")
         
         .FolderNameBin = .AppPath & "Bin\"

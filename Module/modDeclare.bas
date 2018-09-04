@@ -323,6 +323,10 @@ Public Type gtypeCommonVariant
     RegKeyParaLimitClientConnectTime As String '限制客户端连接时长
     RegKeyParaLimitClientConnectNumber As String '限制客户端连接数
     
+    RegKeyParaRememberUserList As String  '记住用户名
+    RegKeyParaRememberUserPassword As String  '记住密码
+    RegKeyParaUserAutoLogin As String '自动登陆
+    
     AppPath As String           'App路径，确保最后字符为"\"
     FolderNameTemp As String    '文件夹名称：Temp
     FolderNameData As String    '文件夹名称：Data
@@ -376,6 +380,9 @@ Public Type gtypeCommonVariant
     ParaBlnLimitClientConnect As Boolean '限制客户端连接时间
     ParaLimitClientConnectTime As Long  '限制客户端最大连续连接时长是多少
     
+    ParaBlnRememberUserList As Boolean  '记住用户名
+    ParaBlnRememberUserPassword As Boolean  '记住密码
+    ParaBlnUserAutoLogin As Boolean '自动登陆
     
 End Type
 

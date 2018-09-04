@@ -64,6 +64,9 @@ Private Sub msLoadParameter(Optional ByVal blnLoad As Boolean = True)
         .Cell(10, 7).Text = String(Len(gVar.ConPassword), "*") '登陆密码*号显示
         
         .Cell(13, 1).Text = gVar.ParaBlnAutoStartupAtBoot   '开机自动启动
+        .Cell(13, 5).Text = gVar.ParaBlnRememberUserList '记住用户名
+        .Cell(14, 1).Text = gVar.ParaBlnRememberUserPassword '记住密码
+        .Cell(14, 5).Text = gVar.ParaBlnUserAutoLogin '自动登陆
         
     End With
     
@@ -86,7 +89,9 @@ Private Sub msSaveParameter(Optional ByVal blnSave As Boolean = True)
         '数据库服务器参数只显示，不可修改
                 
         gVar.ParaBlnAutoStartupAtBoot = .Cell(13, 1).Text    '开机自动启动
-        
+        gVar.ParaBlnRememberUserList = .Cell(13, 5).Text    '记住用户名
+        gVar.ParaBlnRememberUserPassword = .Cell(14, 1).Text    '记住密码
+        gVar.ParaBlnUserAutoLogin = .Cell(14, 5).Text   '自动登陆
     End With
     
     '参数值通过公用变量保存进注册表中
@@ -105,7 +110,9 @@ Private Sub msSaveParameter(Optional ByVal blnSave As Boolean = True)
             Call gfStartUpSet(True, RegDelete)
         End If
         Call SaveSetting(.RegAppName, .RegSectionSettings, .RegKeyParaAutoStartupAtBoot, IIf(.ParaBlnAutoStartupAtBoot, 1, 0)) '开机自动启动
-        
+        Call SaveSetting(.RegAppName, .RegSectionUser, .RegKeyParaRememberUserList, IIf(.ParaBlnRememberUserList, 1, 0)) '记住用户名
+        Call SaveSetting(.RegAppName, .RegSectionUser, .RegKeyParaRememberUserPassword, IIf(.ParaBlnRememberUserPassword, 1, 0)) '记住密码
+        Call SaveSetting(.RegAppName, .RegSectionUser, .RegKeyParaUserAutoLogin, IIf(.ParaBlnUserAutoLogin, 1, 0)) '自动登陆
     End With
     
     Call msLoadParameter(True)  '窗口重新加载一次保存后的值

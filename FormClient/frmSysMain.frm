@@ -828,12 +828,12 @@ Private Sub msLoadParameter(Optional ByVal blnLoad As Boolean = True)
         .TCPSetIP = gfCheckIP(GetSetting(.RegAppName, .RegSectionTCP, .RegKeyTCPIP, .TCPDefaultIP)) '要连接的服务端IP地址
         .TCPSetPort = gfGetRegNumericValue(.RegAppName, .RegSectionTCP, .RegKeyTCPPort, , .TCPDefaultPort, 10000, 65535) '要连接的服务器端口
         
-        .ParaBlnAutoReStartServer = Val(GetSetting(.RegAppName, .RegSectionTCP, .RegKeyParaAutoReStartServer, 1))   '手动/自动重启服务模式
         .ParaBlnAutoStartupAtBoot = Val(GetSetting(.RegAppName, .RegSectionSettings, .RegKeyParaAutoStartupAtBoot, 0))  '开机自动启动
+        .ParaBlnUserAutoLogin = Val(GetSetting(.RegAppName, .RegSectionUser, .RegKeyParaUserAutoLogin, 0)) '自动登陆
+        .ParaBlnRememberUserList = Val(GetSetting(.RegAppName, .RegSectionUser, .RegKeyParaRememberUserList, 0)) '记住用户名
+        .ParaBlnRememberUserPassword = Val(GetSetting(.RegAppName, .RegSectionUser, .RegKeyParaRememberUserPassword, 0)) '记住密码
         
-        .UserComputerName = gfBackComputerInfo(ciComputerName)
-        .UserLoginName = "DefaultName"
-        .UserFullName = "XXX"
+        .UserComputerName = gfBackComputerInfo(ciComputerName) '获取计算机名
         
 '''        '由服务端发过来给客户端
 '''        .ConSource = gfCheckIP(gfGetRegStringValue(.RegAppName, .RegSectionDBServer, .RegKeyDBServerIP, .TCPSetIP))   '服务器名称/IP
@@ -895,6 +895,14 @@ Private Sub msUnloadMe(Optional ByVal blnUnload As Boolean = True)
     '卸载窗体
     If Not blnUnload Then Exit Sub
     gVar.CloseWindow = True
+    If Forms.Count > 1 Then '先关闭其它窗体，再关闭主窗体
+        Dim frmUld As Form
+        
+        For Each frmUld In Forms
+            If frmUld.Name <> Me.Name Then Unload frmUld
+        Next
+        Set frmUld = Nothing
+    End If
     Unload Me
 End Sub
 
@@ -1227,7 +1235,7 @@ Private Sub Winsock1_Error(Index As Integer, ByVal Number As Integer, Descriptio
             gArr(Index) = gArr(0)
             Call gsFormEnable(Me, True)
         End If
-        Call gsAlarmAndLog("与服务器连接发生异常", True)
+        Call gsAlarmAndLogEx("与服务器连接发生异常！", "连接警报", True, vbCritical)
     End If
 End Sub
 

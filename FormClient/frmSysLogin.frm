@@ -110,6 +110,8 @@ Option Explicit
 
 Private Sub Command1_Click()
     gWind.Show
+    gVar.UserLoginName = "DefaultName"
+    gVar.UserFullName = "XXX"
     Call gfSendClientInfo(gVar.UserComputerName, gVar.UserLoginName, gVar.UserFullName, gWind.Winsock1.Item(1))
     gVar.ShowMainWindow = True
     Unload Me
