@@ -801,7 +801,7 @@ Public Sub gsLoadAuthority(ByRef frmCur As Form, ByRef ctlCur As Control)
 End Sub
 
 Public Sub gsLoadSkin(ByRef frmCur As Form, ByRef skFRM As XtremeSkinFramework.SkinFramework, _
-    Optional ByVal lngResource As genumSkinResChoose, Optional ByVal blnFromReg As Boolean)
+    Optional ByVal lngResource As genumSkinResChoose, Optional ByVal blnFromReg As Boolean = False)
     'º”‘ÿ÷˜Ã‚
     Dim lngReg As Long, strRes As String, strIni As String
     

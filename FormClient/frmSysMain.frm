@@ -1,8 +1,8 @@
 VERSION 5.00
 Object = "{248DD890-BB45-11CF-9ABC-0080C7E7B78D}#1.0#0"; "MSWINSCK.OCX"
+Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.0#0"; "MSCOMCTL.OCX"
 Object = "{555E8FCC-830E-45CC-AF00-A012D5AE7451}#15.3#0"; "Codejock.CommandBars.v15.3.1.ocx"
 Object = "{BD0C1912-66C3-49CC-8B12-7B347BF6C846}#15.3#0"; "Codejock.SkinFramework.v15.3.1.ocx"
-Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.0#0"; "MSCOMCTL.OCX"
 Begin VB.MDIForm frmSysMain 
    BackColor       =   &H8000000C&
    Caption         =   "FFC"
@@ -445,6 +445,7 @@ Private Sub msAddAction(ByRef cbsBars As XtremeCommandBars.CommandBars)
         
         .Add gID.Help, "帮助", "", "", "帮助"
         .Add gID.HelpAbout, "关于…", "", "", ""
+        .Add gID.HelpUpdate, "更新检查", "", "", ""
         
         .Add gID.StatusBarPane, "状态栏", "", "", ""
         .Add gID.StatusBarPaneProgress, "进度条", "", "", ""
@@ -588,6 +589,7 @@ Private Sub msAddMenu(ByRef cbsBars As XtremeCommandBars.CommandBars)
     '帮助主菜单
     Set cbsMenuMain = cbsMenuBar.Controls.Add(xtpControlPopup, gID.Help, "")
     cbsMenuMain.CommandBar.Controls.Add xtpControlButton, gID.HelpAbout, ""
+    cbsMenuMain.CommandBar.Controls.Add xtpControlButton, gID.HelpUpdate, ""
     
     Set cbsMenuBar = Nothing
     Set cbsMenuMain = Nothing
@@ -774,6 +776,17 @@ Private Sub msLeftClick(ByVal CID As Long, ByRef cbsBars As XtremeCommandBars.Co
                            "版权所有：XMH"
                 MsgBox strAbout, vbInformation, "关于" & App.Title
             
+            Case .HelpUpdate
+                If gfAppExist(gVar.EXENameOfUpdate) Then
+                    MsgBox "更新程序在进程中已存在，请勿重复打开！", vbInformation, "已打开提示"
+                Else
+                    If MsgBox("更新程序打开期间需要占用一个用户数，确定现在进行更新检查吗？", vbQuestion + vbOKCancel, "打开更新程序询问") = vbOK Then
+                        Dim strUP As String
+                        strUP = gVar.AppPath & gVar.EXENameOfUpdate & " " & gVar.EXENameOfClient '显示打开更新程序命令行
+                        Call msOpenUpdate(strUP) '用命令行打开更新程序
+                    End If
+                End If
+            
             Case .SysExportToCSV To .SysExportToWord, .SysPrintPageSet To .SysPrint
                 If Screen.ActiveControl Is Nothing Then Exit Sub
                 If Not (TypeOf Screen.ActiveControl Is FlexCell.Grid) Then Exit Sub
@@ -844,6 +857,15 @@ Private Sub msLoadParameter(Optional ByVal blnLoad As Boolean = True)
         
     End With
 End Sub
+
+Public Sub msOpenUpdate(ByVal strCmd As String)
+    '用命令行打开更新程序
+    
+    If Not gfShell(strCmd) Then
+        Call gsAlarmAndLogEx("更新程序启动异常", "更新检查失败", True, vbCritical)
+    End If
+End Sub
+
 
 Private Sub msResetLayout(ByRef cbsBars As XtremeCommandBars.CommandBars)
     '重置窗口布局：CommandBars与Dockingpane控件重置
@@ -981,11 +1003,15 @@ Private Sub MDIForm_Load()
     Call gsFormSizeLoad(Me, False) '注册表信息加载-窗口位置大小
     
     '更新检查
-    strUpdate = gVar.AppPath & gVar.EXENameOfUpdate & " " & gVar.EXENameOfClient & _
-            gVar.CmdLineSeparator & gVar.CmdLineParaOfHide      '隐式打开更新检测程序
-    If Not gfShell(strUpdate) Then
-        Rem Debug.Print strUpdate
-        Call gsAlarmAndLog("更新程序启动异常", False)
+    If gfAppExist(gVar.EXENameOfUpdate) Then
+        Me.Timer1.Item(1).Enabled = False
+        MsgBox "更新程序会占用一个用户数！" & vbCrLf & "请先结束已存在的更新程序进程后再打开软件。", vbExclamation, "更新已打开提醒"
+        Call msUnloadMe(True)
+        End
+    Else
+        strUpdate = gVar.AppPath & gVar.EXENameOfUpdate & " " & gVar.EXENameOfClient & _
+                gVar.CmdLineSeparator & gVar.CmdLineParaOfHide      '隐式打开更新检测程序
+        Call msOpenUpdate(strUpdate) '用命令行打开更新程序
     End If
     
     '检查是否为试用版*******************************
@@ -1060,6 +1086,7 @@ End Sub
 Private Sub MDIForm_Unload(Cancel As Integer)
     '卸载窗体时保存信息
     Dim resetNotifyIconData As gtypeNOTIFYICONDATA
+    Dim gVarClear As gtypeCommonVariant
     
     '保存注册表信息-CommandBars设置
     Call Me.CommandBars1.SaveCommandBars(gVar.RegKeyCommandBars, gVar.RegAppName, gVar.RegKeyCBSClientSetting)
@@ -1067,20 +1094,19 @@ Private Sub MDIForm_Unload(Cancel As Integer)
     Call gsFormSizeSave(Me, False) '保存注册表信息-窗口位置大小
     Call gsSaveCommandbarsTheme(Me.CommandBars1, False)   '保存CommandBars的风格主题
     
-    With gVar  '清除状态
-        .ClientReLoad = False  '清除重启状态
-        .UpdateRunOver = False '清除更新程序状态
-        .CloseWindow = False    '清除状态-关闭窗口
-        .ClientLoginShow = False '清除状态-显示登陆窗口
-        .ShowMainWindow = False '清除状态-成功登陆显示主窗体
-    End With
-    Set gVar.rsURF = Nothing    '清除权限信息
+    If gfAppExist(gVar.EXENameOfUpdate) Then '如果打开了一个更新程序则关闭
+        If Not gfCloseApp(gVar.EXENameOfUpdate) Then Call gsAlarmAndLogEx("软件退出时无法同时关闭更新程序", "关闭更新程序异常", False)
+    End If
+    
+    gArr(1) = gArr(0) '清空文件传输数组中的信息
+    gVar = gVarClear '清除gVar公用变量
+    
     Call SkinFramework1.LoadSkin("", "")    '清空皮肤
     Set mXtrStatusBar = Nothing  '清除状态栏
     Set mcbsPopupIcon = Nothing '清除Popup菜单
     Call gfNotifyIconDelete(Me) '删除托盘图标
     gNotifyIconData = resetNotifyIconData   '清空托盘气泡信息。否则重启程序时会自动弹出？而且只能放上句删除托盘图标语句的后面?
-    gArr(1) = gArr(0) '清空文件传输数组中的信息
+    
     Set gWind = Nothing '清除全局窗体引用
     
 End Sub
@@ -1152,14 +1178,14 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
             
             If InStr(strGet, gVar.PTClientConfirm) > 0 Then '收到要回复服务端确认连接的信息
                 Call gfSendInfo(gVar.PTClientIsTrue, Me.Winsock1.Item(Index))
-                gArr(Index).Connected = True
+                .Connected = True
                 
             ElseIf InStr(strGet, gVar.PTConnectIsFull) Then '收到服务端发来的连接数已满
                 Me.Timer1.Item(Index).Enabled = False
                 MsgBox "客户端与服务端连接数受限，请其他用户退出后再试！", vbCritical, "连接数已满警告"
                 Call msUnloadMe(True)
                 Rem End '硬结束程序，以防万一？
-
+            
             ElseIf InStr(strGet, gVar.PTDBDataSource) Then  '收到服务器发来的数据库连接信息
                 Call gfRestoreDBInfo(strGet) '解析加密过的数据库连接信息
                 

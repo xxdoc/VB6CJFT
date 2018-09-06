@@ -1,19 +1,28 @@
 VERSION 5.00
 Object = "{248DD890-BB45-11CF-9ABC-0080C7E7B78D}#1.0#0"; "MSWINSCK.OCX"
+Object = "{BD0C1912-66C3-49CC-8B12-7B347BF6C846}#15.3#0"; "Codejock.SkinFramework.v15.3.1.ocx"
 Begin VB.Form frmSysUpdate 
    BorderStyle     =   1  'Fixed Single
    Caption         =   "Update"
    ClientHeight    =   3405
    ClientLeft      =   45
    ClientTop       =   375
-   ClientWidth     =   5835
+   ClientWidth     =   5655
    Icon            =   "frmSysUpdate.frx":0000
    LinkTopic       =   "Form1"
    MaxButton       =   0   'False
    MinButton       =   0   'False
    ScaleHeight     =   3405
-   ScaleWidth      =   5835
-   StartUpPosition =   3  '窗口缺省
+   ScaleWidth      =   5655
+   StartUpPosition =   1  '所有者中心
+   Begin VB.CommandButton Command1 
+      Caption         =   "退出"
+      Height          =   375
+      Left            =   4320
+      TabIndex        =   4
+      Top             =   2760
+      Width           =   855
+   End
    Begin FrameFileUpdate.LabelProgressBar LabelProgressBar1 
       Height          =   375
       Left            =   600
@@ -52,6 +61,14 @@ Begin VB.Form frmSysUpdate
       _ExtentX        =   741
       _ExtentY        =   741
       _Version        =   393216
+   End
+   Begin XtremeSkinFramework.SkinFramework SkinFramework1 
+      Left            =   2640
+      Top             =   2760
+      _Version        =   983043
+      _ExtentX        =   635
+      _ExtentY        =   635
+      _StockProps     =   0
    End
    Begin VB.Label Label1 
       Alignment       =   2  'Center
@@ -103,14 +120,14 @@ Private Function mfCheckUpdate() As Boolean
 End Function
 
 Private Function mfConnect(Optional ByVal blnCon As Boolean = True) As Boolean
-    Dim strIP As String, strPort As String
+    '与服务器建立连接
     Static lngCount As Long
             
     lngCount = lngCount + 1
-    If lngCount = 2 Then
+    If lngCount >= 2 Then
         Call msSetText("版本检测失败！无法连接服务器。" & vbCrLf & _
                        "请确认服务器已启动，并重新运行更新程序！", vbRed)
-        Exit Function    '尝试百次后不再连接了
+        Exit Function    '尝试[lngCount]次后不再连接了
     End If
     
     With Me.Winsock1.Item(1)
@@ -171,6 +188,11 @@ Private Sub msSetText(ByVal strTxt As String, ByVal ForeColor As Long)
 End Sub
 
 
+
+Private Sub Command1_Click()
+    Unload Me
+End Sub
+
 Private Sub Form_Load()
     
     Dim strCmd As String, arrCmd() As String
@@ -205,12 +227,26 @@ Private Sub Form_Load()
     End If
     
     Call msSetLabel(gVar.ClientStateDisConnected, vbRed)
+    Call gsLoadSkin(Me, Me.SkinFramework1, sMSVst, False)
     Call mfConnect(True)
     
     Exit Sub
     
 LineUnload:
     Unload Me   '此行以下除End Sub不可再跟任何有效代码
+End Sub
+
+Private Sub Form_Unload(Cancel As Integer)
+    '卸载窗体
+    
+    mblnHide = False
+    mblnCheckStart = False
+    mblnUpdateFinish = False
+    
+    Me.Winsock1.Item(1).Close
+    gArr(1) = gArr(0)
+    Close
+    
 End Sub
 
 Private Sub Timer1_Timer()
@@ -282,30 +318,41 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
             
             Me.Winsock1.Item(Index).GetData strGet
             
-            If InStr(strGet, gVar.PTClientConfirm) Then
+            If Not gfRestoreInfo(strGet, Me.Winsock1.Item(Index)) Then '
+                
+            End If
+            
+            If InStr(strGet, gVar.PTClientConfirm) Then '收到要回复服务端确认连接的信息
                 Call gfSendInfo(gVar.PTClientIsTrue, Me.Winsock1.Item(Index))
-                .Connected = True
                 Call gfSendClientInfo("UpdatePC", "Update", "UpdateProgram", Me.Winsock1.Item(Index))
+                .Connected = True
                 
-            End If
-            
-            If Not gfRestoreInfo(strGet, Me.Winsock1.Item(Index)) Then
+            ElseIf InStr(strGet, gVar.PTConnectIsFull) > 0 Then '服务端发来连接数已满
+                Me.Timer1.Enabled = False
+                If Not mblnHide Then
+                    MsgBox "客户端与服务端连接数受限，请其他用户退出后再试！", vbCritical, "连接数已满警告"
+                End If
+                Call Unload(Me)
                 
-            End If
-            
-            If InStr(strGet, gVar.PTVersionNeedUpdate) > 0 Then
+            ElseIf InStr(strGet, gVar.PTConnectTimeOut) > 0 Then '服务端发来连接时间到
+                Me.Timer1.Enabled = False
+                If Not mblnHide Then
+                    MsgBox "与服务器连续连接时间已到！", vbExclamation, "连接时间限制提示"
+                End If
+                Call Unload(Me)
+                
+            ElseIf InStr(strGet, gVar.PTVersionNeedUpdate) > 0 Then '需要更新
                 Dim strVer As String
                 
                 strVer = Mid(strGet, Len(gVar.PTVersionNeedUpdate) + 1)
                 Call msSetText("发现新版：" & strVer, vbBlue)
-            End If
-            
-            If InStr(strGet, gVar.PTVersionNotUpdate) > 0 Then
+                
+            ElseIf InStr(strGet, gVar.PTVersionNotUpdate) > 0 Then '不需要更新
                 Dim strNot As String
                 
                 If Len(strGet) = Len(gVar.PTVersionNotUpdate) Then
                     strNot = "您当前的版本已是最新版本，不需要更新。"
-                    Call msSetText(strNot, vbGreen)
+                    Call msSetText(strNot, vbBlue)
                     If mblnHide Then Unload Me  '隐藏模式打开更新窗口时，无更新则直接退出
                 Else
                     strNot = Mid(strGet, Len(gVar.PTVersionNotUpdate) + 1)
@@ -314,7 +361,9 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
                 End If
                 
                 mblnUpdateFinish = True
+                
             End If
+            
             Debug.Print "Get Server Info:" & strGet, bytesTotal
             '字符信息传输状态↑
             
