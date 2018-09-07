@@ -1,9 +1,9 @@
 VERSION 5.00
 Object = "{248DD890-BB45-11CF-9ABC-0080C7E7B78D}#1.0#0"; "MSWINSCK.OCX"
 Object = "{E08BA07E-6463-4EAB-8437-99F08000BAD9}#1.9#0"; "FlexCell.ocx"
+Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.0#0"; "MSCOMCTL.OCX"
 Object = "{555E8FCC-830E-45CC-AF00-A012D5AE7451}#15.3#0"; "Codejock.CommandBars.v15.3.1.ocx"
 Object = "{BD0C1912-66C3-49CC-8B12-7B347BF6C846}#15.3#0"; "Codejock.SkinFramework.v15.3.1.ocx"
-Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.0#0"; "MSCOMCTL.OCX"
 Begin VB.Form frmSysMain 
    Caption         =   "Main服务端"
    ClientHeight    =   5040
@@ -1314,6 +1314,7 @@ Private Sub Timer1_Timer(Index As Integer)
                 For Each sckCheck In Me.Winsock1
                     If sckCheck.Index <> 0 Then
                         If sckCheck.State <> 7 Then
+                            sckCheck.Close
                             Call Winsock1_Close(sckCheck.Index) 'sckCheck.Close
                             Debug.Print "CheckConnect:" & sckCheck.Index
                         End If
@@ -1380,7 +1381,7 @@ Private Sub Winsock1_Close(Index As Integer)
     Dim K As Long, C As Long
     Dim strIP As String, strRequestID As String
     
-    On Error Resume Next
+'    On Error Resume Next
     If Index = 0 Then
         Call msCloseAllConnect(True, False)  '关闭侦听控件则关闭所有连接
     Else
@@ -1396,13 +1397,13 @@ Private Sub Winsock1_Close(Index As Integer)
                             (strRequestID = Me.Winsock1.Item(Index).Tag) Then   '有可能同一IP登陆多个客户端，故以RequestID区分
                         .RemoveItem K   '移除对应行信息
                         .AddItem ""     '末尾添加一行维持表格行数不变
+                        Debug.Print K & ",Winsock_Close:" & Index, Me.Winsock1.Item(Index).Tag, Me.Winsock1.Item(Index).RemoteHostIP
                         Unload Me.Winsock1.Item(Index)  '卸载断开的客户端的连接控件
                         gArr(Index) = gArr(0)   '清除数组
-                        If Not Me.Timer1.Item(Index) Is Nothing Then
-                            Unload Me.Timer1.Item(Index)   '卸载对应计时器
-                        End If
+'''                        If Not (Me.Timer1.Item(Index) Is Nothing) Then'此句老报控件有问题，没明白
+'''                            Unload Me.Timer1.Item(Index)   '卸载对应计时器
+'''                        End If
                         Close   '关闭所有打开的文件
-                        Debug.Print "Winsock_Close:" & Index
                         Exit For
                     End If
                 End If
@@ -1446,18 +1447,20 @@ Private Sub Winsock1_ConnectionRequest(Index As Integer, ByVal requestID As Long
         Load .Item(K)   '生成Winsock1(K)控件
         .Item(K).Accept requestID   '指定客户端申请的连接给新生成的Winsock1(K)控件
         .Item(K).Tag = requestID    '存储该申请号，另作它用
-        
+        Debug.Print "Load winsock1(" & K & ")"
         Call msAddConnectToGrid(.Item(K)) '将连接添加进表格中
-        
-        If blnFull Then '若连接数已满，则发信通知客户端，并关闭该客户端的连接
-            Call gfSendInfo(gVar.PTConnectIsFull, .Item(K))
-            Call Winsock1_Close(CInt(K))
-            Exit Sub
-        End If
-        
-        Call gfSendInfo(gVar.PTClientConfirm, .Item(K)) '发送客户端确认信息，若规定时间内返回确认信息则连接正常，否则断开连接。
-        Call msStartConfirm(K)  '激活 返回确认信息 计时器
     End With
+    
+    If blnFull Then '若连接数已满，则发信通知客户端，并关闭该客户端的连接
+        Call gfSendInfo(gVar.PTConnectIsFull, Me.Winsock1.Item(K))
+'        .Item(K).Close
+'        Call Winsock1_Close(CInt(K))
+        Exit Sub
+    End If
+    
+    Call gfSendInfo(gVar.PTClientConfirm, Me.Winsock1.Item(K)) '发送客户端确认信息，若规定时间内返回确认信息则连接正常，否则断开连接。
+    Call msStartConfirm(K)  '激活 返回确认信息 计时器
+    
     
 End Sub
 
