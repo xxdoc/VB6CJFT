@@ -1191,6 +1191,7 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
                 
             ElseIf InStr(strGet, gVar.PTConnectTimeOut) Then '连续连接时间已到
                 Me.Timer1.Item(Index).Enabled = False
+                Me.Winsock1.Item(Index).Close
                 MsgBox "与服务器连续连接时间已到，请重新登陆！", vbExclamation, "连接时间限制提示"
                 Me.Timer1.Item(Index).Enabled = True
                 gVar.ClientReLoad = True

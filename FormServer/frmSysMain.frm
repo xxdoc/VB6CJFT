@@ -1045,7 +1045,7 @@ End Sub
 
 Private Sub msStartServer(ByRef sckCon As MSWinsockLib.Winsock)
     '开启服务
-'    On Error Resume Next
+    
     With sckCon
         If .State <> 0 Then .Close  '先关闭
         .LocalPort = gVar.TCPSetPort
@@ -1285,6 +1285,7 @@ End Sub
 
 Private Sub Timer1_Timer(Index As Integer)
     'Index=0的计时器间隔1秒。Timer1的Index值 与 Winsock1的Index对应
+    
     Dim sckClose As MSWinsockLib.Winsock, sckCheck As MSWinsockLib.Winsock
     Dim timeOut As Long
     Static CheckConnectTime As Long
@@ -1293,84 +1294,81 @@ Private Sub Timer1_Timer(Index As Integer)
     Static CountTime() As Long
         
 '''    On Error Resume Next
-    With Me.Winsock1.Item(Index)
-        If Index = 0 Then
-            If .State = 2 Then  '侦听正常状态
-                Call msSetServerState(vbGreen)
-            Else    '其它状态
-                If .State = 9 Then  '异常状态
-                    Call msSetServerState(vbRed)
-                Else    '关闭等
-                    Call msSetServerState(vbYellow)
-                End If
-                If gVar.ParaBlnAutoReStartServer Then   '若勾选了自动开启服务则重启服务
-                    Call msStartServer(Me.Winsock1.Item(0))
-                End If
+    If Index = 0 Then
+        If Me.Winsock1.Item(Index).State = 2 Then  '侦听正常状态
+            Call msSetServerState(vbGreen)
+        Else    '其它状态
+            If Me.Winsock1.Item(Index).State = 9 Then  '异常状态
+                Call msSetServerState(vbRed)
+            Else    '关闭等
+                Call msSetServerState(vbYellow)
             End If
-            
-            '当客户端非正常关闭时，连接不会自动断开，此处每隔一段时间检查一次所有连接的状态，不等于7则关闭掉连接
-            CheckConnectTime = CheckConnectTime + 1
-            If CheckConnectTime > 5 Then    '每隔N秒检查一次
-                For Each sckCheck In Me.Winsock1
-                    If sckCheck.Index <> 0 Then
-                        If sckCheck.State <> 7 Then
-                            sckCheck.Close
-                            Call Winsock1_Close(sckCheck.Index) 'sckCheck.Close
-                            Debug.Print "CheckConnect:" & sckCheck.Index
-                        End If
+            If gVar.ParaBlnAutoReStartServer Then   '若勾选了自动开启服务则重启服务
+                Call msStartServer(Me.Winsock1.Item(0))
+            End If
+        End If
+        
+        '当客户端非正常关闭时，连接不会自动断开，此处每隔一段时间检查一次所有连接的状态，不等于7则关闭掉连接
+        CheckConnectTime = CheckConnectTime + 1
+        If CheckConnectTime > 5 Then    '每隔N秒检查一次
+            For Each sckCheck In Me.Winsock1
+                If sckCheck.Index <> 0 Then
+                    If sckCheck.State <> 7 Then
+                        Me.Timer1.Item(sckCheck.Index).Enabled = False
+                        Debug.Print "CheckConnect:" & sckCheck.Index
+                        Call Winsock1_Close(sckCheck.Index)
+                    End If
+                End If
+            Next
+            CheckConnectTime = 0
+        End If
+        '''index=0计时器为服务端自身用
+    
+    Else
+        '''index>0为各个客户端连接用
+        
+        timeOut = gVar.ParaLimitClientConnectTime * 60  '计算允许连接时长的总秒数
+        ReDim Preserve ConfirmTime(Me.Timer1.UBound)    '需要每次都这样？
+        ReDim Preserve ConfirmOK(Me.Timer1.UBound)
+        ReDim Preserve CountTime(Me.Timer1.UBound)
+        
+        If Not ConfirmOK(Index) Then ConfirmTime(Index) = ConfirmTime(Index) + 1
+        If gVar.ParaBlnLimitClientConnect Then CountTime(Index) = CountTime(Index) + 1
+        
+        If ConfirmTime(Index) > gVar.TCPWaitTime Then   '确认是客户端发来的连接
+            If Not gArr(Index).Connected Then   '不是客户端则关闭
+                For Each sckClose In Me.Winsock1
+                    If sckClose.Index = Index Then
+                        Call Winsock1_Close(Index) 'sckClose.Close
+                        Exit For
                     End If
                 Next
-                CheckConnectTime = 0
             End If
-            '''index=0计时器为服务端自身用
-        
-        Else
-            '''index>0为各个客户端连接用
-            
-            timeOut = gVar.ParaLimitClientConnectTime * 60  '计算允许连接时长的总秒数
-            ReDim Preserve ConfirmTime(Me.Timer1.UBound)    '需要每次都这样？
-            ReDim Preserve ConfirmOK(Me.Timer1.UBound)
-            ReDim Preserve CountTime(Me.Timer1.UBound)
-            
-            If Not ConfirmOK(Index) Then ConfirmTime(Index) = ConfirmTime(Index) + 1
-            If gVar.ParaBlnLimitClientConnect Then CountTime(Index) = CountTime(Index) + 1
-            
-            If ConfirmTime(Index) > gVar.TCPWaitTime Then   '确认是客户端发来的连接
-                If Not gArr(Index).Connected Then   '不是客户端则关闭
-                    For Each sckClose In Me.Winsock1
-                        If sckClose.Index = Index Then
-                            Call Winsock1_Close(Index) 'sckClose.Close
-                            Exit For
-                        End If
-                    Next
-                End If
-                ConfirmTime(Index) = 0  '确认计时器清零
-                ConfirmOK(Index) = True '确认标志
-                If Not gVar.ParaBlnLimitClientConnect Then  '若没有选择限制客户端连接功能
-                    ConfirmOK(Index) = False
-                    CountTime(Index) = 0    '限制连接计时器清零
-'''                    If Not Me.Timer1.Item(Index) Is Nothing Then   '已在Winsock1_Close事件卸载了对应Timer控件
-'''                        Me.Timer1.Item(Index).Enabled = False   '确认完后卸载掉对应计时器控件
-'''                        Unload Me.Timer1.Item(Index)
-'''                    End If
+            ConfirmTime(Index) = 0  '确认计时器清零
+            ConfirmOK(Index) = True '确认标志
+            If Not gVar.ParaBlnLimitClientConnect Then  '若没有选择限制客户端连接功能
+                ConfirmOK(Index) = False
+                CountTime(Index) = 0    '限制连接计时器清零
+                If Not Me.Timer1.Item(Index) Is Nothing Then   '已在Winsock1_Close事件卸载了对应Timer控件
+                    Me.Timer1.Item(Index).Enabled = False   '确认完后卸载掉对应计时器控件
+                    Unload Me.Timer1.Item(Index)
                 End If
             End If
-            
-            If CountTime(Index) > timeOut Then   '计时已满则关闭对应客户端连接
-                '若在文件传输状态下则等待传输2分钟后直接关闭
-                If (Not gArr(Index).FileTransmitState) Or (CountTime(Index) - timeOut > 120) Then
-                    CountTime(Index) = 0    '清空计时
-                    If gArr(Index).FileTransmitState Then   '清空文件传输信息
-                        Close
-                        gArr(Index) = gArr(0)
-                    End If
-                    Call gfSendInfo(gVar.PTConnectTimeOut, Me.Winsock1.Item(Index)) '发送连接时间已到信息给客户端
-                    Call Winsock1_Close(Index)  '关闭客户端连接
-                End If
-            End If
-            
         End If
-    End With
+        
+        If CountTime(Index) > timeOut Then   '计时已满则关闭对应客户端连接
+            '若在文件传输状态下则等待传输2分钟后直接关闭
+            If (Not gArr(Index).FileTransmitState) Or (CountTime(Index) - timeOut > 120) Then
+                CountTime(Index) = 0    '清空计时
+                If gArr(Index).FileTransmitState Then   '清空文件传输信息
+                    Close
+                    gArr(Index) = gArr(0)
+                End If
+                Call gfSendInfo(gVar.PTConnectTimeOut, Me.Winsock1.Item(Index)) '发送连接时间已到信息给客户端
+            End If
+        End If
+        
+    End If
     
     Set sckClose = Nothing
     Set sckCheck = Nothing
@@ -1381,7 +1379,7 @@ Private Sub Winsock1_Close(Index As Integer)
     Dim K As Long, C As Long
     Dim strIP As String, strRequestID As String
     
-'    On Error Resume Next
+'''    On Error Resume Next
     If Index = 0 Then
         Call msCloseAllConnect(True, False)  '关闭侦听控件则关闭所有连接
     Else
@@ -1400,9 +1398,6 @@ Private Sub Winsock1_Close(Index As Integer)
                         Debug.Print K & ",Winsock_Close:" & Index, Me.Winsock1.Item(Index).Tag, Me.Winsock1.Item(Index).RemoteHostIP
                         Unload Me.Winsock1.Item(Index)  '卸载断开的客户端的连接控件
                         gArr(Index) = gArr(0)   '清除数组
-'''                        If Not (Me.Timer1.Item(Index) Is Nothing) Then'此句老报控件有问题，没明白
-'''                            Unload Me.Timer1.Item(Index)   '卸载对应计时器
-'''                        End If
                         Close   '关闭所有打开的文件
                         Exit For
                     End If
