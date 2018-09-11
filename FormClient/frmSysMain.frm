@@ -1117,7 +1117,7 @@ Private Sub Timer1_Timer(Index As Integer)
     Static byteChk As Byte
     
     byteCon = byteCon + 1
-    byteChk = byteChk + 1
+    If Not gVar.TCPStateConnected Then byteChk = byteChk + 1
     
     If byteCon >= conCon Then
         If (Not gVar.UpdateRunOver) And (Not gfAppExist(gVar.EXENameOfUpdate)) Then '权且如此,仅判断进程是否存在是不全面的
@@ -1145,7 +1145,7 @@ Private Sub Timer1_Timer(Index As Integer)
         byteCon = 0 '清零静态累积变量
     End If
     
-    If byteChk > (gVar.TCPWaitTime + 2) Then  '因为服务器端也是等待gVar.TCPWaitTime才断开连接，这里延迟一点
+    If byteChk > (gVar.TCPWaitTime + 4) Then  '因为服务器端也是等待gVar.TCPWaitTime才断开连接，这里延迟一点
         byteChk = 0
         If Not gVar.TCPStateConnected Then
             Call gsAlarmAndLogEx("与服务器建立连接失败，请确认服务端程序已启动", "连接警示")
@@ -1182,8 +1182,8 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
                 
             ElseIf InStr(strGet, gVar.PTConnectIsFull) Then '收到服务端发来的连接数已满
                 Me.Timer1.Item(Index).Enabled = False
-                MsgBox "客户端与服务端连接数受限，请其他用户退出后再试！", vbCritical, "连接数已满警告"
                 Call msUnloadMe(True)
+                MsgBox "客户端与服务端连接数受限，请其他用户退出后再试！", vbCritical, "连接数已满警告"
                 Rem End '硬结束程序，以防万一？
             
             ElseIf InStr(strGet, gVar.PTDBDataSource) Then  '收到服务器发来的数据库连接信息

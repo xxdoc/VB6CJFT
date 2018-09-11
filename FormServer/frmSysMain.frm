@@ -1314,7 +1314,7 @@ Private Sub Timer1_Timer(Index As Integer)
             For Each sckCheck In Me.Winsock1
                 If sckCheck.Index <> 0 Then
                     If sckCheck.State <> 7 Then
-                        Me.Timer1.Item(sckCheck.Index).Enabled = False
+                        Unload Me.Timer1.Item(sckCheck.Index)
                         Debug.Print "CheckConnect:" & sckCheck.Index
                         Call Winsock1_Close(sckCheck.Index)
                     End If
@@ -1339,7 +1339,7 @@ Private Sub Timer1_Timer(Index As Integer)
             If Not gArr(Index).Connected Then   '不是客户端则关闭
                 For Each sckClose In Me.Winsock1
                     If sckClose.Index = Index Then
-                        Call Winsock1_Close(Index) 'sckClose.Close
+                        Call Winsock1_Close(Index) '关闭连接
                         Exit For
                     End If
                 Next
@@ -1349,13 +1349,10 @@ Private Sub Timer1_Timer(Index As Integer)
             If Not gVar.ParaBlnLimitClientConnect Then  '若没有选择限制客户端连接功能
                 ConfirmOK(Index) = False
                 CountTime(Index) = 0    '限制连接计时器清零
-                If Not Me.Timer1.Item(Index) Is Nothing Then   '已在Winsock1_Close事件卸载了对应Timer控件
-                    Me.Timer1.Item(Index).Enabled = False   '确认完后卸载掉对应计时器控件
-                    Unload Me.Timer1.Item(Index)
-                End If
+                Unload Me.Timer1.Item(Index) '确认完后卸载掉对应计时器控件
             End If
         End If
-        
+            
         If CountTime(Index) > timeOut Then   '计时已满则关闭对应客户端连接
             '若在文件传输状态下则等待传输2分钟后直接关闭
             If (Not gArr(Index).FileTransmitState) Or (CountTime(Index) - timeOut > 120) Then
@@ -1364,7 +1361,15 @@ Private Sub Timer1_Timer(Index As Integer)
                     Close
                     gArr(Index) = gArr(0)
                 End If
-                Call gfSendInfo(gVar.PTConnectTimeOut, Me.Winsock1.Item(Index)) '发送连接时间已到信息给客户端
+                Unload Me.Timer1.Item(Index)
+                For Each sckCheck In Me.Winsock1
+                    If sckCheck.Index = Index Then '确认控件是否存在
+                        If sckCheck.State = 7 Then '确认控件状态是否对
+                            Call gfSendInfo(gVar.PTConnectTimeOut, Me.Winsock1.Item(Index)) '发送连接时间已到信息给客户端
+                            Exit For
+                        End If
+                    End If
+                Next
             End If
         End If
         
@@ -1378,6 +1383,7 @@ Private Sub Winsock1_Close(Index As Integer)
     '关闭连接
     Dim K As Long, C As Long
     Dim strIP As String, strRequestID As String
+    Dim tmDel As VB.Timer
     
 '''    On Error Resume Next
     If Index = 0 Then
@@ -1396,6 +1402,14 @@ Private Sub Winsock1_Close(Index As Integer)
                         .RemoveItem K   '移除对应行信息
                         .AddItem ""     '末尾添加一行维持表格行数不变
                         Debug.Print K & ",Winsock_Close:" & Index, Me.Winsock1.Item(Index).Tag, Me.Winsock1.Item(Index).RemoteHostIP
+                        For Each tmDel In Me.Timer1 '卸载对应计时器
+                            If tmDel.Index <> 0 Then
+                                If tmDel.Index = Index Then '确认控件是否存在
+                                    Unload tmDel
+                                    Exit For
+                                End If
+                            End If
+                        Next
                         Unload Me.Winsock1.Item(Index)  '卸载断开的客户端的连接控件
                         gArr(Index) = gArr(0)   '清除数组
                         Close   '关闭所有打开的文件
@@ -1408,6 +1422,8 @@ Private Sub Winsock1_Close(Index As Integer)
             .Refresh
         End With
     End If
+    
+    Set tmDel = Nothing
     
 End Sub
 
@@ -1446,10 +1462,8 @@ Private Sub Winsock1_ConnectionRequest(Index As Integer, ByVal requestID As Long
         Call msAddConnectToGrid(.Item(K)) '将连接添加进表格中
     End With
     
-    If blnFull Then '若连接数已满，则发信通知客户端，并关闭该客户端的连接
+    If blnFull Then '若连接数已满，则发信通知客户端。该客户端自动关闭连接，客户端同时触发关闭事件.
         Call gfSendInfo(gVar.PTConnectIsFull, Me.Winsock1.Item(K))
-'        .Item(K).Close
-'        Call Winsock1_Close(CInt(K))
         Exit Sub
     End If
     
