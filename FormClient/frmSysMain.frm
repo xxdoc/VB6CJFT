@@ -1010,8 +1010,8 @@ Private Sub MDIForm_Load()
         End
     Else
         strUpdate = gVar.AppPath & gVar.EXENameOfUpdate & " " & gVar.EXENameOfClient & _
-                gVar.CmdLineSeparator & gVar.CmdLineParaOfHide      '隐式打开更新检测程序
-        Call msOpenUpdate(strUpdate) '用命令行打开更新程序
+                gVar.CmdLineSeparator & gVar.CmdLineParaOfHide      '生成隐式打开更新检测程序的命令行
+        Call msOpenUpdate(strUpdate) '用命令行隐式打开更新程序
     End If
     
     '检查是否为试用版*******************************
@@ -1095,7 +1095,9 @@ Private Sub MDIForm_Unload(Cancel As Integer)
     Call gsSaveCommandbarsTheme(Me.CommandBars1, False)   '保存CommandBars的风格主题
     
     If gfAppExist(gVar.EXENameOfUpdate) Then '如果打开了一个更新程序则关闭
-        If Not gfCloseApp(gVar.EXENameOfUpdate) Then Call gsAlarmAndLogEx("软件退出时无法同时关闭更新程序", "关闭更新程序异常", False)
+        If Not gfCloseApp(gVar.EXENameOfUpdate) Then
+            Call gsAlarmAndLogEx("软件退出时无法同时关闭更新程序", "关闭更新程序异常", False)
+        End If
     End If
     
     gArr(1) = gArr(0) '清空文件传输数组中的信息
@@ -1116,8 +1118,16 @@ Private Sub Timer1_Timer(Index As Integer)
     Static byteCon As Byte
     Static byteChk As Byte
     
-    byteCon = byteCon + 1
-    If Not gVar.TCPStateConnected Then byteChk = byteChk + 1
+    '重启客户端程序
+    '因在Winsock控件中的gArr的with语句中重启时无法清空gArr数组，权宜放此处
+    If gVar.ClientReLoad Then
+        Call msUnloadMe(True)
+        Load Me
+        Exit Sub
+    End If
+    
+    byteCon = byteCon + 1 '状态计时
+    If Not gVar.TCPStateConnected And gVar.UpdateRunOver Then byteChk = byteChk + 1  '检查计时，只在无连接时
     
     If byteCon >= conCon Then
         If (Not gVar.UpdateRunOver) And (Not gfAppExist(gVar.EXENameOfUpdate)) Then '权且如此,仅判断进程是否存在是不全面的
@@ -1127,19 +1137,19 @@ Private Sub Timer1_Timer(Index As Integer)
              
         With Me.Winsock1.Item(1)
             If .State = 7 Then  '已连接
-                Call msSetClientState(vbGreen)
+                Call msSetClientState(vbGreen) '设置连接状态
                 If Not gVar.ClientLoginShow Then '弹出登陆窗口
-                    If gVar.TCPStateConnected Then
-                        If gArr(Index).Connected Then
-                            frmSysLogin.Show vbModeless, Me
-                            gVar.ClientLoginShow = True
+                    If gVar.TCPStateConnected Then  '全局变量变成连接状态
+                        If gArr(Index).Connected Then '传输变量变成连接
+                            frmSysLogin.Show vbModeless, Me '显示登陆窗口
+                            gVar.ClientLoginShow = True '设置全局变量--已打开过登陆窗口
                         End If
                     End If
                 End If
             ElseIf .State = 9 Then  '连接异常
-                Call msSetClientState(vbRed)
+                Call msSetClientState(vbRed) '设置异常状态
             Else    '未连接等
-                Call msSetClientState(vbYellow)
+                Call msSetClientState(vbYellow) '设置未连接状态
             End If
         End With
         byteCon = 0 '清零静态累积变量
@@ -1151,12 +1161,6 @@ Private Sub Timer1_Timer(Index As Integer)
             Call gsAlarmAndLogEx("与服务器建立连接失败，请确认服务端程序已启动", "连接警示")
             Call msUnloadMe(True)
         End If
-    End If
-    
-    '重启。在Winsock控件中的gArr的with语句中重启时无法清空gArr数组，权宜放此处
-    If gVar.ClientReLoad Then
-        Call msUnloadMe(True)
-        Load Me
     End If
     
 End Sub
@@ -1192,9 +1196,10 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
             ElseIf InStr(strGet, gVar.PTConnectTimeOut) Then '连续连接时间已到
                 Me.Timer1.Item(Index).Enabled = False
                 Me.Winsock1.Item(Index).Close
+                Call msSetClientState(vbYellow) '设置未连接状态
                 MsgBox "与服务器连续连接时间已到，请重新登陆！", vbExclamation, "连接时间限制提示"
-                Me.Timer1.Item(Index).Enabled = True
                 gVar.ClientReLoad = True
+                Me.Timer1.Item(Index).Enabled = True
                 
             ElseIf InStr(strGet, gVar.PTFileStart) > 0 Then '可以发送文件给服务端了的状态
                 Call gfSendFile(.FilePath, Me.Winsock1.Item(Index)) '发送文件给服务端

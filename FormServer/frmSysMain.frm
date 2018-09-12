@@ -842,8 +842,8 @@ Private Sub msGridSet(ByRef gridSet As FlexCell.Grid)
         .Cell(0, 3).Text = "连接用户登陆账号"
         .Cell(0, 4).Text = "连接用户姓名"
         .Cell(0, 5).Text = "连接建立时间"
-        .Cell(0, 6).Text = "Index"
-        .Cell(0, 7).Text = "RequestID"
+        .Cell(0, 6).Text = "索引号" '"Index"
+        .Cell(0, 7).Text = "申请号" '"RequestID"
         .Column(1).Width = 120
         .Column(2).Width = 130
         .Column(3).Width = 130
@@ -1136,6 +1136,12 @@ Private Sub Form_Load()
     
     Dim cbsBars As XtremeCommandBars.CommandBars
     
+    '打开多个应用程序检查
+    If App.PrevInstance Then
+        MsgBox "不可同时打开多个应用程序！", vbCritical, "警报"
+        End
+    End If
+    
     Timer1.Item(0).Interval = 1000  '计时器循环时间
     Call Main   '初始化全局公用变量
     Set gWind = Me  '指定主窗体给全局引用对象
@@ -1167,12 +1173,6 @@ Private Sub Form_Load()
     
     
     
-    '打开多个应用程序检查。此判断暂放加载注册信息后
-    If App.PrevInstance Then
-        MsgBox "不可同时打开多个应用程序！", vbCritical, "警报"
-        Unload Me
-        Exit Sub
-    End If
     
     '检查是否为试用版******************************
     

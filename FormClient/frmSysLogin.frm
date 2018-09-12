@@ -66,6 +66,7 @@ Begin VB.Form frmSysLogin
    End
    Begin VB.Label Label2 
       Alignment       =   1  'Right Justify
+      BackStyle       =   0  'Transparent
       Caption         =   "密  码"
       BeginProperty Font 
          Name            =   "宋体"
@@ -84,6 +85,7 @@ Begin VB.Form frmSysLogin
    End
    Begin VB.Label Label1 
       Alignment       =   1  'Right Justify
+      BackStyle       =   0  'Transparent
       Caption         =   "用户名"
       BeginProperty Font 
          Name            =   "宋体"
