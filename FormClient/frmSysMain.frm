@@ -1030,12 +1030,12 @@ Private Sub MDIForm_Load()
     
 End Sub
 
-Private Sub MDIForm_MouseMove(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub MDIForm_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
     '响应托盘图标左键、右键动作，托盘菜单
     Dim sngMsg As Single
     
-    If y <> 0 Then Exit Sub    '似乎此句可限制住鼠标一定是在托盘图标上，不是在窗体上
-    sngMsg = x / Screen.TwipsPerPixelX
+    If Y <> 0 Then Exit Sub    '似乎此句可限制住鼠标一定是在托盘图标上，不是在窗体上
+    sngMsg = X / Screen.TwipsPerPixelX
     Select Case sngMsg
         Case WM_RBUTTONUP
             mcbsPopupIcon.ShowPopup  '右键弹出Popup菜单
@@ -1126,6 +1126,12 @@ Private Sub Timer1_Timer(Index As Integer)
         Exit Sub
     End If
     
+    '在登陆窗口中点击了关闭程序
+    If gVar.UnloadFromLogin And Not gVar.ShowMainWindow Then
+        Call msUnloadMe(True)
+        Exit Sub
+    End If
+    
     byteCon = byteCon + 1 '状态计时
     If Not gVar.TCPStateConnected And gVar.UpdateRunOver Then byteChk = byteChk + 1  '检查计时，只在无连接时
     
@@ -1141,7 +1147,7 @@ Private Sub Timer1_Timer(Index As Integer)
                 If Not gVar.ClientLoginShow Then '弹出登陆窗口
                     If gVar.TCPStateConnected Then  '全局变量变成连接状态
                         If gArr(Index).Connected Then '传输变量变成连接
-                            frmSysLogin.Show vbModeless, Me '显示登陆窗口
+                            Call gsOpenTheWindow("frmSysLogin", , vbNormal) ''显示登陆窗口
                             gVar.ClientLoginShow = True '设置全局变量--已打开过登陆窗口
                         End If
                     End If
@@ -1155,7 +1161,7 @@ Private Sub Timer1_Timer(Index As Integer)
         byteCon = 0 '清零静态累积变量
     End If
     
-    If byteChk > (gVar.TCPWaitTime + 4) Then  '因为服务器端也是等待gVar.TCPWaitTime才断开连接，这里延迟一点
+    If byteChk > (gVar.TCPWaitTime + 1) Then  '因为服务器端也是等待gVar.TCPWaitTime才断开连接，这里延迟一点
         byteChk = 0
         If Not gVar.TCPStateConnected Then
             Call gsAlarmAndLogEx("与服务器建立连接失败，请确认服务端程序已启动", "连接警示")
@@ -1194,12 +1200,20 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
                 Call gfRestoreDBInfo(strGet) '解析加密过的数据库连接信息
                 
             ElseIf InStr(strGet, gVar.PTConnectTimeOut) Then '连续连接时间已到
-                Me.Timer1.Item(Index).Enabled = False
+                Dim blnTimer As Boolean, tmrEn As VB.Timer
+                For Each tmrEn In Me.Timer1 '重启客户端后老是发现timer1(1)不存在，权且用此检测
+                    If tmrEn.Index = Index Then
+                        blnTimer = True
+                        Exit For
+                    End If
+                Next
+                Set tmrEn = Nothing
+                If blnTimer Then Me.Timer1.Item(Index).Enabled = False
                 Me.Winsock1.Item(Index).Close
                 Call msSetClientState(vbYellow) '设置未连接状态
                 MsgBox "与服务器连续连接时间已到，请重新登陆！", vbExclamation, "连接时间限制提示"
                 gVar.ClientReLoad = True
-                Me.Timer1.Item(Index).Enabled = True
+                If blnTimer Then Me.Timer1.Item(Index).Enabled = True
                 
             ElseIf InStr(strGet, gVar.PTFileStart) > 0 Then '可以发送文件给服务端了的状态
                 Call gfSendFile(.FilePath, Me.Winsock1.Item(Index)) '发送文件给服务端

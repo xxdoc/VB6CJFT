@@ -409,7 +409,10 @@ Dim mlngID As Long  '循环变量ID
 Dim WithEvents mXtrStatusBar As XtremeCommandBars.StatusBar  '状态栏控件
 Attribute mXtrStatusBar.VB_VarHelpID = -1
 Dim mcbsPopupIcon As XtremeCommandBars.CommandBar    '托盘图标Pupup菜单
-
+Dim CheckConnectTime As Long
+Dim ConfirmTime() As Long
+Dim ConfirmOK() As Boolean
+Dim CountTime() As Long
 
 
 Private Sub msAddAction(ByRef cbsBars As XtremeCommandBars.CommandBars)
@@ -1286,12 +1289,12 @@ End Sub
 Private Sub Timer1_Timer(Index As Integer)
     'Index=0的计时器间隔1秒。Timer1的Index值 与 Winsock1的Index对应
     
-    Dim sckClose As MSWinsockLib.Winsock, sckCheck As MSWinsockLib.Winsock
+    Dim sckClose As MSWinsockLib.Winsock, sckCheck As MSWinsockLib.Winsock, tmrUld As VB.Timer
     Dim timeOut As Long
-    Static CheckConnectTime As Long
-    Static ConfirmTime() As Long
-    Static ConfirmOK() As Boolean
-    Static CountTime() As Long
+'    Static CheckConnectTime As Long
+'    Static ConfirmTime() As Long
+'    Static ConfirmOK() As Boolean
+'    Static CountTime() As Long
         
 '''    On Error Resume Next
     If Index = 0 Then
@@ -1314,7 +1317,12 @@ Private Sub Timer1_Timer(Index As Integer)
             For Each sckCheck In Me.Winsock1
                 If sckCheck.Index <> 0 Then
                     If sckCheck.State <> 7 Then
-                        Unload Me.Timer1.Item(sckCheck.Index)
+                        For Each tmrUld In Me.Timer1
+                            If tmrUld.Index = sckCheck.Index Then
+                                Unload tmrUld 'Me.Timer1.Item(sckCheck.Index)
+                                Exit For
+                            End If
+                        Next
                         Debug.Print "CheckConnect:" & sckCheck.Index
                         Call Winsock1_Close(sckCheck.Index)
                     End If
@@ -1328,9 +1336,9 @@ Private Sub Timer1_Timer(Index As Integer)
         '''index>0为各个客户端连接用
         
         timeOut = gVar.ParaLimitClientConnectTime * 60  '计算允许连接时长的总秒数
-        ReDim Preserve ConfirmTime(Me.Timer1.UBound)    '需要每次都这样？
-        ReDim Preserve ConfirmOK(Me.Timer1.UBound)
-        ReDim Preserve CountTime(Me.Timer1.UBound)
+'''        ReDim Preserve ConfirmTime(Me.Timer1.UBound)    '需要每次都这样？
+'''        ReDim Preserve ConfirmOK(Me.Timer1.UBound)
+'''        ReDim Preserve CountTime(Me.Timer1.UBound)
         
         If Not ConfirmOK(Index) Then ConfirmTime(Index) = ConfirmTime(Index) + 1
         If gVar.ParaBlnLimitClientConnect Then CountTime(Index) = CountTime(Index) + 1
@@ -1377,6 +1385,7 @@ Private Sub Timer1_Timer(Index As Integer)
     
     Set sckClose = Nothing
     Set sckCheck = Nothing
+    Set tmrUld = Nothing
 End Sub
 
 Private Sub Winsock1_Close(Index As Integer)
@@ -1406,6 +1415,7 @@ Private Sub Winsock1_Close(Index As Integer)
                             If tmDel.Index <> 0 Then
                                 If tmDel.Index = Index Then '确认控件是否存在
                                     Unload tmDel
+                                    If Index <= UBound(CountTime) Then CountTime(Index) = 0
                                     Exit For
                                 End If
                             End If
@@ -1460,6 +1470,10 @@ Private Sub Winsock1_ConnectionRequest(Index As Integer, ByVal requestID As Long
         .Item(K).Tag = requestID    '存储该申请号，另作它用
         Debug.Print "Load winsock1(" & K & ")"
         Call msAddConnectToGrid(.Item(K)) '将连接添加进表格中
+        
+        ReDim Preserve ConfirmTime(.UBound) '数组元素值的变化在Timer1控件中，初始化权且放此
+        ReDim Preserve ConfirmOK(.UBound)
+        ReDim Preserve CountTime(.UBound)
     End With
     
     If blnFull Then '若连接数已满，则发信通知客户端。该客户端自动关闭连接，客户端同时触发关闭事件.

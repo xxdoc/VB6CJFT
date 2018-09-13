@@ -55,8 +55,8 @@ Private Sub msLoadParameter(Optional ByVal blnLoad As Boolean = True)
         .Cell(2, 1).Text = gVar.ParaBlnWindowCloseMin   '关闭时最小化
         .Cell(2, 5).Text = gVar.ParaBlnWindowMinHide    '最小化时隐藏
         
-        .Cell(5, 3).Text = gVar.TCPSetPort  '要连接的服务器端口
-        .Cell(5, 7).Text = gVar.TCPSetIP   '要连接服务端IP地址
+        .Cell(5, 3).Text = gVar.TCPSetIP   '要连接服务端IP地址
+        .Cell(5, 7).Text = gVar.TCPSetPort  '要连接的服务器端口
         
         .Cell(8, 3).Text = gVar.ConSource   '服务器名称/IP
         .Cell(8, 7).Text = gVar.ConDatabase '数据库名
@@ -82,9 +82,9 @@ Private Sub msSaveParameter(Optional ByVal blnSave As Boolean = True)
         gVar.ParaBlnWindowCloseMin = .Cell(2, 1).Text   '关闭时最小化
         gVar.ParaBlnWindowMinHide = .Cell(2, 5).Text    '最小化时隐藏
         
-        tempVal = Val(.Cell(5, 3).Text)                 '要连接的服务器端口
+        gVar.TCPSetIP = gfCheckIP(.Cell(5, 3).Text) '要连接的服务端IP地址
+        tempVal = Val(.Cell(5, 7).Text)                 '要连接的服务器端口
         gVar.TCPSetPort = IIf(tempVal < 10000, gVar.TCPDefaultPort, tempVal)
-        gVar.TCPSetIP = gfCheckIP(.Cell(5, 7).Text) '要连接的服务端IP地址
         
         '数据库服务器参数只显示，不可修改
                 
@@ -92,6 +92,14 @@ Private Sub msSaveParameter(Optional ByVal blnSave As Boolean = True)
         gVar.ParaBlnRememberUserList = .Cell(13, 5).Text    '记住用户名
         gVar.ParaBlnRememberUserPassword = .Cell(14, 1).Text    '记住密码
         gVar.ParaBlnUserAutoLogin = .Cell(14, 5).Text   '自动登陆
+        If gVar.ParaBlnRememberUserPassword Then '同时勾选记住用户名
+            gVar.ParaBlnRememberUserList = True
+        End If
+        If gVar.ParaBlnUserAutoLogin Then '同时勾选记住用户名与密码
+            gVar.ParaBlnRememberUserList = True
+            gVar.ParaBlnRememberUserPassword = True
+        End If
+        
     End With
     
     '参数值通过公用变量保存进注册表中
@@ -155,6 +163,26 @@ End Sub
 
 Private Sub Form_Resize()
     Grid1.Move 120, 120, Me.ScaleWidth - 240, Me.ScaleHeight - 240
+End Sub
+
+Private Sub Grid1_CellChange(ByVal Row As Long, ByVal Col As Long)
+    If Not Me.Visible Then Exit Sub
+    
+    '响应记住密码选择的设置：同时勾选记住用户名
+    If Row = 14 And Col = 1 Then
+        If Me.Grid1.Cell(Row, Col).Text Then
+            Me.Grid1.Cell(13, 5).Text = 1
+        End If
+    End If
+    
+    '响应自动登陆选项的设置：同时勾选记住密码与用户名
+    If Row = 14 And Col = 5 Then
+        If Me.Grid1.Cell(Row, Col).Text Then
+            Me.Grid1.Cell(13, 5).Text = 1
+            Me.Grid1.Cell(14, 1).Text = 1
+        End If
+    End If
+    
 End Sub
 
 Private Sub Grid1_HyperLinkClick(ByVal Row As Long, ByVal Col As Long, URL As String, Changed As Boolean)

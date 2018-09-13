@@ -2,6 +2,13 @@ Attribute VB_Name = "modDeclare"
 Option Explicit
 
 
+'''鼠标光标变手指状
+Public Declare Function SetCursor Lib "user32" (ByVal hCursor As Long) As Long  'SetCursor确定光标形状
+Public Declare Function LoadCursor Lib "user32" Alias "LoadCursorA" (ByVal hInstance As Long, _
+        ByVal lpCursorName As String) As Long   'LoadCursor载入指定光标资源
+Public Const IDC_HAND = "#32649"
+
+
 '''查找窗口，发送信息
 Public Declare Function FindWindow Lib "user32" Alias "FindWindowA" (ByVal lpClassName As String, ByVal lpWindowName As String) As Long
 Public Declare Function PostMessage Lib "user32" Alias "PostMessageA" (ByVal hwnd As Long, ByVal wMsg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
@@ -372,6 +379,7 @@ Public Type gtypeCommonVariant
     ClientReLoad As Boolean   '接收到服务端发来的重启客户端标志
     ShowMainWindow As Boolean '客户端成功登陆后显示过主窗体标志
     UpdateRunOver As Boolean   '更新程序是否运行完成
+    UnloadFromLogin As Boolean '从登陆窗口传过来的关闭程序指令
     
     ParaBlnWindowMinHide As Boolean '主窗口最小化时是否隐藏
     ParaBlnWindowCloseMin As Boolean    '主窗口点击关闭按钮时最小化

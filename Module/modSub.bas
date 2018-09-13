@@ -313,6 +313,16 @@ Public Sub gsAlarmAndLogEx(Optional ByVal strErrDescription As String, Optional 
     
 End Sub
 
+Public Sub gsDeleteSetting(ByVal AppName As String, ByVal Section As String, ByVal Key As String, ByVal strMsg As String)
+    '调用系统函数删除注册信息
+    
+    On Error Resume Next
+    Call DeleteSetting(AppName, Section, Key) '不存在时可能异常
+    If Err.Number <> 0 Then
+        Call gsAlarmAndLog(strMsg, False)
+    End If
+End Sub
+
 Public Sub gsFileWrite(ByVal strFile As String, ByVal strContent As String, _
     Optional ByVal OpenMode As genumFileOpenType = udAppend, _
     Optional ByVal WriteMode As genumFileWriteType = udPrint)
@@ -906,7 +916,8 @@ End Sub
 
 Public Sub gsOpenTheWindow(ByVal strFormName As String, _
     Optional ByVal OpenMode As FormShowConstants = vbModeless, _
-    Optional ByVal FormWndState As FormWindowStateConstants = vbMaximized)
+    Optional ByVal FormWndState As FormWindowStateConstants = vbMaximized, _
+    Optional ByVal UseMainIcon As Boolean = True)
     '以指定窗口模式OpenMode与窗口FormWndState状态来打开指定窗体strFormName
     
     Dim frmOpen As Form
@@ -924,6 +935,7 @@ Public Sub gsOpenTheWindow(ByVal strFormName As String, _
         Set frmOpen = Forms.Add(strFormName)    '新建该窗体
     End If
     
+    If UseMainIcon Then Set frmOpen.Icon = gWind.Icon '使用主窗体图标
     frmOpen.WindowState = FormWndState
     frmOpen.Show OpenMode               '此句放最后，不能放上句前面，否则退出程序时MDI窗体不能完全关闭，可能因为CommandBars控件的原因。
         

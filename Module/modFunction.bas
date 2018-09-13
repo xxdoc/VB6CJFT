@@ -493,6 +493,15 @@ Public Function gfGetRegNumericValue(ByVal AppName As String, ByVal Section As S
     
 End Function
 
+Public Function gfGetSetting(ByVal AppName As String, ByVal Section As String, ByVal Key As String, Optional ByVal strNO As String = "*&^%$#@!") As Boolean
+    '判断注册项是否存在
+    
+    Dim strGet As String
+    
+    strGet = GetSetting(AppName, Section, Key, strNO)
+    If strGet <> strNO Then gfGetSetting = True
+End Function
+
 Public Function gfIsTreeViewChild(ByRef nodeDad As MSComctlLib.Node, ByVal strKey As String) As Boolean
     '判断传入Key值是不是自己的子结点
     
