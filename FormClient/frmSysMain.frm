@@ -670,7 +670,7 @@ Private Sub msAddXtrStatusBar(ByRef cbsBars As XtremeCommandBars.CommandBars)
         .FindPane(gID.StatusBarPaneUserInfo).Width = 60
         
         .AddPane gID.StatusBarPaneIP
-        .SetPaneText gID.StatusBarPaneIP, Me.Winsock1.Item(1).LocalIP  'gVar.TCPSetIP
+        .SetPaneText gID.StatusBarPaneIP, gVar.UserLoginIP ' Me.Winsock1.Item(1).LocalIP  'gVar.TCPSetIP
         .FindPane(gID.StatusBarPaneIP).Width = 90
         
         .AddPane gID.StatusBarPanePort
@@ -832,12 +832,12 @@ Private Sub msLoadParameter(Optional ByVal blnLoad As Boolean = True)
     
     If Not blnLoad Then Exit Sub
     
-    On Error Resume Next    '加/解密函数过程可能有异常
+    Rem On Error Resume Next    '加/解密函数过程可能有异常
     With gVar
         .ParaBlnWindowCloseMin = Val(GetSetting(.RegAppName, .RegSectionSettings, .RegKeyParaWindowCloseMin, 1))    '关闭时最小化
         .ParaBlnWindowMinHide = Val(GetSetting(.RegAppName, .RegSectionSettings, .RegKeyParaWindowMinHide, 1))  '最小化时隐藏
         
-        .TCPDefaultIP = Me.Winsock1.Item(0).LocalIP '本机IP地址
+        .TCPDefaultIP = Me.Winsock1.Item(1).LocalIP '本机IP地址
         .TCPSetIP = gfCheckIP(GetSetting(.RegAppName, .RegSectionTCP, .RegKeyTCPIP, .TCPDefaultIP)) '要连接的服务端IP地址
         .TCPSetPort = gfGetRegNumericValue(.RegAppName, .RegSectionTCP, .RegKeyTCPPort, , .TCPDefaultPort, 10000, 65535) '要连接的服务器端口
         
@@ -846,6 +846,7 @@ Private Sub msLoadParameter(Optional ByVal blnLoad As Boolean = True)
         .ParaBlnRememberUserList = Val(GetSetting(.RegAppName, .RegSectionUser, .RegKeyParaRememberUserList, 0)) '记住用户名
         .ParaBlnRememberUserPassword = Val(GetSetting(.RegAppName, .RegSectionUser, .RegKeyParaRememberUserPassword, 0)) '记住密码
         
+        .UserLoginIP = .TCPDefaultIP '本机IP赋值给另一个变量
         .UserComputerName = gfBackComputerInfo(ciComputerName) '获取计算机名
         
 '''        '由服务端发过来给客户端
@@ -1127,7 +1128,7 @@ Private Sub Timer1_Timer(Index As Integer)
     End If
     
     '在登陆窗口中点击了关闭程序
-    If gVar.UnloadFromLogin And Not gVar.ShowMainWindow Then
+    If gVar.UnloadFromLogin And Not gVar.ShowMainWindow Then '卸载登陆窗口+没有显示主窗体
         Call msUnloadMe(True)
         Exit Sub
     End If

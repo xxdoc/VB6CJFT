@@ -109,10 +109,15 @@ Public Function EncryptString(ByVal str As String, password As String) As String
     Dim byt() As Byte
     Dim HASHALGORITHM As HASHALGORITHM
     Dim ENCALGORITHM As ENCALGORITHM
+On Error GoTo LineErr
     byt = str
     HASHALGORITHM = MD5
     ENCALGORITHM = RC4
     EncryptString = BytesToHex(Encrypt(byt, password, HASHALGORITHM, ENCALGORITHM))
+LineErr:
+    If Err.Number <> 0 Then
+        Call gsAlarmAndLog("加密异常", False)
+    End If
 End Function
 
 Public Function EncryptByte(byt() As Byte, password As String) As Byte()
@@ -171,10 +176,15 @@ Public Function DecryptString(ByVal str As String, password As String) As String
     Dim byt() As Byte
     Dim HASHALGORITHM As HASHALGORITHM
     Dim ENCALGORITHM As ENCALGORITHM
+On Error GoTo LineErr
     byt = HexToBytes(str)
     HASHALGORITHM = MD5
     ENCALGORITHM = RC4
     DecryptString = Decrypt(byt, password, HASHALGORITHM, ENCALGORITHM)
+LineErr:
+    If Err.Number <> 0 Then
+        Call gsAlarmAndLog("解密异常", False)
+    End If
 End Function
 
 Public Function DecryptByte(byt() As Byte, password As String) As Byte()

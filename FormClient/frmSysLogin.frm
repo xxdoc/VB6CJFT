@@ -13,6 +13,10 @@ Begin VB.Form frmSysLogin
    ScaleHeight     =   2790
    ScaleWidth      =   5295
    StartUpPosition =   2  '屏幕中心
+   Begin VB.Timer Timer1 
+      Left            =   480
+      Top             =   480
+   End
    Begin VB.CommandButton Command1 
       Caption         =   "登陆"
       Default         =   -1  'True
@@ -165,6 +169,26 @@ Option Explicit
 
 
 
+Private Function mfLoginCheck(ByVal strName As String, strPwd As String) As Boolean
+    '登陆验证
+    
+    Dim strCheck As String
+    
+    strCheck = gfStringCheck(strName) '检查是否包含特殊字符
+    If Len(strCheck) > 0 Then
+        
+    End If
+    
+    With gVar '用户信息保存在公用变量中
+        .UserLoginName = strName
+        .UserPassword = strPwd
+        .UserFullName = 0
+        .UserAutoID = 0
+        .UserDepartment = 0
+        Rem Debug.Print .UserLoginIP,.UserComputerName '在主窗体加载参数函数中已获取
+    End With
+    
+End Function
 
 Private Sub msLoadUserInfo(Optional ByVal blnLoad As Boolean = True)
     '加载登陆过的用户信息
@@ -245,29 +269,37 @@ End Sub
 
 Private Sub Command1_Click()
     '登陆系统
-    Dim strName As String, strPWD As String
+    Dim strName As String, strPwd As String
     
-    strName = Trim(Combo1.Text)
-    strPWD = Text1.Text
-    Call msSaveUserInfo(True)
+    strName = Trim(Combo1.Text) '获取用户名
+    strPwd = Text1.Text '获取密码
+    If Not mfLoginCheck(strName, strPwd) Then Exit Sub '登陆验证不通过则退出过程
     
-    gWind.Show
-    gVar.UserLoginName = strName
-    gVar.UserFullName = strPWD
-    Call gfSendClientInfo(gVar.UserComputerName, gVar.UserLoginName, gVar.UserFullName, gWind.Winsock1.Item(1))
-    gVar.ShowMainWindow = True
-    Unload Me
+    Call msSaveUserInfo(True) '登陆成功则保存用户信息进注册表中
+    gWind.CommandBars1.StatusBar.FindPane(gID.StatusBarPaneUserInfo).Text = gVar.UserFullName '主窗体状态中显示用户全名
+    gWind.Show '显示主窗体
+    Call gfSendClientInfo(gVar.UserComputerName, gVar.UserLoginName, gVar.UserFullName, gWind.Winsock1.Item(1)) '把用户登陆信息发送给服务端
+    gVar.ShowMainWindow = True '显示主窗体标志。区别关闭程序时的主窗体状态
+    Unload Me '卸载登陆窗口
 End Sub
 
 Private Sub Command2_Click()
-    gVar.UnloadFromLogin = True
+    '退出程序
+    
+    gVar.UnloadFromLogin = True '不能直接使用卸载语句，会报警，权且通过此公共变量并在主窗体中的计时器来实现
 End Sub
 
 Private Sub Form_Load()
     '加载窗体
+    Timer1.Enabled = False
+    Timer1.Interval = 1000
     
     If gVar.ParaBlnRememberUserList Then
-        Call msLoadUserInfo(True) '加载用户列表
+        Call msLoadUserInfo(True) '加载用户信息
+    End If
+    
+    If gVar.ParaBlnUserAutoLogin Then '本判断语句后不要再有其它语句
+        Timer1.Enabled = True '自动登陆.本想在此触发，但窗体卸载会报警，权且通过计时器触发。
     End If
     
 End Sub
@@ -278,6 +310,8 @@ Private Sub Form_Resize()
 End Sub
 
 Private Sub Form_Unload(Cancel As Integer)
+    '点击窗口关闭按钮时触发
+    
     gVar.UnloadFromLogin = True
 End Sub
 
@@ -302,4 +336,13 @@ Private Sub Label3_MouseMove(Button As Integer, Shift As Integer, X As Single, Y
     Label3.ForeColor = vbRed '字体红色
     hHandCursor = LoadCursor(0, IDC_HAND) '调用API载入光标
     Call SetCursor(hHandCursor) '调用API使指针变手指状
+End Sub
+
+Private Sub Timer1_Timer()
+    '自动登陆
+    
+    If gVar.ParaBlnUserAutoLogin Then
+        Timer1.Enabled = False '关闭计时器
+        Command1.Value = 1 '相当于自动点击登陆按钮，触发该按钮的click事件
+    End If
 End Sub
