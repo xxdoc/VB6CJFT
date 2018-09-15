@@ -317,7 +317,7 @@ End Sub
 '要求Winsock控件在客户端与服务端都必须建成数组，且其Index值与对应的数组变量的下标要相同
 '''===============================================================================
 
-Public Function gfAppExist(ByVal strName As String) As Boolean
+Public Function gfAppExist(ByVal strNAME As String) As Boolean
     '指定应用程序进程是否存在
     
     Dim RetVal As Long
@@ -328,7 +328,7 @@ Public Function gfAppExist(ByVal strName As String) As Boolean
     On Error GoTo LineErr
     
     Set objWMIService = GetObject("winmgmts:\\.\root\cimv2")
-    Set colProcessList = objWMIService.ExecQuery("select * from Win32_Process where Name='" & strName & "' ")
+    Set colProcessList = objWMIService.ExecQuery("select * from Win32_Process where Name='" & strNAME & "' ")
     For Each objProcess In colProcessList
         gfAppExist = True   '存在该进程名时
     Next
@@ -369,7 +369,7 @@ LineOver:
     gfCheckIP = "127.0.0.1"
 End Function
 
-Public Function gfCloseApp(ByVal strName As String) As Boolean
+Public Function gfCloseApp(ByVal strNAME As String) As Boolean
     '关闭指定应用程序进程
     
     Dim winHwnd As Long
@@ -386,7 +386,7 @@ Public Function gfCloseApp(ByVal strName As String) As Boolean
 ''    End If
     
     Set objWMIService = GetObject("winmgmts:\\.\root\cimv2")
-    Set colProcessList = objWMIService.ExecQuery("select * from Win32_Process where Name='" & strName & "' ")
+    Set colProcessList = objWMIService.ExecQuery("select * from Win32_Process where Name='" & strNAME & "' ")
     For Each objProcess In colProcessList
         RetVal = objProcess.Terminate
         If RetVal <> 0 Then Exit Function   '经观察=0时关闭进程成功，不成功时返回值不为零
@@ -574,9 +574,13 @@ Public Function gfRestoreDBInfo(ByVal strInfo As String) As Boolean
         strPWD = Mid(strInfo, lngPWD + Len(.PTDBPassword))
         .ConPassword = DecryptString(strPWD, .EncryptKey)
         
-        .ConString = "Provider=SQLOLEDB;Persist Security Info=False;Data Source=" & .ConSource & _
-                        ";UID=" & .ConUserID & ";PWD=" & .ConPassword & _
-                        ";DataBase=" & .ConDatabase & ";"   '''在64位系统上Data Source中间要空格隔开才能建立连接
+        .ConString = "Provider=SQLOLEDB.1;Persist Security Info=False;Data Source=WIN-6" & _
+                        ";User ID=" & .ConUserID & ";Password=" & .ConPassword & _
+                        ";Initial Catalog=" & .ConDatabase & ";"
+                        
+'        .ConString = "Provider=SQLOLEDB;Persist Security Info=False;Data Source=" & .ConSource & _
+'                        ";UID=" & .ConUserID & ";PWD=" & .ConPassword & _
+'                        ";DataBase=" & .ConDatabase & ";"   '''在64位系统上Data Source中间要空格隔开才能建立连接
     End With
     If Err.Number = 0 Then gfRestoreDBInfo = True
 End Function

@@ -169,24 +169,65 @@ Option Explicit
 
 
 
-Private Function mfLoginCheck(ByVal strName As String, strPwd As String) As Boolean
+Private Function mfLoginCheck(ByVal strNAME As String, strPWD As String) As Boolean
     '登陆验证
     
-    Dim strCheck As String
+    Dim strCheck As String, strSQL As String
+    Dim rsUser As ADODB.Recordset
     
-    strCheck = gfStringCheck(strName) '检查是否包含特殊字符
+    strNAME = Trim(strNAME)
+    If Len(strNAME) = 0 Then '空值检测
+        MsgBox "用户名不能为空!", vbCritical, "用户名警告"
+        Combo1.SetFocus
+        Exit Function
+    End If
+    If Len(strPWD) = 0 Then
+        MsgBox "密码不能为空!", vbCritical, "密码警告"
+        Text1.SetFocus
+        Exit Function
+    End If
+    
+    strCheck = gfStringCheck(strNAME)
     If Len(strCheck) > 0 Then
-        
+        MsgBox "用户名中不能含有特殊字符【" & strCheck & "】!", vbCritical, "用户名警告"
+        Combo1.SetFocus
+        Exit Function
+    End If
+    strCheck = gfStringCheck(strPWD) '检查是否包含特殊字符
+    If Len(strCheck) > 0 Then
+        MsgBox "密码中不能含有特殊字符【" & strCheck & "】!", vbCritical, "密码警告"
+        Text1.SetFocus
+        Exit Function
+    End If
+    
+    strSQL = "EXEC sp_FT_Sys_UserLogin " & strNAME & "," & EncryptString(strPWD, gVar.EncryptKey) '生成SQL语句
+    Debug.Print gVar.ConString
+    Debug.Print strSQL
+    Set rsUser = gfBackRecordset(strSQL)
+    If rsUser.State = adStateClosed Then GoTo LineEnd
+    If rsUser.RecordCount = 0 Then
+        MsgBox "用户名 或 密码错误！", vbExclamation, "输入错误警告"
+        GoTo LineEnd
+    End If
+    If rsUser.RecordCount > 1 Then
+        MsgBox "该用户名在系统中无法识别，请联系管理员！", vbExclamation, "系统警告"
+        GoTo LineEnd
     End If
     
     With gVar '用户信息保存在公用变量中
-        .UserLoginName = strName
-        .UserPassword = strPwd
-        .UserFullName = 0
-        .UserAutoID = 0
-        .UserDepartment = 0
+        .UserLoginName = strNAME
+        .UserPassword = strPWD
+        .UserFullName = "" & rsUser.Fields("UserFullName")
+        .UserAutoID = "" & rsUser.Fields("UserAutoID")
+        .UserDepartment = "" & rsUser.Fields("DeptID")
         Rem Debug.Print .UserLoginIP,.UserComputerName '在主窗体加载参数函数中已获取
     End With
+    
+    mfLoginCheck = True '验证没问题后返回真值
+    
+LineEnd:
+    If Not rsUser Is Nothing Then If rsUser.State <> adStateClosed Then rsUser.Close
+    Set rsUser = Nothing
     
 End Function
 
@@ -269,11 +310,11 @@ End Sub
 
 Private Sub Command1_Click()
     '登陆系统
-    Dim strName As String, strPwd As String
+    Dim strNAME As String, strPWD As String
     
-    strName = Trim(Combo1.Text) '获取用户名
-    strPwd = Text1.Text '获取密码
-    If Not mfLoginCheck(strName, strPwd) Then Exit Sub '登陆验证不通过则退出过程
+    strNAME = Trim(Combo1.Text) '获取用户名
+    strPWD = Text1.Text '获取密码
+    If Not mfLoginCheck(strNAME, strPWD) Then Exit Sub '登陆验证不通过则退出过程
     
     Call msSaveUserInfo(True) '登陆成功则保存用户信息进注册表中
     gWind.CommandBars1.StatusBar.FindPane(gID.StatusBarPaneUserInfo).Text = gVar.UserFullName '主窗体状态中显示用户全名
