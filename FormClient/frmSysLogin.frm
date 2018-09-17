@@ -200,7 +200,7 @@ Private Function mfLoginCheck(ByVal strNAME As String, strPWD As String) As Bool
         Exit Function
     End If
     
-    strSQL = "EXEC sp_FT_Sys_UserLogin " & strNAME & "," & EncryptString(strPWD, gVar.EncryptKey) '生成SQL语句
+    strSQL = "EXEC sp_FT_Sys_UserLogin '" & strNAME & "','" & EncryptString(strPWD, gVar.EncryptKey) & "'" '生成SQL语句
     Debug.Print gVar.ConString
     Debug.Print strSQL
     Set rsUser = gfBackRecordset(strSQL)

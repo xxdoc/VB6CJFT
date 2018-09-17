@@ -573,14 +573,12 @@ Public Function gfRestoreDBInfo(ByVal strInfo As String) As Boolean
         
         strPWD = Mid(strInfo, lngPWD + Len(.PTDBPassword))
         .ConPassword = DecryptString(strPWD, .EncryptKey)
-        
-        .ConString = "Provider=SQLOLEDB.1;Persist Security Info=False;Data Source=WIN-6" & _
-                        ";User ID=" & .ConUserID & ";Password=" & .ConPassword & _
-                        ";Initial Catalog=" & .ConDatabase & ";"
-                        
-'        .ConString = "Provider=SQLOLEDB;Persist Security Info=False;Data Source=" & .ConSource & _
-'                        ";UID=" & .ConUserID & ";PWD=" & .ConPassword & _
-'                        ";DataBase=" & .ConDatabase & ";"   '''在64位系统上Data Source中间要空格隔开才能建立连接
+                     
+        .ConString = "Provider=SQLOLEDB.1;" & _
+                     "Persist Security Info=False;" & _
+                     "User ID=" & .ConUserID & ";Password=" & .ConPassword & ";" & _
+                     "Initial Catalog=" & .ConDatabase & ";" & _
+                     "Data Source=" & .ConSource & ";"
     End With
     If Err.Number = 0 Then gfRestoreDBInfo = True
 End Function

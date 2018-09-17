@@ -1,6 +1,6 @@
 VERSION 5.00
 Object = "{248DD890-BB45-11CF-9ABC-0080C7E7B78D}#1.0#0"; "MSWINSCK.OCX"
-Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.0#0"; "MSCOMCTL.OCX"
+Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.2#0"; "MSCOMCTL.OCX"
 Object = "{555E8FCC-830E-45CC-AF00-A012D5AE7451}#15.3#0"; "Codejock.CommandBars.v15.3.1.ocx"
 Object = "{BD0C1912-66C3-49CC-8B12-7B347BF6C846}#15.3#0"; "Codejock.SkinFramework.v15.3.1.ocx"
 Begin VB.MDIForm frmSysMain 
@@ -667,7 +667,7 @@ Private Sub msAddXtrStatusBar(ByRef cbsBars As XtremeCommandBars.CommandBars)
         
         .AddPane gID.StatusBarPaneUserInfo
         .SetPaneText gID.StatusBarPaneUserInfo, gVar.UserFullName
-        .FindPane(gID.StatusBarPaneUserInfo).Width = 60
+        .FindPane(gID.StatusBarPaneUserInfo).Width = 80
         
         .AddPane gID.StatusBarPaneIP
         .SetPaneText gID.StatusBarPaneIP, gVar.UserLoginIP ' Me.Winsock1.Item(1).LocalIP  'gVar.TCPSetIP
@@ -680,22 +680,7 @@ Private Sub msAddXtrStatusBar(ByRef cbsBars As XtremeCommandBars.CommandBars)
         .AddPane gID.StatusBarPaneConnectState
         .SetPaneText gID.StatusBarPaneConnectState, gVar.ClientStateDisConnected
         .FindPane(gID.StatusBarPaneConnectState).Width = 60
-        
-'''        .AddPane gID.StatusBarPaneReStartButton
-'''        .SetPaneText gID.StatusBarPaneReStartButton, IIf(gVar.ParaBlnAutoReStartServer, "自", "手") & "动重启服务模式"
-'''        .FindPane(gID.StatusBarPaneReStartButton).Width = 120
-'''        .FindPane(gID.StatusBarPaneReStartButton).BackgroundColor = vbCyan
-'''        .FindPane(gID.StatusBarPaneReStartButton).Button = True
-        
-'''        .AddPane gID.StatusBarPaneServerState
-'''        .FindPane(gID.StatusBarPaneServerState).Text = gVar.ServerStateNotStarted
-'''        .FindPane(gID.StatusBarPaneServerState).Width = 60
-        
-'''        .AddPane gID.StatusBarPaneServerButton
-'''        .FindPane(gID.StatusBarPaneServerButton).Text = gVar.ServerButtonStart
-'''        .FindPane(gID.StatusBarPaneServerButton).Width = 60
-'''        .FindPane(gID.StatusBarPaneServerButton).Button = True
-        
+                
         .AddProgressPane gID.StatusBarPaneProgress
                 
         .AddPane gID.StatusBarPaneProgressText
