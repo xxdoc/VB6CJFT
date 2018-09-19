@@ -1,6 +1,6 @@
 VERSION 5.00
 Object = "{248DD890-BB45-11CF-9ABC-0080C7E7B78D}#1.0#0"; "MSWINSCK.OCX"
-Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.2#0"; "MSCOMCTL.OCX"
+Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.0#0"; "MSCOMCTL.OCX"
 Object = "{555E8FCC-830E-45CC-AF00-A012D5AE7451}#15.3#0"; "Codejock.CommandBars.v15.3.1.ocx"
 Object = "{BD0C1912-66C3-49CC-8B12-7B347BF6C846}#15.3#0"; "Codejock.SkinFramework.v15.3.1.ocx"
 Begin VB.MDIForm frmSysMain 
@@ -1117,6 +1117,21 @@ Private Sub Timer1_Timer(Index As Integer)
         Call msUnloadMe(True)
         Exit Sub
     End If
+      
+    If gVar.ClientLoginCheckOver And (Not gVar.ShowMainWindow) And gVar.TCPStateConnected Then
+        mXtrStatusBar.FindPane(gID.StatusBarPaneUserInfo).Text = gVar.UserFullName '主窗体状态中显示用户全名
+        Me.Show '显示主窗体
+        Call gfSendClientInfo(gVar.UserComputerName, gVar.UserLoginName, gVar.UserFullName, Me.Winsock1.Item(1)) '把用户登陆信息发送给服务端
+        gVar.ShowMainWindow = True '显示主窗体标志。区别关闭程序时的主窗体状态
+        
+        Dim frmUnload As Form  '卸载登陆窗口。不知为何，直接用Unload frmSysLogin不能卸载掉，没反应。
+        For Each frmUnload In Forms
+            If LCase(frmUnload.Name) = LCase("frmSysLogin") Then
+                Unload frmUnload
+                Exit For
+            End If
+        Next
+    End If
     
     byteCon = byteCon + 1 '状态计时
     If Not gVar.TCPStateConnected And gVar.UpdateRunOver Then byteChk = byteChk + 1  '检查计时，只在无连接时
@@ -1124,23 +1139,16 @@ Private Sub Timer1_Timer(Index As Integer)
     If byteCon >= conCon Then
         If (Not gVar.UpdateRunOver) And (Not gfAppExist(gVar.EXENameOfUpdate)) Then '权且如此,仅判断进程是否存在是不全面的
             gVar.UpdateRunOver = True   '更新程序已运行完成标志
-            Call msConnectToServer(Me.Winsock1.Item(1), True)      '与务器建立连接
+            Call gsOpenTheWindow("frmSysLogin", , vbNormal) ''显示登陆窗口
+            gVar.ClientLoginShow = True '设置全局变量--已打开过登陆窗口
         End If
              
         With Me.Winsock1.Item(1)
-            If .State = 7 Then  '已连接
-                Call msSetClientState(vbGreen) '设置连接状态
-                If Not gVar.ClientLoginShow Then '弹出登陆窗口
-                    If gVar.TCPStateConnected Then  '全局变量变成连接状态
-                        If gArr(Index).Connected Then '传输变量变成连接
-                            Call gsOpenTheWindow("frmSysLogin", , vbNormal) ''显示登陆窗口
-                            gVar.ClientLoginShow = True '设置全局变量--已打开过登陆窗口
-                        End If
-                    End If
-                End If
+            If .State = 7 Then      '已连接
+                Call msSetClientState(vbGreen)  '设置连接状态
             ElseIf .State = 9 Then  '连接异常
-                Call msSetClientState(vbRed) '设置异常状态
-            Else    '未连接等
+                Call msSetClientState(vbRed)    '设置异常状态
+            Else                    '未连接等
                 Call msSetClientState(vbYellow) '设置未连接状态
             End If
         End With
@@ -1148,10 +1156,12 @@ Private Sub Timer1_Timer(Index As Integer)
     End If
     
     If byteChk > (gVar.TCPWaitTime + 1) Then  '因为服务器端也是等待gVar.TCPWaitTime才断开连接，这里延迟一点
-        byteChk = 0
-        If Not gVar.TCPStateConnected Then
-            Call gsAlarmAndLogEx("与服务器建立连接失败，请确认服务端程序已启动", "连接警示")
-            Call msUnloadMe(True)
+        byteChk = 0 '静态变量清零
+        If Not gVar.TCPStateConnected Then  '未连接状态
+            If gVar.ClientLoginCheckOver Then   '已校验过账号密码
+                Call gsAlarmAndLogEx("与服务器建立连接失败，请确认服务端程序已启动", "连接警示")
+                Call msUnloadMe(True)
+            End If
         End If
     End If
     
@@ -1184,6 +1194,7 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
             
             ElseIf InStr(strGet, gVar.PTDBDataSource) Then  '收到服务器发来的数据库连接信息
                 Call gfRestoreDBInfo(strGet) '解析加密过的数据库连接信息
+                gVar.RestoreDBInfoOver = True '数据库连接信息接收完成标志
                 
             ElseIf InStr(strGet, gVar.PTConnectTimeOut) Then '连续连接时间已到
                 Dim blnTimer As Boolean, tmrEn As VB.Timer

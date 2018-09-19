@@ -13,6 +13,20 @@ Begin VB.Form frmSysLogin
    ScaleHeight     =   2790
    ScaleWidth      =   5295
    StartUpPosition =   2  '屏幕中心
+   Begin VB.CommandButton Command3 
+      BackColor       =   &H00008000&
+      Cancel          =   -1  'True
+      Caption         =   "取消自动登陆(5秒)"
+      Height          =   300
+      Left            =   1410
+      TabIndex        =   8
+      Top             =   1845
+      Width           =   2730
+   End
+   Begin VB.Timer Timer2 
+      Left            =   480
+      Top             =   1080
+   End
    Begin VB.Timer Timer1 
       Left            =   480
       Top             =   480
@@ -27,7 +41,6 @@ Begin VB.Form frmSysLogin
       Width           =   900
    End
    Begin VB.CommandButton Command2 
-      Cancel          =   -1  'True
       Caption         =   "退出"
       Height          =   375
       Left            =   3240
@@ -86,7 +99,7 @@ Begin VB.Form frmSysLogin
       ForeColor       =   &H000000FF&
       Height          =   435
       Index           =   2
-      Left            =   1215
+      Left            =   1200
       TabIndex        =   7
       Top             =   240
       Width           =   2715
@@ -167,16 +180,16 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Option Explicit
 
+Private Const mconCount As Integer = 5 '自动登陆时的倒计时时间，单位秒
 
 
-Private Function mfLoginCheck(ByVal strNAME As String, strPWD As String) As Boolean
-    '登陆验证
+Private Function mfInputCheck(ByVal strName As String, strPWD As String) As Boolean
+    '输入验证
     
-    Dim strCheck As String, strSQL As String
-    Dim rsUser As ADODB.Recordset
+    Dim strCheck As String
     
-    strNAME = Trim(strNAME)
-    If Len(strNAME) = 0 Then '空值检测
+    strName = Trim(strName)
+    If Len(strName) = 0 Then '空值检测
         MsgBox "用户名不能为空!", vbCritical, "用户名警告"
         Combo1.SetFocus
         Exit Function
@@ -187,7 +200,7 @@ Private Function mfLoginCheck(ByVal strNAME As String, strPWD As String) As Bool
         Exit Function
     End If
     
-    strCheck = gfStringCheck(strNAME)
+    strCheck = gfStringCheck(strName)
     If Len(strCheck) > 0 Then
         MsgBox "用户名中不能含有特殊字符【" & strCheck & "】!", vbCritical, "用户名警告"
         Combo1.SetFocus
@@ -200,9 +213,21 @@ Private Function mfLoginCheck(ByVal strNAME As String, strPWD As String) As Bool
         Exit Function
     End If
     
-    strSQL = "EXEC sp_FT_Sys_UserLogin '" & strNAME & "','" & EncryptString(strPWD, gVar.EncryptKey) & "'" '生成SQL语句
-    Debug.Print gVar.ConString
-    Debug.Print strSQL
+    mfInputCheck = True '验证没问题后返回真值
+    
+End Function
+
+Private Function mfLoginCheck(ByVal strName As String, strPWD As String) As Boolean
+    '登陆验证
+    
+    Dim strSQL As String
+    Dim rsUser As ADODB.Recordset
+    
+    strPWD = EncryptString(strPWD, gVar.EncryptKey) '加密密码,再网络传输
+    strSQL = "EXEC sp_FT_Sys_UserLogin '" & strName & "','" & strPWD & "'" '生成SQL语句,参数中的单引号[']不可少
+    Rem Debug.Print gVar.ConString
+    Rem Debug.Print strSQL
+    
     Set rsUser = gfBackRecordset(strSQL)
     If rsUser.State = adStateClosed Then GoTo LineEnd
     If rsUser.RecordCount = 0 Then
@@ -215,7 +240,7 @@ Private Function mfLoginCheck(ByVal strNAME As String, strPWD As String) As Bool
     End If
     
     With gVar '用户信息保存在公用变量中
-        .UserLoginName = strNAME
+        .UserLoginName = strName
         .UserPassword = strPWD
         .UserFullName = "" & rsUser.Fields("UserFullName")
         .UserAutoID = "" & rsUser.Fields("UserAutoID")
@@ -223,7 +248,10 @@ Private Function mfLoginCheck(ByVal strNAME As String, strPWD As String) As Bool
         Rem Debug.Print .UserLoginIP,.UserComputerName '在主窗体加载参数函数中已获取
     End With
     
-    mfLoginCheck = True '验证没问题后返回真值
+    mfLoginCheck = True '验证没问题后函数返回真值
+    
+    Call msSaveUserInfo(True) '登陆成功则保存用户信息进注册表中
+    gVar.ClientLoginCheckOver = True '检验完成标志
     
 LineEnd:
     If Not rsUser Is Nothing Then If rsUser.State <> adStateClosed Then rsUser.Close
@@ -252,8 +280,16 @@ Private Sub msLoadUserInfo(Optional ByVal blnLoad As Boolean = True)
     Combo1.Text = Trim(strLast)
     
     '如果勾选了记住密码，则自动填充对应密码
-    If gVar.ParaBlnRememberUserPassword And Len(strLast) > 0 Then
-        strPWDde = GetSetting(gVar.RegAppName, gVar.RegSectionUser, strLast, "")
+    Call msLoadPassword(strLast) '加载密码
+    
+End Sub
+
+Private Sub msLoadPassword(ByVal strName As String)
+    '加载指定账号的密码
+    Dim strPWDde As String
+    
+    If gVar.ParaBlnRememberUserPassword And Len(strName) > 0 Then
+        strPWDde = GetSetting(gVar.RegAppName, gVar.RegSectionUser, strName, "")
         If Len(strPWDde) > 0 Then
             On Error Resume Next    '密文异常时可能报错
             Text1.Text = DecryptString(strPWDde, gVar.EncryptKey)
@@ -262,7 +298,6 @@ Private Sub msLoadUserInfo(Optional ByVal blnLoad As Boolean = True)
             End If
         End If
     End If
-
 End Sub
 
 Private Sub msSaveUserInfo(Optional ByVal blnSave As Boolean = True)
@@ -308,20 +343,27 @@ Private Sub msSaveUserInfo(Optional ByVal blnSave As Boolean = True)
     
 End Sub
 
+Private Sub Combo1_Click()
+    '如果有记住密码，自动加载保存过的密码
+    Dim strName As String
+    
+    If gVar.ParaBlnRememberUserPassword Then '勾选了记住密码
+        strName = Trim(Combo1.Text) '获取用户名
+        Call msLoadPassword(strName) '加载密码
+    End If
+End Sub
+
 Private Sub Command1_Click()
     '登陆系统
-    Dim strNAME As String, strPWD As String
+    Dim strName As String, strPWD As String
     
-    strNAME = Trim(Combo1.Text) '获取用户名
+    strName = Trim(Combo1.Text) '获取用户名
     strPWD = Text1.Text '获取密码
-    If Not mfLoginCheck(strNAME, strPWD) Then Exit Sub '登陆验证不通过则退出过程
+    If Not mfInputCheck(strName, strPWD) Then Exit Sub '输入不规范则退出过程
     
-    Call msSaveUserInfo(True) '登陆成功则保存用户信息进注册表中
-    gWind.CommandBars1.StatusBar.FindPane(gID.StatusBarPaneUserInfo).Text = gVar.UserFullName '主窗体状态中显示用户全名
-    gWind.Show '显示主窗体
-    Call gfSendClientInfo(gVar.UserComputerName, gVar.UserLoginName, gVar.UserFullName, gWind.Winsock1.Item(1)) '把用户登陆信息发送给服务端
-    gVar.ShowMainWindow = True '显示主窗体标志。区别关闭程序时的主窗体状态
-    Unload Me '卸载登陆窗口
+    Call gsConnectToServer(gWind.Winsock1.Item(1), True)      '与务器建立连接。连接成功后则自动校验账号密码.
+    Timer2.Enabled = True '激活连接等待与自动校验
+    Me.MousePointer = 13
 End Sub
 
 Private Sub Command2_Click()
@@ -330,10 +372,20 @@ Private Sub Command2_Click()
     gVar.UnloadFromLogin = True '不能直接使用卸载语句，会报警，权且通过此公共变量并在主窗体中的计时器来实现
 End Sub
 
+Private Sub Command3_Click()
+    '取消自动登陆
+    
+    gVar.ClientCancelAutoLogin = True   '取消标志
+    Command3.Visible = False    '隐藏取消按钮
+End Sub
+
 Private Sub Form_Load()
     '加载窗体
     Timer1.Enabled = False
-    Timer1.Interval = 1000
+    Timer1.Interval = 1000 '只能设1秒
+    Timer2.Enabled = False
+    Timer2.Interval = 1000 '只能设1秒
+    Command3.Visible = False
     
     If gVar.ParaBlnRememberUserList Then
         Call msLoadUserInfo(True) '加载用户信息
@@ -380,10 +432,30 @@ Private Sub Label3_MouseMove(Button As Integer, Shift As Integer, X As Single, Y
 End Sub
 
 Private Sub Timer1_Timer()
-    '自动登陆
+    '自动登陆。放在Form_Load事件中会报错，暂转移至此。
+    Static ReverseCount As Integer
     
-    If gVar.ParaBlnUserAutoLogin Then
-        Timer1.Enabled = False '关闭计时器
-        Command1.Value = 1 '相当于自动点击登陆按钮，触发该按钮的click事件
+    If gVar.ParaBlnUserAutoLogin And (Not gVar.ClientCancelAutoLogin) Then
+        ReverseCount = ReverseCount + 1 '计时
+        Command3.Visible = True '显示取消按钮
+        Command3.Caption = "取消自动登陆(" & CStr(mconCount - ReverseCount) & "秒)"
+        If ReverseCount = mconCount Then
+            ReverseCount = 0    '清零静态变量
+            Timer1.Enabled = False '关闭计时器
+            Command1.Value = 1 '相当于自动点击登陆按钮，触发该按钮的click事件
+            Command3.Visible = False '隐藏取消按钮
+        End If
+    End If
+End Sub
+
+Private Sub Timer2_Timer()
+    '触发校验账号密码
+    
+    If gVar.RestoreDBInfoOver Then '已接收到数据库的连接信息
+        Timer2.Enabled = False '关闭计时器
+        If mfLoginCheck(Trim(Combo1.Text), Text1.Text) Then '校验账号密码
+            gVar.ClientLoginCheckOver = True    '校验通过标志
+            Me.MousePointer = 0
+        End If
     End If
 End Sub

@@ -380,6 +380,9 @@ Public Type gtypeCommonVariant
     ShowMainWindow As Boolean '客户端成功登陆后显示过主窗体标志
     UpdateRunOver As Boolean   '更新程序是否运行完成
     UnloadFromLogin As Boolean '从登陆窗口传过来的关闭程序指令
+    RestoreDBInfoOver As Boolean '接收完数据库连接信息
+    ClientLoginCheckOver As Boolean '登陆检验完成
+    ClientCancelAutoLogin As Boolean '登陆界面中手动临时取消自动登陆
     
     ParaBlnWindowMinHide As Boolean '主窗口最小化时是否隐藏
     ParaBlnWindowCloseMin As Boolean    '主窗口点击关闭按钮时最小化

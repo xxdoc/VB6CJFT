@@ -809,6 +809,19 @@ Public Function gfVersionCompare(ByVal strVerCL As String, ByVal strVerSV As Str
     
 End Function
 
+
+Public Sub gsConnectToServer(ByRef sckCon As MSWinsockLib.Winsock, Optional ByVal blnConnect As Boolean = False)
+    '启动与服务器的连接
+    
+    If Not blnConnect Then Exit Sub
+    With sckCon
+        If .State <> 0 Then .Close
+        .RemoteHost = gVar.TCPSetIP
+        .RemotePort = gVar.TCPSetPort
+        .Connect
+    End With
+End Sub
+
 Public Sub gsFormEnable(frmCur As Form, Optional ByVal blnState As Boolean = False)
     With frmCur
         If blnState Then
