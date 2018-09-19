@@ -1079,8 +1079,8 @@ Private Sub msVersionCS(ByVal strVer As String, ByRef sckVer As MSWinsockLib.Win
             Exit Sub
         End If
         With gArr(sckVer.Index)
-            .FileFolder = gVar.FolderNameTemp
-            .FileName = gVar.EXENameOfUpdate
+            .FileFolder = "" ' gVar.FolderTemp
+            .FileName = gVar.EXENameOfSetup
             .FilePath = strSetupFile
             .FileSizeTotal = FileLen(.FilePath)
         End With
@@ -1092,7 +1092,7 @@ Private Sub msVersionCS(ByVal strVer As String, ByRef sckVer As MSWinsockLib.Win
         
     Else    '版本检测异常处理
         Call gfSendInfo(gVar.PTVersionNotUpdate & strCompare, sckVer)
-        Debug.Print "Server:版本检测异常"
+        Call gsAlarmAndLogEx("客户端版本：" & strVC & ",服务端版本：" & strVS, "Server端版本检测异常", False)
     End If
 End Sub
 
@@ -1511,7 +1511,7 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
                 Call msGetClientInfo(strGet, Index)
                 
             ElseIf InStr(strGet, gVar.PTFileStart) > 0 Then '要开始发送文件给客户端
-                Call gfSendInfo(.FilePath, Me.Winsock1.Item(Index))
+                Call gfSendFile(.FilePath, Me.Winsock1.Item(Index))
                 
             End If
             Debug.Print "Server GetInfo:" & strGet, bytesTotal

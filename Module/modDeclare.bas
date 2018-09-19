@@ -335,9 +335,12 @@ Public Type gtypeCommonVariant
     RegKeyParaUserAutoLogin As String '自动登陆
     
     AppPath As String           'App路径，确保最后字符为"\"
-    FolderNameTemp As String    '文件夹名称：Temp
-    FolderNameData As String    '文件夹名称：Data
-    FolderNameBin As String     '文件夹名称：Bin
+    FolderNameTemp As String    '文件夹名称：Temp的全路径
+    FolderNameData As String    '文件夹名称：Data的全路径
+    FolderNameBin As String     '文件夹名称：Bin的全路径
+    FolderBin As String     '文件夹名称：Bin
+    FolderData As String    '文件夹名称：Data
+    FolderTemp As String    '文件夹名称：Temp
     
     FileNameErrLog As String    '错误记录日志文件的全路径
     FileNameSkin As String      '主题资源文件名

@@ -346,6 +346,10 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
                 
                 strVer = Mid(strGet, Len(gVar.PTVersionNeedUpdate) + 1)
                 Call msSetText("发现新版：" & strVer, vbBlue)
+                If Not gfCloseApp(gVar.EXENameOfClient) Then '关闭客户端
+                    Me.Winsock1.Item(Index).Close
+                    MsgBox "无法关闭客户端程序，导致更新异常，已退出更新！", vbCritical, "关闭异常警告"
+                End If
                 
             ElseIf InStr(strGet, gVar.PTVersionNotUpdate) > 0 Then '不需要更新
                 Dim strNot As String

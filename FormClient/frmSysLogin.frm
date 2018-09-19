@@ -209,6 +209,7 @@ Private Function mfInputCheck(ByVal strName As String, strPWD As String) As Bool
     strCheck = gfStringCheck(strPWD) '检查是否包含特殊字符
     If Len(strCheck) > 0 Then
         MsgBox "密码中不能含有特殊字符【" & strCheck & "】!", vbCritical, "密码警告"
+        Text1.Text = ""
         Text1.SetFocus
         Exit Function
     End If
@@ -230,11 +231,14 @@ Private Function mfLoginCheck(ByVal strName As String, strPWD As String) As Bool
     
     Set rsUser = gfBackRecordset(strSQL)
     If rsUser.State = adStateClosed Then GoTo LineEnd
-    If rsUser.RecordCount = 0 Then
+    If rsUser.RecordCount = 0 Then '该账号密码未检索到记录时
+        gWind.Winsock1.Item(1).Close
         MsgBox "用户名 或 密码错误！", vbExclamation, "输入错误警告"
+        Combo1.SetFocus
         GoTo LineEnd
     End If
-    If rsUser.RecordCount > 1 Then
+    If rsUser.RecordCount > 1 Then '同一账号密码检索出几条记录时
+        gWind.Winsock1.Item(1).Close
         MsgBox "该用户名在系统中无法识别，请联系管理员！", vbExclamation, "系统警告"
         GoTo LineEnd
     End If
@@ -295,7 +299,10 @@ Private Sub msLoadPassword(ByVal strName As String)
             Text1.Text = DecryptString(strPWDde, gVar.EncryptKey)
             If Err.Number <> 0 Then
                 Call gsAlarmAndLog("密码被破坏警报")
+                Text1.Text = "" '清空密码框
             End If
+        Else
+            Text1.Text = "" '清空密码框
         End If
     End If
 End Sub
@@ -392,12 +399,16 @@ Private Sub Form_Load()
     End If
     
     If gVar.ParaBlnUserAutoLogin Then '本判断语句后不要再有其它语句
-        Timer1.Enabled = True '自动登陆.本想在此触发，但窗体卸载会报警，权且通过计时器触发。
+        If Len(Trim(Combo1.Text)) > 0 And Len(Text1.Text) > 0 Then '勾选了自动登陆且账号密码不为空时
+            Timer1.Enabled = True '自动登陆.本想在此触发，但窗体卸载会报警，权且通过计时器触发。
+        End If
     End If
     
 End Sub
 
 Private Sub Form_Resize()
+    '背景图片自适应窗口大小
+    
     On Error Resume Next
     Image1.Move 0, 0, Me.ScaleWidth, Me.ScaleHeight
 End Sub

@@ -194,7 +194,7 @@ Public Sub Main(Optional ByVal blnLoad As Boolean = True)
         
         .EXENameOfClient = "FFC.exe"
         .EXENameOfServer = "FFS.exe"
-        .EXENameOfSetup = "FFSetup.exe"
+        .EXENameOfSetup = "FFC.exe" '"FFSetup.exe"
         .EXENameOfUpdate = "FFU.exe"
         
         .CmdLineParaOfHide = "Hide"
@@ -253,9 +253,12 @@ Public Sub Main(Optional ByVal blnLoad As Boolean = True)
         
         .AppPath = App.Path & IIf(Right(App.Path, 1) = "\", "", "\")
         
-        .FolderNameBin = .AppPath & "Bin\"
-        .FolderNameData = .AppPath & "Data\"
-        .FolderNameTemp = .AppPath & "Temp\"
+        .FolderBin = "Bin"
+        .FolderData = "Data"
+        .FolderTemp = "Temp"
+        .FolderNameBin = .AppPath & .FolderBin & "\"
+        .FolderNameData = .AppPath & .FolderData & "\"
+        .FolderNameTemp = .AppPath & .FolderTemp & "\"
         
         .FileNameErrLog = .FolderNameData & "ErrorRecord.LOG"
         .FileNameSkin = ""

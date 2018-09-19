@@ -317,7 +317,7 @@ End Sub
 '要求Winsock控件在客户端与服务端都必须建成数组，且其Index值与对应的数组变量的下标要相同
 '''===============================================================================
 
-Public Function gfAppExist(ByVal strNAME As String) As Boolean
+Public Function gfAppExist(ByVal strName As String) As Boolean
     '指定应用程序进程是否存在
     
     Dim RetVal As Long
@@ -328,7 +328,7 @@ Public Function gfAppExist(ByVal strNAME As String) As Boolean
     On Error GoTo LineErr
     
     Set objWMIService = GetObject("winmgmts:\\.\root\cimv2")
-    Set colProcessList = objWMIService.ExecQuery("select * from Win32_Process where Name='" & strNAME & "' ")
+    Set colProcessList = objWMIService.ExecQuery("select * from Win32_Process where Name='" & strName & "' ")
     For Each objProcess In colProcessList
         gfAppExist = True   '存在该进程名时
     Next
@@ -369,7 +369,7 @@ LineOver:
     gfCheckIP = "127.0.0.1"
 End Function
 
-Public Function gfCloseApp(ByVal strNAME As String) As Boolean
+Public Function gfCloseApp(ByVal strName As String) As Boolean
     '关闭指定应用程序进程
     
     Dim winHwnd As Long
@@ -386,7 +386,7 @@ Public Function gfCloseApp(ByVal strNAME As String) As Boolean
 ''    End If
     
     Set objWMIService = GetObject("winmgmts:\\.\root\cimv2")
-    Set colProcessList = objWMIService.ExecQuery("select * from Win32_Process where Name='" & strNAME & "' ")
+    Set colProcessList = objWMIService.ExecQuery("select * from Win32_Process where Name='" & strName & "' ")
     For Each objProcess In colProcessList
         RetVal = objProcess.Terminate
         If RetVal <> 0 Then Exit Function   '经观察=0时关闭进程成功，不成功时返回值不为零
@@ -417,7 +417,8 @@ Public Function gfDirFile(ByVal strFile As String) As Boolean
     
     Exit Function
 LineErr:
-    Debug.Print "Error:gfDirFile--" & Err.Number & "  " & Err.Description
+    Debug.Print "Error:gfDirFile--" & Err.Number & "  " & Err.Description & ";" & strFile
+    Call gsAlarmAndLog("文件路径识别异常", False)
 End Function
 
 Public Function gfDirFolder(ByVal strFolder As String) As Boolean
@@ -438,7 +439,8 @@ Public Function gfDirFolder(ByVal strFolder As String) As Boolean
     
     Exit Function
 LineErr:
-    Debug.Print "Error:gfDirFolder--" & Err.Number & "  " & Err.Description
+    Debug.Print "Error:gfDirFolder--" & Err.Number & "  " & Err.Description & ";" & strFolder
+    Call gsAlarmAndLog("文件夹路径识别异常", False)
 End Function
 
 Public Function gfDatabaseInfoJoin(Optional ByVal blnJoin As Boolean = True) As String
