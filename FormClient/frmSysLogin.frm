@@ -307,6 +307,15 @@ Private Sub msLoadPassword(ByVal strName As String)
     End If
 End Sub
 
+Private Sub msEnabledSet(ByVal blnSet As Boolean)
+    '自动登模式下，某些控件的Enabled属性设置为False
+    
+    Command1.Enabled = blnSet   '登陆按钮
+'    Combo1.Enabled = blnSet     '用户名
+'    Text1.Text = blnSet         '密码
+    Label3.Enabled = blnSet     '设置
+End Sub
+
 Private Sub msSaveUserInfo(Optional ByVal blnSave As Boolean = True)
     '保存登陆过的用户信息
     Dim strCurUser As String, strList As String, strCombo As String
@@ -366,7 +375,10 @@ Private Sub Command1_Click()
     
     strName = Trim(Combo1.Text) '获取用户名
     strPWD = Text1.Text '获取密码
-    If Not mfInputCheck(strName, strPWD) Then Exit Sub '输入不规范则退出过程
+    If Not mfInputCheck(strName, strPWD) Then
+        Call msEnabledSet(True) '激活控件
+        Exit Sub '输入不规范则退出过程
+    End If
     
     Call gsConnectToServer(gWind.Winsock1.Item(1), True)      '与务器建立连接。连接成功后则自动校验账号密码.
     Timer2.Enabled = True '激活连接等待与自动校验
@@ -384,6 +396,7 @@ Private Sub Command3_Click()
     
     gVar.ClientCancelAutoLogin = True   '取消标志
     Command3.Visible = False    '隐藏取消按钮
+    Call msEnabledSet(True) '激活控件
 End Sub
 
 Private Sub Form_Load()
@@ -401,6 +414,7 @@ Private Sub Form_Load()
     If gVar.ParaBlnUserAutoLogin Then '本判断语句后不要再有其它语句
         If Len(Trim(Combo1.Text)) > 0 And Len(Text1.Text) > 0 Then '勾选了自动登陆且账号密码不为空时
             Timer1.Enabled = True '自动登陆.本想在此触发，但窗体卸载会报警，权且通过计时器触发。
+            Call msEnabledSet(False) '禁用控件
         End If
     End If
     
@@ -467,6 +481,8 @@ Private Sub Timer2_Timer()
         If mfLoginCheck(Trim(Combo1.Text), Text1.Text) Then '校验账号密码
             gVar.ClientLoginCheckOver = True    '校验通过标志
             Me.MousePointer = 0
+        Else
+            Call msEnabledSet(True) '激活控件
         End If
     End If
 End Sub
