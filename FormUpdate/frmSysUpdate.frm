@@ -1,6 +1,6 @@
 VERSION 5.00
 Object = "{248DD890-BB45-11CF-9ABC-0080C7E7B78D}#1.0#0"; "MSWINSCK.OCX"
-Object = "{BD0C1912-66C3-49CC-8B12-7B347BF6C846}#15.3#0"; "Codejock.SkinFramework.v15.3.1.ocx"
+Object = "{BD0C1912-66C3-49CC-8B12-7B347BF6C846}#15.3#0"; "ftcskfm.ocx"
 Begin VB.Form frmSysUpdate 
    BorderStyle     =   1  'Fixed Single
    Caption         =   "Update"
