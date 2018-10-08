@@ -745,16 +745,15 @@ Public Sub gsGridToWord(ByRef gridControl As Control)
     
     If gridControl Is Nothing Then Exit Sub
     
+    If TypeOf gridControl Is FlexCell.Grid Then blnFlexCell = True
+    lngRows = gridControl.Rows
+    lngCols = gridControl.Cols
+    
     On Error Resume Next
 '    Set wordApp = New Word.Application
     Set wordApp = CreateObject("Word.Application")
     Set docOut = wordApp.Documents.Add()
     Set tbOut = docOut.Tables.Add(docOut.Range, lngRows, lngCols, True)
-    
-    If TypeOf gridControl Is FlexCell.Grid Then blnFlexCell = True
-    
-    lngRows = gridControl.Rows
-    lngCols = gridControl.Cols
     
     If blnFlexCell Then
         For i = 0 To lngRows - 1

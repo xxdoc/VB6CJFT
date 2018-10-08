@@ -1,6 +1,6 @@
 VERSION 5.00
 Object = "{248DD890-BB45-11CF-9ABC-0080C7E7B78D}#1.0#0"; "MSWINSCK.OCX"
-Object = "{BD0C1912-66C3-49CC-8B12-7B347BF6C846}#15.3#0"; "ftcskfm.ocx"
+Object = "{BD0C1912-66C3-49CC-8B12-7B347BF6C846}#15.3#0"; "Codejock.SkinFramework.v15.3.1.ocx"
 Begin VB.Form frmSysUpdate 
    BorderStyle     =   1  'Fixed Single
    Caption         =   "Update"
@@ -126,7 +126,11 @@ Private Function mfConnect(Optional ByVal blnCon As Boolean = True) As Boolean
     lngCount = lngCount + 1
     If lngCount >= 2 Then
         Call msSetText("版本检测失败！无法连接服务器。" & vbCrLf & _
-                       "请确认服务器已启动，并重新运行更新程序！", vbRed)
+                       "请确认服务器IP地址是否正确或服务器已启动，排除后请重新运行更新程序！", vbRed)
+        If mblnHide Then
+            Call gsAlarmAndLogEx("更新程序无法与服务器建立连接，请确认IP地址是否正确或服务器已启动！", "更新检测失败")
+            Unload Me  '登陆客户端程序激活的更新程序则卸载
+        End If
         Exit Function    '尝试[lngCount]次后不再连接了
     End If
     
