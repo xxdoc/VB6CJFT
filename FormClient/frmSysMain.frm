@@ -1,6 +1,6 @@
 VERSION 5.00
 Object = "{248DD890-BB45-11CF-9ABC-0080C7E7B78D}#1.0#0"; "MSWINSCK.OCX"
-Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.0#0"; "MSCOMCTL.OCX"
+Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.1#0"; "MSCOMCTL.OCX"
 Object = "{555E8FCC-830E-45CC-AF00-A012D5AE7451}#15.3#0"; "Codejock.CommandBars.v15.3.1.ocx"
 Object = "{BD0C1912-66C3-49CC-8B12-7B347BF6C846}#15.3#0"; "Codejock.SkinFramework.v15.3.1.ocx"
 Begin VB.MDIForm frmSysMain 
@@ -481,6 +481,7 @@ Private Sub msAddAction(ByRef cbsBars As XtremeCommandBars.CommandBars)
                 .ToolTipText = .Caption
                 .DescriptionText = .ToolTipText
                 .Key = .Category    '为菜单时有特殊用，创建Action时窗体名保存在Category中
+                If LCase(Left(.Key, 3)) = "frm" Then cbsAction.Enabled = False '先禁用所有窗口，加载权限时再解锁
                 .Category = cbsActions((.ID \ 1000) * 1000).Category
             End If
         End With
@@ -533,6 +534,7 @@ Private Sub msAddMenu(ByRef cbsBars As XtremeCommandBars.CommandBars)
     Dim cbsMenuBar As XtremeCommandBars.MenuBar
     Dim cbsMenuMain As XtremeCommandBars.CommandBarPopup
     Dim cbsMenuCtrl As XtremeCommandBars.CommandBarControl
+    Dim cbsMenuCtrlTemp As XtremeCommandBars.CommandBarControl
     
     Set cbsMenuBar = cbsBars.ActiveMenuBar
     cbsMenuBar.ShowGripper = False  '不显示可拖动的那个点点标记
@@ -541,16 +543,22 @@ Private Sub msAddMenu(ByRef cbsBars As XtremeCommandBars.CommandBars)
     '系统主菜单
     Set cbsMenuMain = cbsMenuBar.Controls.Add(xtpControlPopup, gID.Sys, "")
     With cbsMenuMain.CommandBar.Controls
-        Set cbsMenuCtrl = .Add(xtpControlButton, gID.SysExportToCSV, "")
-        cbsMenuCtrl.BeginGroup = True
-        For mlngID = gID.SysExportToExcel To gID.SysExportToWord
-            .Add xtpControlButton, mlngID, ""
-        Next
+        Set cbsMenuCtrlTemp = .Add(xtpControlButtonPopup, 99991, "导出")
+        With cbsMenuCtrlTemp.CommandBar.Controls
+            Set cbsMenuCtrl = .Add(xtpControlButton, gID.SysExportToCSV, "")
+            cbsMenuCtrl.BeginGroup = True
+            For mlngID = gID.SysExportToExcel To gID.SysExportToWord
+                .Add xtpControlButton, mlngID, ""
+            Next
+        End With
         
-        Set cbsMenuCtrl = .Add(xtpControlButton, gID.SysPrintPageSet, "")
-        cbsMenuCtrl.BeginGroup = True
-        .Add xtpControlButton, gID.SysPrintPreview, ""
-        .Add xtpControlButton, gID.SysPrint, ""
+        Set cbsMenuCtrlTemp = .Add(xtpControlButtonPopup, 99992, "打印")
+        With cbsMenuCtrlTemp.CommandBar.Controls
+            Set cbsMenuCtrl = .Add(xtpControlButton, gID.SysPrintPageSet, "")
+            cbsMenuCtrl.BeginGroup = True
+            .Add xtpControlButton, gID.SysPrintPreview, ""
+            .Add xtpControlButton, gID.SysPrint, ""
+        End With
         
         Set cbsMenuCtrl = .Add(xtpControlButton, gID.SysLoginAgain, "")
         cbsMenuCtrl.BeginGroup = True
@@ -594,6 +602,7 @@ Private Sub msAddMenu(ByRef cbsBars As XtremeCommandBars.CommandBars)
     Set cbsMenuBar = Nothing
     Set cbsMenuMain = Nothing
     Set cbsMenuCtrl = Nothing
+    Set cbsMenuCtrlTemp = Nothing
 End Sub
 
 Private Sub msAddPopupMenu(ByRef cbsBars As XtremeCommandBars.CommandBars)
