@@ -1,9 +1,9 @@
 --===========================================================================
 --几点说明：
---1、在SQLServer2008/SQLServer2012中用管理员权限(以下同)执行以下代码。
---2、代码顺序最好不要乱。代码功能是建立数据库、表、存储过程等信息。
---3、分配一个能进行增删改查数据的账号给该数据库(可能要新建该数据库操作账号)。
---4、将该数据库IP、数据库名、操作账号与密码设置到服务端程序中。
+--1、在SQLServer2012中用管理员权限(以下同)执行以下代码。
+--2、代码顺序最好不要乱。代码功能是建立数据库、账号、表、存储过程等信息。
+--3、新建数据库名为：db_FT；新建有sysadmin权限的账号：FT_MS，密码ftms。
+--4、将该数据库IP、数据库名、账号与密码设置到服务端程序中。
 --===========================================================================
 
 --==================分割线===================================================
@@ -13,6 +13,31 @@
 --===========================================================================
 USE [master]
 GO
+
+/****** 若数据库db_FT已存在，则删除******/
+IF EXISTS (SELECT 1 FROM sys.sysdatabases WHERE name ='db_FT')
+	BEGIN
+		--关闭已与数据库db_FT建立的连接。当有连接时删除不了该数据库。
+		DECLARE @spid_db INT
+
+		DECLARE CUR_db CURSOR FOR 
+		SELECT spid FROM sys.sysprocesses WHERE dbid = DB_ID('db_FT');
+
+		OPEN CUR_db
+
+		FETCH NEXT FROM CUR_db INTO @spid_db
+
+		WHILE @@FETCH_STATUS = 0
+		BEGIN
+			EXEC ('KILL ' + @spid_db)
+			FETCH NEXT FROM CUR_db INTO @spid_db
+		END
+		CLOSE CUR_db
+		DEALLOCATE CUR_db
+
+		--删除指定数据库。
+		DROP DATABASE db_FT
+	END
 
 /****** Object:  Database [db_FT]    Script Date: 2018/9/15 21:57:06 ******/
 CREATE DATABASE [db_FT]
@@ -122,8 +147,48 @@ GO
 ALTER DATABASE [db_FT] SET  READ_WRITE 
 GO
 
+--===========================================================================
+--↓↓↓创建FT系统的专属账号FT_MS，密码ftms
+--===========================================================================
+/******若已存在账号FT_MS，先先删除之******/
+IF EXISTS (SELECT 1 FROM sys.syslogins WHERE name ='FT_MS')
+BEGIN
+	--EXEC sp_who 'FT_MS'
+	--断开专属账号的所有连接，不断开不能删除。
+	DECLARE @spid_login INT
+
+	DECLARE CUR_login CURSOR FOR 
+	SELECT spid FROM sys.sysprocesses WHERE loginame ='FT_MS'
+
+	OPEN CUR_login
+
+	FETCH NEXT FROM CUR_login INTO @spid_login
+
+	WHILE @@FETCH_STATUS = 0
+	BEGIN
+		EXEC ('KILL ' + @spid_login)
+		FETCH NEXT FROM CUR_login INTO @spid_login
+	END
+	CLOSE CUR_login
+	DEALLOCATE CUR_login
+
+	--删除已存在的专属账号。
+	DROP LOGIN [FT_MS]
+END
+
+/****** Object:  Login [FT_MS]    Script Date: 2018/10/11 23:01:54 ******/
+CREATE LOGIN [FT_MS] WITH PASSWORD=N'ftms', DEFAULT_DATABASE=[master], DEFAULT_LANGUAGE=[简体中文], CHECK_EXPIRATION=OFF, CHECK_POLICY=ON
+GO
+
+ALTER LOGIN [FT_MS] ENABLE
+GO
+
+ALTER SERVER ROLE [sysadmin] ADD MEMBER [FT_MS]
+GO
+
 
 --==================分割线===================================================
+
 
 --===========================================================================
 --↓↓↓创建表[tb_FT_Sys_User]，保存账号密码
@@ -131,7 +196,7 @@ GO
 USE [db_FT]
 GO
 
-/****** Object:  Table [dbo].[tb_Test_Sys_User]    Script Date: 2018/9/15 21:48:49 ******/
+/****** Object:  Table [dbo].[tb_FT_Sys_User]    Script Date: 2018/9/15 21:48:49 ******/
 SET ANSI_NULLS ON
 GO
 
@@ -154,10 +219,11 @@ CREATE TABLE [dbo].[tb_FT_Sys_User](
 ) ON [PRIMARY]
 
 GO
+
 --===========================================================================
 --↓↓↓向[tb_FT_Sys_User]表中插入默认的超级权限账号密码
 --===========================================================================
-USE [db_Test]
+USE [db_FT]
 GO
 
 INSERT INTO [db_FT].[dbo].[tb_FT_Sys_User]([UserLoginName],[UserPassword],[UserFullName])
@@ -167,6 +233,135 @@ GO
 INSERT INTO [db_FT].[dbo].[tb_FT_Sys_User]([UserLoginName],[UserPassword],[UserFullName])
 VALUES('system','9E7445657C63B622E23EB93876000744','系统管理员')	--密码ftsystem
 GO
+
+--===========================================================================
+--↓↓↓创建表[tb_FT_Sys_Department]
+--===========================================================================
+USE [db_FT]
+GO
+
+/****** Object:  Table [dbo].[tb_FT_Sys_Department]    Script Date: 2018/10/11 22:52:44 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[tb_FT_Sys_Department](
+	[DeptID] [int] IDENTITY(1000,1) NOT NULL,
+	[DeptName] [nvarchar](50) NOT NULL,
+	[ParentID] [int] NULL,
+ CONSTRAINT [PK_tb_FT_Department] PRIMARY KEY CLUSTERED 
+(
+	[DeptID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+
+--===========================================================================
+--↓↓↓创建表[tb_FT_Sys_Func]
+--===========================================================================
+USE [db_FT]
+GO
+
+/****** Object:  Table [dbo].[tb_FT_Sys_Func]    Script Date: 2018/10/11 22:52:44 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[tb_FT_Sys_Func](
+	[FuncAutoID] [int] IDENTITY(1000,1) NOT NULL,
+	[FuncName] [nvarchar](50) NOT NULL,
+	[FuncCaption] [nvarchar](50) NOT NULL,
+	[FuncType] [nvarchar](50) NOT NULL,
+	[FuncParentID] [int] NOT NULL
+) ON [PRIMARY]
+
+GO
+
+--===========================================================================
+--↓↓↓创建表[tb_FT_Sys_OperationLog]
+--===========================================================================
+USE [db_FT]
+GO
+
+/****** Object:  Table [dbo].[tb_FT_Sys_OperationLog]    Script Date: 2018/10/11 22:52:44 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[tb_FT_Sys_OperationLog](
+	[LogID] [bigint] IDENTITY(1,1) NOT NULL,
+	[LogType] [nvarchar](50) NULL,
+	[LogContent] [nvarchar](200) NULL,
+	[LogTime] [datetime] NULL,
+	[LogTable] [nvarchar](50) NULL,
+	[LogFormName] [nvarchar](50) NULL,
+	[LogUserFullName] [nvarchar](50) NULL,
+	[LogPCIP] [nvarchar](50) NULL,
+	[LogPCName] [nvarchar](50) NULL,
+ CONSTRAINT [PK_tb_FT_OperationLog] PRIMARY KEY CLUSTERED 
+(
+	[LogID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+
+--===========================================================================
+--↓↓↓创建表[tb_FT_Sys_Role]
+--===========================================================================
+USE [db_FT]
+GO
+
+/****** Object:  Table [dbo].[tb_FT_Sys_Role]    Script Date: 2018/10/11 22:52:44 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[tb_FT_Sys_Role](
+	[RoleAutoID] [int] IDENTITY(1000,1) NOT NULL,
+	[RoleName] [nvarchar](50) NOT NULL,
+	[DeptID] [int] NULL
+) ON [PRIMARY]
+
+GO
+
+--===========================================================================
+--↓↓↓创建表[tb_FT_Sys_RoleFunc]
+--===========================================================================
+USE [db_FT]
+GO
+
+/****** Object:  Table [dbo].[tb_FT_Sys_RoleFunc]    Script Date: 2018/10/11 22:52:44 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[tb_FT_Sys_RoleFunc](
+	[RoleAutoID] [int] NOT NULL,
+	[FuncAutoID] [int] NOT NULL
+) ON [PRIMARY]
+
+GO
+
+--===========================================================================
+--↓↓↓创建表[tb_FT_Sys_UserRole]
+--===========================================================================
+USE [db_FT]
+GO
+
+/****** Object:  Table [dbo].[tb_FT_Sys_UserRole]    Script Date: 2018/10/11 22:52:44 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[tb_FT_Sys_UserRole](
+	[UserAutoID] [int] NOT NULL,
+	[RoleAutoID] [int] NOT NULL
+) ON [PRIMARY]
+
+GO
+
 
 --==================分割线===================================================
 
@@ -203,6 +398,95 @@ END
 GO
 
 --===========================================================================
+--↓↓↓创建存储过程[sp_FT_Sys_LogAdd]
+--===========================================================================
+USE [db_FT]
+GO
+/****** Object:  StoredProcedure [dbo].[sp_FT_Sys_LogAdd]    Script Date: 2018/10/11 22:52:44 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[sp_FT_Sys_LogAdd] 
+	-- Add the parameters for the stored procedure here
+	@strType AS NVARCHAR(50)='select'
+	,@strForm AS NVARCHAR(50)=''
+	,@strTable AS NVARCHAR(50)=''
+	,@strContent AS NVARCHAR(200)=''
+	,@strUser AS NVARCHAR(50)=''
+	,@strIP AS NVARCHAR(50)=''
+	,@strPC AS NVARCHAR(50)=''
+AS
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+
+    -- Insert statements for procedure here
+	INSERT INTO tb_FT_Sys_OperationLog
+	(LogType ,LogFormName ,LogTable ,LogContent ,LogUserFullName ,
+	LogPCIP ,LogPCName ,LogTime )
+	VALUES(@strType ,@strForm ,@strTable ,@strContent ,@strUser ,
+	@strIP ,@strPC ,GETDATE() );
+	
+END
+
+GO
+
+--===========================================================================
+--↓↓↓创建存储过程[sp_FT_Sys_LogQuery]
+--===========================================================================
+USE [db_FT]
+GO
+/****** Object:  StoredProcedure [dbo].[sp_FT_Sys_LogQuery]    Script Date: 2018/10/11 22:52:44 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[sp_FT_Sys_LogQuery] 
+	-- Add the parameters for the stored procedure here
+	@strType AS NVARCHAR(50)=''
+	,@strContent AS NVARCHAR(200)=''
+	,@strTimeA AS NVARCHAR(30)=''
+	,@strTimeB AS NVARCHAR(30)=''
+	,@strForm AS NVARCHAR(50)=''
+	,@strUser AS NVARCHAR(50)=''
+	,@strIP AS NVARCHAR(50)=''
+	,@strPC AS NVARCHAR(50)=''
+	,@strField AS NVARCHAR(50)='LogTime'
+	,@strSort AS NVARCHAR(10)='ASC'
+AS
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+	
+	DECLARE @strSQL AS NVARCHAR(2000) 
+	DECLARE @intLoc AS INT
+    -- Insert statements for procedure here
+    SET @strSQL ='SELECT * FROM tb_FT_Sys_OperationLog '
+    
+    IF LEN(@strType)>0 SET @strSQL =@strSQL +' AND LogType='''+@strType+'''' 
+    IF LEN(@strTimeA)>0 AND LEN(@strTimeB)>0 SET @strSQL =@strSQL +' AND LogTime BETWEEN '''+@strTimeA+''' AND '''+@strTimeB+'''' 
+    IF LEN(@strForm)>0 SET @strSQL =@strSQL +' AND LogFormName LIKE ''%'+@strForm+'%''' 
+    IF LEN(@strUser)>0 SET @strSQL =@strSQL +' AND LogUserFullName LIKE ''%'+@strUser+'%''' 
+    IF LEN(@strIP)>0 SET @strSQL =@strSQL +' AND LogPCIP LIKE ''%'+@strIP+'%''' 
+    IF LEN(@strPC)>0 SET @strSQL =@strSQL +' AND LogPCName LIKE ''%'+@strPC+'%'''
+    IF LEN(@strContent)>0 SET @strSQL =@strSQL +' AND LogContent LIKE ''%'+@strContent+'%'''
+    
+    SET @intLoc = CHARINDEX(' AND ',@strSQL)
+    IF @intLoc >0 SET @strSQL =STUFF (@strSQL,@intLoc,5,' WHERE ')
+    
+	SET @strSQL =@strSQL+' ORDER BY '+@strField+' '+@strSort  
+  
+	EXEC(@strSQL)
+	
+END
+
+GO
+
+--===========================================================================
 --↓↓↓
 --===========================================================================
-
