@@ -421,7 +421,7 @@ Private Function mfFuncTypeCheck(ByVal strType As String) As Boolean
     '检查功能类别是否正确
     
     Select Case strType
-        Case gVar.FuncButton, gID.FuncControl, gVar.FuncForm
+        Case gVar.FuncButton, gVar.FuncControl, gVar.FuncForm
             mfFuncTypeCheck = True
         Case Else
     End Select
