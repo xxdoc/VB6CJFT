@@ -1,7 +1,9 @@
 VERSION 5.00
 Object = "{248DD890-BB45-11CF-9ABC-0080C7E7B78D}#1.0#0"; "MSWINSCK.OCX"
 Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.1#0"; "MSCOMCTL.OCX"
+Object = "{945E8FCC-830E-45CC-AF00-A012D5AE7451}#15.3#0"; "Codejock.DockingPane.v15.3.1.ocx"
 Object = "{555E8FCC-830E-45CC-AF00-A012D5AE7451}#15.3#0"; "Codejock.CommandBars.v15.3.1.ocx"
+Object = "{B8E5842E-102B-4289-9D57-3B3F5B5E15D3}#15.3#0"; "Codejock.TaskPanel.v15.3.1.ocx"
 Object = "{BD0C1912-66C3-49CC-8B12-7B347BF6C846}#15.3#0"; "Codejock.SkinFramework.v15.3.1.ocx"
 Begin VB.MDIForm frmSysMain 
    BackColor       =   &H8000000C&
@@ -13,6 +15,30 @@ Begin VB.MDIForm frmSysMain
    Icon            =   "frmSysMain.frx":0000
    LinkTopic       =   "MDIForm1"
    StartUpPosition =   3  '窗口缺省
+   Begin VB.PictureBox Picture1 
+      Align           =   1  'Align Top
+      Height          =   1455
+      Left            =   0
+      ScaleHeight     =   1395
+      ScaleWidth      =   10095
+      TabIndex        =   0
+      Top             =   0
+      Visible         =   0   'False
+      Width           =   10155
+      Begin XtremeTaskPanel.TaskPanel TaskPanel1 
+         Height          =   615
+         Left            =   840
+         TabIndex        =   1
+         Top             =   240
+         Width           =   735
+         _Version        =   983043
+         _ExtentX        =   1296
+         _ExtentY        =   1085
+         _StockProps     =   64
+         ItemLayout      =   2
+         HotTrackStyle   =   1
+      End
+   End
    Begin VB.Timer Timer1 
       Index           =   1
       Left            =   2400
@@ -375,6 +401,14 @@ Begin VB.MDIForm frmSysMain
       _ExtentY        =   635
       _StockProps     =   0
    End
+   Begin XtremeDockingPane.DockingPane DockingPane1 
+      Left            =   6000
+      Top             =   3000
+      _Version        =   983043
+      _ExtentX        =   635
+      _ExtentY        =   635
+      _StockProps     =   0
+   End
    Begin XtremeSkinFramework.SkinFramework SkinFramework1 
       Left            =   3000
       Top             =   2880
@@ -395,7 +429,8 @@ Dim mlngID As Long  '循环变量ID
 Dim WithEvents mXtrStatusBar As XtremeCommandBars.StatusBar  '状态栏控件
 Attribute mXtrStatusBar.VB_VarHelpID = -1
 Dim mcbsPopupIcon As XtremeCommandBars.CommandBar    '托盘图标Pupup菜单
-
+Dim WithEvents mTabWorkspace As XtremeCommandBars.TabWorkspace '多标签窗口控件
+Attribute mTabWorkspace.VB_VarHelpID = -1
 
 
 
@@ -533,6 +568,16 @@ Private Sub msAddDesignerControls(ByRef cbsBars As XtremeCommandBars.CommandBars
     Set cbsActions = Nothing
 End Sub
 
+Private Sub msAddDockingPane(ByRef cbsBars As XtremeCommandBars.CommandBars)
+    '创建浮动面板
+    
+    Dim paneNavigation As XtremeDockingPane.Pane
+    
+    Set paneNavigation = DockingPane1.CreatePane(1, 240, 240, DockLeftOf)
+    paneNavigation.Handle = TaskPanel1.hwnd
+    
+End Sub
+
 Private Sub msAddKeyBindings(ByRef cbsBars As XtremeCommandBars.CommandBars)
     '创建快捷键
     
@@ -639,6 +684,26 @@ Private Sub msAddPopupMenu(ByRef cbsBars As XtremeCommandBars.CommandBars)
         .Add xtpControlButton, gID.SysLoginAgain, ""
         .Add xtpControlButton, gID.SysLoginOut, ""
     End With
+End Sub
+
+Private Sub msAddTaskPanelItem(ByRef taskPanel As XtremeTaskPanel.taskPanel)
+    '创建导航菜单
+    
+    Dim taskGroup As XtremeTaskPanel.TaskPanelGroup
+    Dim taskItem As XtremeTaskPanel.TaskPanelGroupItem
+    Dim cbsActions As XtremeCommandBars.CommandBarActions
+    
+    Set cbsActions = CommandBars1.Actions
+    Set taskGroup = taskPanel.Groups.Add(gID.Sys, cbsActions(gID.Sys).Caption)
+    With taskGroup.Items
+        .Add gID.SysAuthChangePassword, cbsActions(gID.SysAuthChangePassword).Caption, xtpTaskItemTypeLink
+        .Add gID.SysAuthDepartment, cbsActions(gID.SysAuthDepartment).Caption, xtpTaskItemTypeLink
+    End With
+    
+    
+    Set taskItem = Nothing
+    Set taskGroup = Nothing
+    Set cbsActions = Nothing
 End Sub
 
 Private Sub msAddToolBar(ByRef cbsBars As XtremeCommandBars.CommandBars)
@@ -1002,6 +1067,7 @@ Private Sub CommandBars1_Execute(ByVal Control As XtremeCommandBars.ICommandBarC
     Call msLeftClick(Control.ID, Me.CommandBars1)
 End Sub
 
+
 Private Sub CommandBars1_Update(ByVal Control As XtremeCommandBars.ICommandBarControl)
     'CommandBars控件的Action状态的切换
     
@@ -1031,6 +1097,17 @@ Private Sub CommandBars1_Update(ByVal Control As XtremeCommandBars.ICommandBarCo
     Set cbsActions = Nothing
 End Sub
 
+Private Sub DockingPane1_GetClientBordersWidth(Left As Long, Top As Long, Right As Long, Bottom As Long)
+    CommandBars1.RecalcLayout   '相当于刷新界面布局？
+End Sub
+
+Private Sub MDIForm_DblClick()
+    With TaskPanel1
+        Debug.Print .Visible, .Left, .Top, .Width, .Height
+        DockingPane1.FindPane(1).Handle = .hwnd
+    End With
+End Sub
+
 Private Sub MDIForm_Load()
     '窗体加载
     
@@ -1053,10 +1130,16 @@ Private Sub MDIForm_Load()
     Call msAddXtrStatusBar(cbsBars) '创建状态栏
     Call msAddKeyBindings(cbsBars)  '添加快捷键,放到LoadCommandBars方法后面才能生效？？？
     Call msAddDesignerControls(cbsBars) 'CommandBars自定义对话框中使用的
+    Call msAddDockingPane(cbsBars) '创建可拖曳的浮动面板
+    Call msAddTaskPanelItem(TaskPanel1)  '创建导航菜单
     
     cbsBars.AddImageList ImageList1         '使CommandBars控件匹配ImageList控件中图标
     cbsBars.EnableCustomization True        '允许CommandBars自定义，此属性最好放在所有CommandBars设定之后
     cbsBars.Options.UpdatePeriod = 250      '更改CommandBars的Update事件的执行周期，默认100ms
+    
+    Set mTabWorkspace = cbsBars.ShowTabWorkspace(True) '起用窗口多标签模式
+    mTabWorkspace.Flags = xtpWorkspaceShowActiveFiles Or xtpWorkspaceShowCloseSelectedTab '显示活动窗口列表、当前窗口显示关闭按钮
+    
     
     Call gsLoadSkin(Me, Me.SkinFramework1, sMSO7, True)  '加载窗口主题
     

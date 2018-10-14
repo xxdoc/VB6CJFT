@@ -1082,7 +1082,7 @@ End Sub
 
 Private Sub Form_Resize()
 
-    Const conHeight As Long = 9000
+    Const conHeight As Long = 6000
     Const conEdge As Long = 120
     Const conTB As Long = 400
     
