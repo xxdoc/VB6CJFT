@@ -451,6 +451,34 @@ END
 GO
 
 --===========================================================================
+--↓↓↓创建存储过程[sp_FT_Sys_UserInfo]
+--===========================================================================
+USE [db_FT]
+GO
+/****** Object:  StoredProcedure [dbo].[sp_FT_Sys_UserInfo]    Script Date: 2018/10/14 16:42:21 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[sp_FT_Sys_UserInfo]
+	-- Add the parameters for the stored procedure here
+	@intUID AS INT
+AS
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+
+    -- Insert statements for procedure here
+	SELECT * FROM tb_FT_Sys_User 
+	WHERE UserAutoID = @intUID 
+END
+
+GO
+
+--===========================================================================
 --↓↓↓创建存储过程[sp_FT_Sys_LogAdd]
 --===========================================================================
 USE [db_FT]
