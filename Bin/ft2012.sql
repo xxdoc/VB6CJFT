@@ -279,6 +279,59 @@ CREATE TABLE [dbo].[tb_FT_Sys_Func](
 GO
 
 --===========================================================================
+--↓↓↓向表[tb_FT_Sys_Func]插入详细权限信息
+--===========================================================================
+USE [db_FT]
+GO
+INSERT INTO [dbo].[tb_FT_Sys_Func]([FuncName] ,[FuncCaption] ,[FuncType] ,[FuncParentID])
+VALUES('frmSysDepartment' ,'部门管理' ,'窗口' ,'1010')
+INSERT INTO [dbo].[tb_FT_Sys_Func]([FuncName] ,[FuncCaption] ,[FuncType] ,[FuncParentID])
+VALUES('Command1' ,'添加部门' ,'按钮' ,'1000')
+INSERT INTO [dbo].[tb_FT_Sys_Func]([FuncName] ,[FuncCaption] ,[FuncType] ,[FuncParentID])
+VALUES('Command2' ,'修改部门信息' ,'按钮' ,'1000')
+INSERT INTO [dbo].[tb_FT_Sys_Func]([FuncName] ,[FuncCaption] ,[FuncType] ,[FuncParentID])
+VALUES('frmSysUser' ,'用户管理' ,'窗口' ,'1010')
+INSERT INTO [dbo].[tb_FT_Sys_Func]([FuncName] ,[FuncCaption] ,[FuncType] ,[FuncParentID])
+VALUES('Command1' ,'添加用户' ,'按钮' ,'1003')
+INSERT INTO [dbo].[tb_FT_Sys_Func]([FuncName] ,[FuncCaption] ,[FuncType] ,[FuncParentID])
+VALUES('Command2' ,'修改用户信息' ,'按钮' ,'1003')
+INSERT INTO [dbo].[tb_FT_Sys_Func]([FuncName] ,[FuncCaption] ,[FuncType] ,[FuncParentID])
+VALUES('TreeView1' ,'用户列表' ,'其它' ,'1003')
+INSERT INTO [dbo].[tb_FT_Sys_Func]([FuncName] ,[FuncCaption] ,[FuncType] ,[FuncParentID])
+VALUES('frmSysFunc' ,'功能设置' ,'窗口' ,'1010')
+INSERT INTO [dbo].[tb_FT_Sys_Func]([FuncName] ,[FuncCaption] ,[FuncType] ,[FuncParentID])
+VALUES('frmSysRole' ,'角色设置' ,'窗口' ,'1010')
+INSERT INTO [dbo].[tb_FT_Sys_Func]([FuncName] ,[FuncCaption] ,[FuncType] ,[FuncParentID])
+VALUES('frmSysLog' ,'日志查看' ,'窗口' ,'1010')
+INSERT INTO [dbo].[tb_FT_Sys_Func]([FuncName] ,[FuncCaption] ,[FuncType] ,[FuncParentID])
+VALUES('Sys' ,'系统' ,'主菜单' ,'0')
+INSERT INTO [dbo].[tb_FT_Sys_Func]([FuncName] ,[FuncCaption] ,[FuncType] ,[FuncParentID])
+VALUES('Command1' ,'添加功能' ,'按钮' ,'1007')
+INSERT INTO [dbo].[tb_FT_Sys_Func]([FuncName] ,[FuncCaption] ,[FuncType] ,[FuncParentID])
+VALUES('Command2' ,'修改功能信息' ,'按钮' ,'1007')
+INSERT INTO [dbo].[tb_FT_Sys_Func]([FuncName] ,[FuncCaption] ,[FuncType] ,[FuncParentID])
+VALUES('Command3' ,'分配给指定角色结果保存' ,'按钮' ,'1007')
+INSERT INTO [dbo].[tb_FT_Sys_Func]([FuncName] ,[FuncCaption] ,[FuncType] ,[FuncParentID])
+VALUES('TreeView1' ,'控制功能列表' ,'其它' ,'1007')
+INSERT INTO [dbo].[tb_FT_Sys_Func]([FuncName] ,[FuncCaption] ,[FuncType] ,[FuncParentID])
+VALUES('TreeView1' ,'部门列表' ,'其它' ,'1000')
+INSERT INTO [dbo].[tb_FT_Sys_Func]([FuncName] ,[FuncCaption] ,[FuncType] ,[FuncParentID])
+VALUES('Command3' ,'用户角色指定结果保存' ,'按钮' ,'1003')
+INSERT INTO [dbo].[tb_FT_Sys_Func]([FuncName] ,[FuncCaption] ,[FuncType] ,[FuncParentID])
+VALUES('Command1' ,'添加角色' ,'按钮' ,'1008')
+INSERT INTO [dbo].[tb_FT_Sys_Func]([FuncName] ,[FuncCaption] ,[FuncType] ,[FuncParentID])
+VALUES('Command2' ,'修改角色信息' ,'按钮' ,'1008')
+INSERT INTO [dbo].[tb_FT_Sys_Func]([FuncName] ,[FuncCaption] ,[FuncType] ,[FuncParentID])
+VALUES('TreeView1' ,'角色列表' ,'其它' ,'1008')
+INSERT INTO [dbo].[tb_FT_Sys_Func]([FuncName] ,[FuncCaption] ,[FuncType] ,[FuncParentID])
+VALUES('Combo1' ,'导入其它角色权限' ,'其它' ,'1008')
+INSERT INTO [dbo].[tb_FT_Sys_Func]([FuncName] ,[FuncCaption] ,[FuncType] ,[FuncParentID])
+VALUES('Command3' ,'保存角色权限分配结果' ,'按钮' ,'1008')
+INSERT INTO [dbo].[tb_FT_Sys_Func]([FuncName] ,[FuncCaption] ,[FuncType] ,[FuncParentID])
+VALUES('Command1' ,'查询' ,'按钮' ,'1009')
+GO
+
+--===========================================================================
 --↓↓↓创建表[tb_FT_Sys_OperationLog]
 --===========================================================================
 USE [db_FT]
