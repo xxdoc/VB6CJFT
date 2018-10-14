@@ -412,6 +412,13 @@ Private Sub msAddAction(ByRef cbsBars As XtremeCommandBars.CommandBars)
     With cbsActions
         .Add gID.Sys, "系统", "", "", "系统"
         
+        .Add gID.SysAuthChangePassword, "密码修改", "", "", "frmSysAlterPWD"
+        .Add gID.SysAuthDepartment, "部门管理", "", "", "frmSysDepartment"
+        .Add gID.SysAuthRole, "角色管理", "", "", "frmSysRole"
+        .Add gID.SysAuthUser, "用户管理", "", "", "frmSysUser"
+        .Add gID.SysAuthFunc, "权限管理", "", "", "frmSysFunc"
+        .Add gID.SysAuthLog, "日志管理", "", "", "frmSysLog"
+        
         .Add gID.SysLoginOut, "退出", "", "", ""
         .Add gID.SysLoginAgain, "重启", "", "", ""
         
@@ -481,7 +488,14 @@ Private Sub msAddAction(ByRef cbsBars As XtremeCommandBars.CommandBars)
                 .ToolTipText = .Caption
                 .DescriptionText = .ToolTipText
                 .Key = .Category    '为菜单时有特殊用，创建Action时窗体名保存在Category中
-                If LCase(Left(.Key, 3)) = "frm" Then cbsAction.Enabled = False '先禁用所有窗口，加载权限时再解锁
+                If LCase(Left(.Key, 3)) = "frm" Then
+                    Select Case .ID
+                        Case gID.toolOptions, gID.SysAuthChangePassword
+                            '一些不需要受权限控制的窗口
+                        Case Else '受控制窗口
+                            cbsAction.Enabled = False '先禁需要权限控制的窗口，加载权限时再解锁
+                    End Select
+                End If
                 .Category = cbsActions((.ID \ 1000) * 1000).Category
             End If
         End With
@@ -543,7 +557,16 @@ Private Sub msAddMenu(ByRef cbsBars As XtremeCommandBars.CommandBars)
     '系统主菜单
     Set cbsMenuMain = cbsMenuBar.Controls.Add(xtpControlPopup, gID.Sys, "")
     With cbsMenuMain.CommandBar.Controls
+        .Add xtpControlButton, gID.SysAuthChangePassword, ""
+        Set cbsMenuCtrl = .Add(xtpControlButton, gID.SysAuthDepartment, "")
+        cbsMenuCtrl.BeginGroup = True
+        .Add xtpControlButton, gID.SysAuthRole, ""
+        .Add xtpControlButton, gID.SysAuthUser, ""
+        .Add xtpControlButton, gID.SysAuthFunc, ""
+        .Add xtpControlButton, gID.SysAuthLog, ""
+                
         Set cbsMenuCtrlTemp = .Add(xtpControlButtonPopup, 99991, "导出")
+        cbsMenuCtrlTemp.BeginGroup = True
         With cbsMenuCtrlTemp.CommandBar.Controls
             Set cbsMenuCtrl = .Add(xtpControlButton, gID.SysExportToCSV, "")
             cbsMenuCtrl.BeginGroup = True
@@ -805,7 +828,7 @@ Private Sub msLeftClick(ByVal CID As Long, ByRef cbsBars As XtremeCommandBars.Co
                 If Left(strKey, 3) = "frm" Then
                     If cbsActions.Action(CID).Enabled Then
                         Select Case CID
-                            Case .toolOptions
+                            Case .toolOptions, .SysAuthChangePassword
                                 Call gsOpenTheWindow(strKey, vbModal, vbNormal)
                             Case Else
                                 Call gsOpenTheWindow(strKey)
@@ -851,6 +874,56 @@ Private Sub msLoadParameter(Optional ByVal blnLoad As Boolean = True)
         
         
     End With
+End Sub
+
+Private Sub msLoadUserAuthority(ByVal strUID As String)
+    '权限控制
+    
+    Dim cbsAction As CommandBarAction
+    Dim strSQL As String, strKey As String, strSys As String
+    Const strFRM As String = "frm"
+    
+    strUID = Trim(strUID)
+    If Len(strUID) = 0 Then Exit Sub
+    
+    strSys = LCase(gVar.UserLoginName)
+    If strSys = LCase(gVar.AccountAdmin) Or strSys = LCase(gVar.AccountSystem) Then   '程序内定两个用户拥有所有权限
+        For Each cbsAction In gWind.CommandBars1.Actions
+            cbsAction.Enabled = True
+        Next
+        Exit Sub
+    End If
+    
+    strSQL = "SELECT DISTINCT t1.UserAutoID ,t1.UserLoginName ,t1.UserFullName " & _
+             ",t5.FuncAutoID ,t5.FuncCaption ,t5.FuncName ,t5.FuncType " & _
+             ",t6.FuncName AS [FuncFormName] FROM tb_FT_Sys_User AS [t1] " & _
+             "INNER JOIN tb_FT_Sys_UserRole AS [t2] ON t1.UserAutoID =t2.UserAutoID " & _
+             "INNER JOIN tb_FT_Sys_RoleFunc AS [t4] ON t2.RoleAutoID =t4.RoleAutoID " & _
+             "INNER JOIN tb_FT_Sys_Func AS [t5] ON t4.FuncAutoID =t5.FuncAutoID " & _
+             "INNER JOIN tb_FT_Sys_Func AS [t6] ON t5.FuncParentID =t6.FuncAutoID " & _
+             "WHERE t1.UserAutoID =" & strUID
+    Set gVar.rsURF = gfBackRecordset(strSQL)
+    With gVar.rsURF
+        If .State = adStateOpen Then
+            If .RecordCount > 0 Then
+                For Each cbsAction In gWind.CommandBars1.Actions
+                    strKey = LCase(cbsAction.Key)
+                    If Len(strKey) > 0 Then
+                        If Left(strKey, 3) = strFRM Then
+                            .MoveFirst
+                            Do While Not .EOF
+                                If LCase(.Fields("FuncName")) = strKey Then
+                                    cbsAction.Enabled = True
+                                End If
+                                .MoveNext
+                            Loop
+                        End If
+                    End If
+                Next
+            End If
+        End If
+    End With
+    
 End Sub
 
 Public Sub msOpenUpdate(ByVal strCmd As String)
@@ -1132,6 +1205,7 @@ Private Sub Timer1_Timer(Index As Integer)
         Me.Show '显示主窗体
         Call gfSendClientInfo(gVar.UserComputerName, gVar.UserLoginName, gVar.UserFullName, Me.Winsock1.Item(1)) '把用户登陆信息发送给服务端
         gVar.ShowMainWindow = True '显示主窗体标志。区别关闭程序时的主窗体状态
+        Call msLoadUserAuthority(gVar.UserAutoID) '加载权限
         
         Dim frmUnload As Form  '卸载登陆窗口。不知为何，直接用Unload frmSysLogin不能卸载掉，没反应。
         For Each frmUnload In Forms

@@ -227,12 +227,14 @@ Public Sub Main(Optional ByVal blnLoad As Boolean = True)
         .RegKeyServerWindowLeft = "ServerWindowLeft"
         .RegKeyServerWindowTop = "ServerWindowTop"
         .RegKeyServerWindowWidth = "ServerWindowWidth"
+        .RegKeyServerWindowStateMax = "ServerWindowStateMax"
         .RegKeyServerCommandbarsTheme = "ServercbsTheme"
         
         .RegKeyClientWindowHeight = "ClientWindowHeight"
         .RegKeyClientWindowLeft = "ClientWindowLeft"
         .RegKeyClientWindowTop = "ClientWindowTop"
         .RegKeyClientWindowWidth = "ClientWindowWidth"
+        .RegKeyClientWindowStateMax = "ClientWindowStateMax"
         .RegKeyClientCommandbarsTheme = "ClientcbsTheme"
         
         .RegTrailPath = "SoftWare\Common\Section"   'HKEY_CURRENT_USER\SoftWare\……
@@ -449,55 +451,69 @@ End Sub
 Public Sub gsFormSizeLoad(ByRef frmLoad As Form, Optional blnServer As Boolean = True)
     '从注册表中加载窗口的位置与大小信息
     Dim Left As Long, Top As Long, Width As Long, Height As Long
+    Dim blnStateMax As Boolean
     
-    If blnServer Then
-        Left = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerWindowLeft, 0))
-        If Left < 0 Or Left > Screen.Width Then Left = 0
-        Top = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerWindowTop, 0))
-        If Top < 0 Or Left > Screen.Height Then Top = 0
-        Width = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerWindowWidth, gVar.WindowWidth))
-        If Width <= 0 Or Width > Screen.Width Then Width = gVar.WindowWidth
-        Height = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerWindowHeight, gVar.WindowHeight))
-        If Height <= 0 Or Height > Screen.Height Then Height = gVar.WindowHeight
+    blnStateMax = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, IIf(blnServer, gVar.RegKeyServerWindowStateMax, gVar.RegKeyClientWindowStateMax), 1))
+    If blnStateMax Then
+        frmLoad.WindowState = vbMaximized
     Else
-        Left = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientWindowLeft, 0))
-        If Left < 0 Or Left > Screen.Width Then Left = 0
-        Top = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientWindowTop, 0))
-        If Top < 0 Or Left > Screen.Height Then Top = 0
-        Width = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientWindowWidth, gVar.WindowWidth))
-        If Width <= 0 Or Width > Screen.Width Then Width = gVar.WindowWidth
-        Height = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientWindowHeight, gVar.WindowHeight))
-        If Height <= 0 Or Height > Screen.Height Then Height = gVar.WindowHeight
+        If blnServer Then
+            Left = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerWindowLeft, 0))
+            If Left < 0 Or Left > Screen.Width Then Left = 0
+            Top = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerWindowTop, 0))
+            If Top < 0 Or Left > Screen.Height Then Top = 0
+            Width = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerWindowWidth, gVar.WindowWidth))
+            If Width <= 0 Or Width > Screen.Width Then Width = gVar.WindowWidth
+            Height = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerWindowHeight, gVar.WindowHeight))
+            If Height <= 0 Or Height > Screen.Height Then Height = gVar.WindowHeight
+        Else
+            Left = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientWindowLeft, 0))
+            If Left < 0 Or Left > Screen.Width Then Left = 0
+            Top = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientWindowTop, 0))
+            If Top < 0 Or Left > Screen.Height Then Top = 0
+            Width = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientWindowWidth, gVar.WindowWidth))
+            If Width <= 0 Or Width > Screen.Width Then Width = gVar.WindowWidth
+            Height = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientWindowHeight, gVar.WindowHeight))
+            If Height <= 0 Or Height > Screen.Height Then Height = gVar.WindowHeight
+        End If
+        If frmLoad.WindowState = vbNormal Then frmLoad.Move Left, Top, Width, Height
     End If
-    frmLoad.Move Left, Top, Width, Height
-    
 End Sub
 
 Public Sub gsFormSizeSave(ByRef frmSave As Form, Optional ByVal blnServer As Boolean = True)
     '保存窗口的位置与大小信息至注册表中
     Dim Left As Long, Top As Long, Width As Long, Height As Long
+    Dim blnStateMax As Boolean
     
-    With frmSave
-        Left = .Left
-        Top = .Top
-        Width = .Width
-        Height = .Height
-        If Left < 0 Or Left > Screen.Width Then Left = 0
-        If Top < 0 Or Top > Screen.Height Then Top = 0
-        If Width < gVar.WindowWidth Or Width > Screen.Width Then Width = gVar.WindowWidth
-        If Height < gVar.WindowHeight Or Height > Screen.Height Then Height = gVar.WindowHeight
-    End With
+    If frmSave.WindowState = vbMaximized Then blnStateMax = True
     
-    If blnServer Then
-        Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerWindowLeft, CStr(Left))
-        Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerWindowTop, CStr(Top))
-        Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerWindowWidth, CStr(Width))
-        Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerWindowHeight, CStr(Height))
+    If blnStateMax Then
+        Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, IIf(blnServer, gVar.RegKeyServerWindowStateMax, gVar.RegKeyClientWindowStateMax), 1)
     Else
-        Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientWindowLeft, CStr(Left))
-        Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientWindowTop, CStr(Top))
-        Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientWindowWidth, CStr(Width))
-        Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientWindowHeight, CStr(Height))
+        With frmSave
+            Left = .Left
+            Top = .Top
+            Width = .Width
+            Height = .Height
+            If Left < 0 Or Left > Screen.Width Then Left = 0
+            If Top < 0 Or Top > Screen.Height Then Top = 0
+            If Width < gVar.WindowWidth Or Width > Screen.Width Then Width = gVar.WindowWidth
+            If Height < gVar.WindowHeight Or Height > Screen.Height Then Height = gVar.WindowHeight
+        End With
+    
+        If blnServer Then
+            Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerWindowStateMax, 0)
+            Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerWindowLeft, CStr(Left))
+            Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerWindowTop, CStr(Top))
+            Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerWindowWidth, CStr(Width))
+            Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerWindowHeight, CStr(Height))
+        Else
+            Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientWindowStateMax, 0)
+            Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientWindowLeft, CStr(Left))
+            Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientWindowTop, CStr(Top))
+            Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientWindowWidth, CStr(Width))
+            Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientWindowHeight, CStr(Height))
+        End If
     End If
 End Sub
 
@@ -578,7 +594,7 @@ Public Sub gsGridToExcel(ByRef gridControl As Control, Optional ByVal TimeCol As
 '    Dim sheetOut As Excel.Worksheet
     Dim sheetOut  As Object
     Dim blnFlexCell As Boolean
-    Dim R As Long, C As Long, i As Long, J As Long
+    Dim R As Long, C As Long, I As Long, J As Long
     
     If gridControl Is Nothing Then Exit Sub
     
@@ -596,15 +612,15 @@ Public Sub gsGridToExcel(ByRef gridControl As Control, Optional ByVal TimeCol As
         C = .Cols
         '表格内容复制到Excel中
         If blnFlexCell Then
-            For i = 0 To R - 1
+            For I = 0 To R - 1
                 For J = 0 To C - 1
-                    sheetOut.Cells(i + 1, J + 1) = .Cell(i, J).Text
+                    sheetOut.Cells(I + 1, J + 1) = .Cell(I, J).Text
                 Next
             Next
         Else
-            For i = 0 To R - 1
+            For I = 0 To R - 1
                 For J = 0 To C - 1
-                    sheetOut.Cells(i + 1, J + 1) = .TextMatrix(i, J)
+                    sheetOut.Cells(I + 1, J + 1) = .TextMatrix(I, J)
                 Next
             Next
         End If
@@ -620,7 +636,7 @@ Public Sub gsGridToExcel(ByRef gridControl As Control, Optional ByVal TimeCol As
         .Range(.Cells(1, 1), .Cells(R, C)).HorizontalAlignment = -4108  'xlCenter= -4108(&HFFFFEFF4)   '居中显示
         .Range(.Cells(1, 1), .Cells(R, C)).Borders.Weight = 2   'xlThin=2  '单元格显示黑色线宽
         .Columns.EntireColumn.AutoFit   '自动列宽
-        .Rows(1).RowHeight = 23 '第一行行高
+        .Rows(1).rowHeight = 23 '第一行行高
     End With
     
     xlsOut.Visible = True   '显示Excel文档
@@ -691,12 +707,12 @@ Public Sub gsGridToText(ByRef gridControl As Control)
     Dim strFileName As String
     Dim blnFlexCell As Boolean
     Dim intFree As Integer
-    Dim R As Long, C As Long, i As Long, J As Long
+    Dim R As Long, C As Long, I As Long, J As Long
     Dim strTxt As String
     
     If gridControl Is Nothing Then Exit Sub
     
-    For i = 1 To 8
+    For I = 1 To 8
         strFileName = strFileName & gfBackOneChar(udNumber + udUpperCase) '文件名中的8个随机字符，不含小写字母
     Next
     strFileName = gVar.FolderNameTemp & Format(Now, gVar.Formatymdhms & "_") & strFileName & ".txt"
@@ -713,10 +729,10 @@ Public Sub gsGridToText(ByRef gridControl As Control)
         R = .Rows - 1
         C = .Cols - 1
         If blnFlexCell Then
-            For i = 0 To R
+            For I = 0 To R
                 strTxt = ""
                 For J = 0 To C
-                    strTxt = strTxt & .Cell(i, J).Text & vbTab
+                    strTxt = strTxt & .Cell(I, J).Text & vbTab
                 Next
                 Print #intFree, strTxt
             Next
@@ -740,7 +756,7 @@ Public Sub gsGridToWord(ByRef gridControl As Control)
 '    Dim tbOut As Word.Table
     Dim tbOut As Object
     Dim lngRows As Long, lngCols As Long
-    Dim i As Long, J As Long
+    Dim I As Long, J As Long
     Dim blnFlexCell As Boolean
     
     If gridControl Is Nothing Then Exit Sub
@@ -756,16 +772,16 @@ Public Sub gsGridToWord(ByRef gridControl As Control)
     Set tbOut = docOut.Tables.Add(docOut.Range, lngRows, lngCols, True)
     
     If blnFlexCell Then
-        For i = 0 To lngRows - 1
+        For I = 0 To lngRows - 1
             For J = 0 To lngCols - 1
-                tbOut.Cell(i + 1, J + 1).Range.Text = gridControl.Cell(i, J).Text
+                tbOut.Cell(I + 1, J + 1).Range.Text = gridControl.Cell(I, J).Text
             Next
-            If Len(gridControl.Cell(i, 0).Text) = 0 Then tbOut.Cell(i + 1, 1).Range.Text = i
+            If Len(gridControl.Cell(I, 0).Text) = 0 Then tbOut.Cell(I + 1, 1).Range.Text = I
         Next
     Else
-        For i = 0 To lngRows - 1
+        For I = 0 To lngRows - 1
             For J = 0 To lngCols - 1
-                tbOut.Cell(i + 1, J + 1).Range.Text = gridControl.TextMatrix(i, J)
+                tbOut.Cell(I + 1, J + 1).Range.Text = gridControl.TextMatrix(I, J)
             Next
         Next
     End If
@@ -857,7 +873,7 @@ Public Sub gsLogAdd(ByRef frmCur As Form, Optional ByVal LogType As genumLogType
     
     strType = gfBackLogType(LogType)
     
-    strSQL = "EXEC sp_Test_Sys_LogAdd '" & strType & "','" & frmCur.Name & "," & frmCur.Caption & "','" & strTable & _
+    strSQL = "EXEC sp_FT_Sys_LogAdd '" & strType & "','" & frmCur.Name & "," & frmCur.Caption & "','" & strTable & _
              "','" & strContent & "','" & gVar.UserLoginName & "," & gVar.UserFullName & "','" & gVar.UserLoginIP & "','" & gVar.UserComputerName & "'"
 'Debug.Print strSQL
     Set rsLog = gfBackRecordset(strSQL, , adLockOptimistic)

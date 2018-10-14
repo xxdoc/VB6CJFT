@@ -310,12 +310,14 @@ Public Type gtypeCommonVariant
     RegKeyServerWindowTop As String   '
     RegKeyServerWindowWidth As String '
     RegKeyServerWindowHeight As String    '
+    RegKeyServerWindowStateMax As String
     RegKeyServerCommandbarsTheme As String    '
     
     RegKeyClientWindowLeft As String  'Client上Key_窗口Left值
     RegKeyClientWindowTop As String   '
     RegKeyClientWindowWidth As String '
     RegKeyClientWindowHeight As String    '
+    RegKeyClientWindowStateMax As String
     RegKeyClientCommandbarsTheme As String    '
     
     RegTrailPath As String  '注册表中HKEY_CURRENT_USER下SOFTWARE路径
@@ -387,6 +389,8 @@ Public Type gtypeCommonVariant
     ClientLoginCheckOver As Boolean '登陆检验完成
     ClientCancelAutoLogin As Boolean '登陆界面中手动临时取消自动登陆
     
+    ParaBlnWindowStateMaxClient As Boolean '窗口上次关闭时是否最大化
+    ParaBlnWindowStateMaxServer As Boolean
     ParaBlnWindowMinHide As Boolean '主窗口最小化时是否隐藏
     ParaBlnWindowCloseMin As Boolean    '主窗口点击关闭按钮时最小化
     ParaBlnAutoReStartServer As Boolean '服务端程序断开服务时自动重新开启服务
@@ -436,8 +440,8 @@ Public Type gtypeCommandBarID
     SysExportToText As Long '导出至文本
     SysExportToXML As Long  '导出为XML文档
     SysExportToPDF As Long  '导出为PDF
-    SysExportToCSV As Long
-    SysExportToHTML As Long
+    SysExportToCSV As Long  '导出为CSV文件
+    SysExportToHTML As Long '导出为HTML
     
     
     Help As Long        '模块-帮助
