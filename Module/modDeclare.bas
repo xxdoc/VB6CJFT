@@ -432,9 +432,11 @@ Public Type gtypeCommandBarID
     SysAuthRole As Long     '角色管理
     SysAuthFunc As Long     '功能管理
     
+    SysPrintMain As Long
     SysPrint As Long        '打印
     SysPrintPageSet As Long '打印页面设置
     SysPrintPreview As Long '打印预览
+    SysExportMain As Long
     SysExportToExcel As Long    '导出至Excel
     SysExportToWord As Long '导出至Word
     SysExportToText As Long '导出至文本

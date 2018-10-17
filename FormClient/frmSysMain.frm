@@ -15,7 +15,7 @@ Begin VB.MDIForm frmSysMain
    Icon            =   "frmSysMain.frx":0000
    LinkTopic       =   "MDIForm1"
    StartUpPosition =   3  '窗口缺省
-   Begin VB.PictureBox Picture1 
+   Begin VB.PictureBox Picture0 
       Align           =   1  'Align Top
       Height          =   1455
       Left            =   0
@@ -25,18 +25,27 @@ Begin VB.MDIForm frmSysMain
       Top             =   0
       Visible         =   0   'False
       Width           =   10155
-      Begin XtremeTaskPanel.TaskPanel TaskPanel1 
-         Height          =   615
-         Left            =   840
+      Begin VB.PictureBox Picture1 
+         Height          =   855
+         Left            =   1920
+         ScaleHeight     =   795
+         ScaleWidth      =   1755
          TabIndex        =   1
-         Top             =   240
-         Width           =   735
-         _Version        =   983043
-         _ExtentX        =   1296
-         _ExtentY        =   1085
-         _StockProps     =   64
-         ItemLayout      =   2
-         HotTrackStyle   =   1
+         Top             =   120
+         Width           =   1815
+         Begin XtremeTaskPanel.TaskPanel TaskPanel1 
+            Height          =   615
+            Left            =   480
+            TabIndex        =   2
+            Top             =   120
+            Width           =   735
+            _Version        =   983043
+            _ExtentX        =   1296
+            _ExtentY        =   1085
+            _StockProps     =   64
+            ItemLayout      =   2
+            HotTrackStyle   =   1
+         End
       End
    End
    Begin VB.Timer Timer1 
@@ -457,6 +466,7 @@ Private Sub msAddAction(ByRef cbsBars As XtremeCommandBars.CommandBars)
         .Add gID.SysLoginOut, "退出", "", "", ""
         .Add gID.SysLoginAgain, "重启", "", "", ""
         
+        .Add gID.SysExportMain, "导出", "", "", ""
         .Add gID.SysExportToCSV, "导出至CSV", "", "", ""
         .Add gID.SysExportToExcel, "导出至Excel", "", "", ""
         .Add gID.SysExportToHTML, "导出至HTML", "", "", ""
@@ -465,6 +475,7 @@ Private Sub msAddAction(ByRef cbsBars As XtremeCommandBars.CommandBars)
         .Add gID.SysExportToWord, "导出至Word", "", "", ""
         .Add gID.SysExportToXML, "导出至XML", "", "", ""
         
+        .Add gID.SysPrintMain, "打印", "", "", ""
         .Add gID.SysPrint, "打印", "", "", ""
         .Add gID.SysPrintPageSet, "打印页面设置", "", "", ""
         .Add gID.SysPrintPreview, "打印预览", "", "", ""
@@ -573,8 +584,10 @@ Private Sub msAddDockingPane(ByRef cbsBars As XtremeCommandBars.CommandBars)
     
     Dim paneNavigation As XtremeDockingPane.Pane
     
-    Set paneNavigation = DockingPane1.CreatePane(1, 240, 240, DockLeftOf)
-    paneNavigation.Handle = TaskPanel1.hwnd
+    Me.DockingPane1.SetCommandBars Me.CommandBars1 '若这两种控制同时使用必需这么设置，且CommandBars控件在DockingPane控件顶层
+    
+    Set paneNavigation = Me.DockingPane1.CreatePane(1, 240, 240, DockLeftOf)
+    paneNavigation.Handle = Me.Picture1.hwnd
     
 End Sub
 
@@ -610,7 +623,7 @@ Private Sub msAddMenu(ByRef cbsBars As XtremeCommandBars.CommandBars)
         .Add xtpControlButton, gID.SysAuthFunc, ""
         .Add xtpControlButton, gID.SysAuthLog, ""
                 
-        Set cbsMenuCtrlTemp = .Add(xtpControlButtonPopup, 99991, "导出")
+        Set cbsMenuCtrlTemp = .Add(xtpControlButtonPopup, gID.SysExportMain, "导出")
         cbsMenuCtrlTemp.BeginGroup = True
         With cbsMenuCtrlTemp.CommandBar.Controls
             Set cbsMenuCtrl = .Add(xtpControlButton, gID.SysExportToCSV, "")
@@ -620,7 +633,7 @@ Private Sub msAddMenu(ByRef cbsBars As XtremeCommandBars.CommandBars)
             Next
         End With
         
-        Set cbsMenuCtrlTemp = .Add(xtpControlButtonPopup, 99992, "打印")
+        Set cbsMenuCtrlTemp = .Add(xtpControlButtonPopup, gID.SysPrintMain, "打印")
         With cbsMenuCtrlTemp.CommandBar.Controls
             Set cbsMenuCtrl = .Add(xtpControlButton, gID.SysPrintPageSet, "")
             cbsMenuCtrl.BeginGroup = True
@@ -686,21 +699,48 @@ Private Sub msAddPopupMenu(ByRef cbsBars As XtremeCommandBars.CommandBars)
     End With
 End Sub
 
-Private Sub msAddTaskPanelItem(ByRef taskPanel As XtremeTaskPanel.taskPanel)
+Private Sub msAddTaskPanelItem(ByRef tskPanel As XtremeTaskPanel.taskPanel)
     '创建导航菜单
     
     Dim taskGroup As XtremeTaskPanel.TaskPanelGroup
     Dim taskItem As XtremeTaskPanel.TaskPanelGroupItem
     Dim cbsActions As XtremeCommandBars.CommandBarActions
+    Dim lngID As Long, lngMargins As Long, L As Long, T As Long, R As Long, B As Long
     
-    Set cbsActions = CommandBars1.Actions
-    Set taskGroup = taskPanel.Groups.Add(gID.Sys, cbsActions(gID.Sys).Caption)
+    tskPanel.SetImageList Me.ImageList1
+    Set cbsActions = Me.CommandBars1.Actions
+    Set taskGroup = tskPanel.Groups.Add(gID.Sys, cbsActions(gID.Sys).Caption)
     With taskGroup.Items
-        .Add gID.SysAuthChangePassword, cbsActions(gID.SysAuthChangePassword).Caption, xtpTaskItemTypeLink
+        Set taskItem = .Add(gID.SysAuthChangePassword, cbsActions(gID.SysAuthChangePassword).Caption, xtpTaskItemTypeLink)
+        taskItem.GetRect L, T, R, B
+        lngMargins = L
         .Add gID.SysAuthDepartment, cbsActions(gID.SysAuthDepartment).Caption, xtpTaskItemTypeLink
+        .Add gID.SysAuthRole, cbsActions(gID.SysAuthRole).Caption, xtpTaskItemTypeLink
+        .Add gID.SysAuthUser, cbsActions(gID.SysAuthUser).Caption, xtpTaskItemTypeLink
+        .Add gID.SysAuthFunc, cbsActions(gID.SysAuthFunc).Caption, xtpTaskItemTypeLink
+        .Add gID.SysAuthLog, cbsActions(gID.SysAuthLog).Caption, xtpTaskItemTypeLink
+        
+        Set taskItem = .Add(gID.SysExportMain, cbsActions(gID.SysExportMain).Caption, xtpTaskItemTypeText)
+        taskItem.SetMargins lngMargins, 0, 0, 0
+        taskItem.Bold = True
+        For lngID = gID.SysExportToCSV To gID.SysExportToWord
+            Set taskItem = .Add(lngID, cbsActions(lngID).Caption, xtpTaskItemTypeLink)
+            taskItem.SetMargins lngMargins, 0, 0, 0
+        Next
+        
+        Set taskItem = .Add(gID.SysPrintMain, cbsActions(gID.SysPrintMain).Caption, xtpTaskItemTypeText)
+        taskItem.Bold = True
+        taskItem.SetMargins lngMargins, 0, 0, 0
+        For lngID = gID.SysPrintPageSet To gID.SysPrint
+            Set taskItem = .Add(lngID, cbsActions(lngID).Caption, xtpTaskItemTypeLink, lngID)
+            taskItem.SetMargins lngMargins, 0, 0, 0
+        Next
+        
+        .Add gID.SysLoginAgain, cbsActions(gID.SysLoginAgain).Caption, xtpTaskItemTypeLink
+        .Add gID.SysLoginOut, cbsActions(gID.SysLoginOut).Caption, xtpTaskItemTypeLink
     End With
-    
-    
+'    .Add , cbsActions(0).Caption, xtpTaskItemTypeLink
+        
     Set taskItem = Nothing
     Set taskGroup = Nothing
     Set cbsActions = Nothing
@@ -1004,7 +1044,7 @@ Private Sub msResetLayout(ByRef cbsBars As XtremeCommandBars.CommandBars)
     '重置窗口布局：CommandBars与Dockingpane控件重置
     
     Dim cBar As XtremeCommandBars.CommandBar
-    Dim L As Long, T As Long, R As Long, b As Long
+    Dim L As Long, T As Long, R As Long, B As Long
 
     For Each cBar In cbsBars
     Debug.Print cBar.BarID, cBar.Title, cBar.Type
@@ -1013,8 +1053,8 @@ Private Sub msResetLayout(ByRef cbsBars As XtremeCommandBars.CommandBars)
     Next
     
     For mlngID = 2 To cbsBars.Count
-        cbsBars.GetClientRect L, T, R, b
-        cbsBars.DockToolBar cbsBars(mlngID), 0, b, xtpBarTop
+        cbsBars.GetClientRect L, T, R, B
+        cbsBars.DockToolBar cbsBars(mlngID), 0, B, xtpBarTop
     Next
     
     Set cBar = Nothing
@@ -1074,20 +1114,31 @@ Private Sub CommandBars1_Update(ByVal Control As XtremeCommandBars.ICommandBarCo
     Dim blnFC As Boolean    '判断是否为FC表格
     Dim cbsActions As XtremeCommandBars.CommandBarActions  'cbs控件Actions集合的引用
     Dim blnMainWindow As Boolean '判断主窗体是否已全部加载完成
-    
+    Dim tskItems As XtremeTaskPanel.TaskPanelGroupItems   '导航菜单集合
+     
     Set cbsActions = Me.CommandBars1.Actions
+    Set tskItems = Me.TaskPanel1.Groups.Find(gID.Sys).Items
+    
     If Screen.ActiveControl Is Nothing Then
         blnFC = False
     Else
-        blnFC = TypeOf Screen.ActiveControl Is FlexCell.Grid    '当前活动控件是FC表格
+        If Screen.ActiveForm.Name = gWind.Name Then '点击导航菜单时焦点窗口变成MDI主窗口了
+            blnFC = True
+        Else
+            blnFC = TypeOf Screen.ActiveForm.ActiveControl Is FlexCell.Grid    '当前活动控件是FC表格
+        End If
     End If
+    
     blnMainWindow = gVar.ShowMainWindow
+    
     With gID
         For mlngID = .SysExportToCSV To .SysExportToWord
             cbsActions(mlngID).Enabled = blnFC  '活动控件是FC表格则激活对应Action，否则使其不可用
+            tskItems.Find(mlngID).Enabled = blnFC
         Next
         For mlngID = .SysPrintPageSet To .SysPrint
             cbsActions(mlngID).Enabled = blnFC
+            tskItems.Find(mlngID).Enabled = blnFC
         Next
         For mlngID = .IconPopupMenuMaxWindow To .IconPopupMenuShowWindow
             cbsActions(mlngID).Enabled = blnMainWindow  '主窗体未加载完成之前，托盘图标菜单某些不可用，
@@ -1095,17 +1146,7 @@ Private Sub CommandBars1_Update(ByVal Control As XtremeCommandBars.ICommandBarCo
     End With
     
     Set cbsActions = Nothing
-End Sub
-
-Private Sub DockingPane1_GetClientBordersWidth(Left As Long, Top As Long, Right As Long, Bottom As Long)
-    CommandBars1.RecalcLayout   '相当于刷新界面布局？
-End Sub
-
-Private Sub MDIForm_DblClick()
-    With TaskPanel1
-        Debug.Print .Visible, .Left, .Top, .Width, .Height
-        DockingPane1.FindPane(1).Handle = .hwnd
-    End With
+    Set tskItems = Nothing
 End Sub
 
 Private Sub MDIForm_Load()
@@ -1131,7 +1172,7 @@ Private Sub MDIForm_Load()
     Call msAddKeyBindings(cbsBars)  '添加快捷键,放到LoadCommandBars方法后面才能生效？？？
     Call msAddDesignerControls(cbsBars) 'CommandBars自定义对话框中使用的
     Call msAddDockingPane(cbsBars) '创建可拖曳的浮动面板
-    Call msAddTaskPanelItem(TaskPanel1)  '创建导航菜单
+    Call msAddTaskPanelItem(Me.TaskPanel1)  '创建导航菜单
     
     cbsBars.AddImageList ImageList1         '使CommandBars控件匹配ImageList控件中图标
     cbsBars.EnableCustomization True        '允许CommandBars自定义，此属性最好放在所有CommandBars设定之后
@@ -1262,6 +1303,16 @@ Private Sub MDIForm_Unload(Cancel As Integer)
     
     Set gWind = Nothing '清除全局窗体引用
     
+End Sub
+
+Private Sub Picture1_Resize()
+    '导航菜单面板中任务面板大小变化
+    Me.TaskPanel1.Move 0, 0, Me.Picture1.ScaleWidth, Me.Picture1.ScaleHeight
+End Sub
+
+Private Sub TaskPanel1_ItemClick(ByVal Item As XtremeTaskPanel.ITaskPanelGroupItem)
+    '导航菜单响应
+    Call msLeftClick(Item.ID, Me.CommandBars1)
 End Sub
 
 Private Sub Timer1_Timer(Index As Integer)

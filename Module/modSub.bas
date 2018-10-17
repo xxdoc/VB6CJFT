@@ -19,6 +19,7 @@ Public Sub Main(Optional ByVal blnLoad As Boolean = True)
         .SysAuthFunc = 1107
         .SysAuthLog = 1108
         
+        .SysExportMain = 1200
         .SysExportToCSV = 1201
         .SysExportToExcel = 1202
         .SysExportToHTML = 1203
@@ -27,6 +28,7 @@ Public Sub Main(Optional ByVal blnLoad As Boolean = True)
         .SysExportToText = 1206
         .SysExportToWord = 1207
         
+        .SysPrintMain = 1300
         .SysPrint = 1303
         .SysPrintPageSet = 1301
         .SysPrintPreview = 1302
