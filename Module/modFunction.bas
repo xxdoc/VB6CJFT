@@ -502,6 +502,38 @@ Public Function gfGetSetting(ByVal AppName As String, ByVal Section As String, B
     If strGet <> strNO Then gfGetSetting = True
 End Function
 
+Public Function gfLoadAuthority(ByRef frmCur As Form, ByRef ctlCur As Control) As Boolean
+    '加载窗口中的控制权限
+    
+    Dim strUser As String, strForm As String, strCtlName As String
+    
+    strUser = LCase(gVar.UserLoginName)
+    strForm = LCase(frmCur.Name)
+    strCtlName = LCase(ctlCur.Name)
+    
+    If strUser = LCase(gVar.AccountAdmin) Or strUser = LCase(gVar.AccountSystem) Then Exit Function
+    ctlCur.Enabled = False
+    
+    With gVar.rsURF
+        If .State = adStateOpen Then
+            If .RecordCount > 0 Then
+                .MoveFirst
+                Do While Not .EOF
+                    If strForm = LCase(.Fields("FuncFormName")) Then
+                        If strCtlName = LCase(.Fields("FuncName")) Then
+                            ctlCur.Enabled = True
+                            gfLoadAuthority = True
+                            Exit Do
+                        End If
+                    End If
+                    .MoveNext
+                Loop
+            End If
+        End If
+    End With
+    
+End Function
+
 Public Function gfIsTreeViewChild(ByRef nodeDad As MSComctlLib.Node, ByVal strKey As String) As Boolean
     '判断传入Key值是不是自己的子结点
     

@@ -707,7 +707,7 @@ Private Sub msAddTaskPanelItem(ByRef tskPanel As XtremeTaskPanel.TaskPanel)
     Dim cbsActions As XtremeCommandBars.CommandBarActions
     Dim lngID As Long, lngMargins As Long, L As Long, T As Long, R As Long, b As Long
     
-    tskPanel.SetImageList Me.ImageList1
+    tskPanel.SetImageList Me.ImageList1 '暂没研究其用途
     Set cbsActions = Me.CommandBars1.Actions
     Set taskGroup = tskPanel.Groups.Add(gID.Sys, cbsActions(gID.Sys).Caption)
     With taskGroup.Items
@@ -741,8 +741,13 @@ Private Sub msAddTaskPanelItem(ByRef tskPanel As XtremeTaskPanel.TaskPanel)
         .Add gID.SysLoginAgain, cbsActions(gID.SysLoginAgain).Caption, xtpTaskItemTypeLink
         .Add gID.SysLoginOut, cbsActions(gID.SysLoginOut).Caption, xtpTaskItemTypeLink
     End With
+    For Each taskItem In taskGroup.Items '权限同步。暂没找到简写方法，每个Group都这么循环一次。
+        taskItem.Enabled = cbsActions(taskItem.ID).Enabled
+    Next
+    
+    
 '    .Add , cbsActions(0).Caption, xtpTaskItemTypeLink
-        
+    
     Set taskItem = Nothing
     Set taskGroup = Nothing
     Set cbsActions = Nothing
@@ -988,9 +993,9 @@ End Sub
 Private Sub msLoadUserAuthority(ByVal strUID As String)
     '权限控制
     
+    Const strFRM As String = "frm"
     Dim cbsAction As CommandBarAction
     Dim strSQL As String, strKey As String, strSys As String
-    Const strFRM As String = "frm"
     
     strUID = Trim(strUID)
     If Len(strUID) = 0 Then Exit Sub
@@ -1015,7 +1020,7 @@ Private Sub msLoadUserAuthority(ByVal strUID As String)
     With gVar.rsURF
         If .State = adStateOpen Then
             If .RecordCount > 0 Then
-                For Each cbsAction In gWind.CommandBars1.Actions
+                For Each cbsAction In Me.CommandBars1.Actions
                     strKey = LCase(cbsAction.Key)
                     If Len(strKey) > 0 Then
                         If Left(strKey, 3) = strFRM Then
@@ -1023,6 +1028,7 @@ Private Sub msLoadUserAuthority(ByVal strUID As String)
                             Do While Not .EOF
                                 If LCase(.Fields("FuncName")) = strKey Then
                                     cbsAction.Enabled = True
+                                    Me.TaskPanel1.Find(cbsAction.ID).Enabled = True
                                 End If
                                 .MoveNext
                             Loop
@@ -1032,6 +1038,8 @@ Private Sub msLoadUserAuthority(ByVal strUID As String)
             End If
         End If
     End With
+    
+    Set cbsAction = Nothing
     
 End Sub
 
@@ -1315,7 +1323,11 @@ Private Sub TaskPanel1_ItemClick(ByVal Item As XtremeTaskPanel.ITaskPanelGroupIt
     
     Rem Debug.Print Me.ActiveForm.Name, Screen.ActiveForm.Name
     Rem Debug.Print Me.ActiveForm.ActiveControl.Name, Me.ActiveControl.Name
-    Call msLeftClick(Item.ID, Me.CommandBars1)
+    If Me.CommandBars1.Actions(Item.ID).Enabled Then
+        Call msLeftClick(Item.ID, Me.CommandBars1)
+    Else
+        MsgBox "您目前无权打开此菜单！或者请联系管理员。", vbExclamation, "权限提醒"
+    End If
 End Sub
 
 Private Sub Timer1_Timer(Index As Integer)

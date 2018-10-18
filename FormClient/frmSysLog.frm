@@ -199,7 +199,7 @@ Begin VB.Form frmSysLog
             _ExtentX        =   2355
             _ExtentY        =   450
             _Version        =   393216
-            Format          =   87621633
+            Format          =   87359489
             CurrentDate     =   42628
          End
          Begin MSComCtl2.DTPicker DTPicker1 
@@ -212,7 +212,7 @@ Begin VB.Form frmSysLog
             _ExtentX        =   2355
             _ExtentY        =   450
             _Version        =   393216
-            Format          =   87621633
+            Format          =   87359489
             CurrentDate     =   42628
          End
          Begin VB.Label Label1 
@@ -541,7 +541,7 @@ Private Sub Form_Load()
         Combo2.Item(0).AddItem gfBackLogType(lngColor)
     Next
     
-    Call gsLoadAuthority(Me, Command1)
+    Call gfLoadAuthority(Me, Command1)
     
 End Sub
 
@@ -614,11 +614,11 @@ Private Sub msSetTable()
         .Cell(0, 3).Text = "操作类型"
         .Cell(0, 4).Text = "日志详细内容"
         .Cell(0, 5).Text = "操作窗口"
-        .Cell(0, 6).Text = "操作者电脑IP"
-        .Cell(0, 7).Text = "操作者电脑名"
-        .Cell(0, 8).Text = "操作系统表名"
-        .ExtendLastCol = True
-        .AllowUserSort = True
+        .Cell(0, 6).Text = "操作系统表名"
+        .Cell(0, 7).Text = "操作者电脑IP"
+        .Cell(0, 8).Text = "操作者电脑名"
+        .ExtendLastCol = True '最后一列宽度对齐表格末端
+        .AllowUserSort = True '允许双击首行排序
         
         .Rows = lngPageSize + 1
         .rowHeight(0) = 30
@@ -630,6 +630,8 @@ Private Sub msSetTable()
         .Column(5).Width = 80
         .Column(6).Width = 100
         .Column(7).Width = 100
+        If Not gfLoadAuthority(Me, Me.Grid1) Then .Column(6).Width = 0
+        .Enabled = True '当没有权限时会被disable
         
         .AutoRedraw = True
     End With
@@ -664,7 +666,7 @@ Private Sub msShowValue()
     
     Dim I As Long
     Dim K As Long
-    Dim N As Long
+    Dim n As Long
     Dim W As Long
     
     If rsLog.State = adStateClosed Then Exit Sub
@@ -679,14 +681,14 @@ Private Sub msShowValue()
         If lngPageCur < 1 Then lngPageCur = 1
         rsLog.AbsolutePage = lngPageCur
         
-        N = lngPageSize * (lngPageCur - 1) + 1  '''第一条记录的序号
+        n = lngPageSize * (lngPageCur - 1) + 1  '''第一条记录的序号
         
         With Grid1
             .AutoRedraw = False
             For I = 1 To lngPageSize    '''将指定页的内容赋值到表格中
                 If rsLog.EOF Then Exit For
                 K = .FixedRows - 1 + I
-                .Cell(K, 0).Text = CStr(N)
+                .Cell(K, 0).Text = CStr(n)
                 .Cell(K, 1).Text = rsLog.Fields("LogUserFullName")
                 .Cell(K, 2).Text = rsLog.Fields("LogTime")
                 .Cell(K, 3).Text = rsLog.Fields("LogType")
@@ -694,10 +696,10 @@ Private Sub msShowValue()
                 W = InStr(rsLog.Fields("LogFormName"), ",")
                 If W < 1 Then W = Len(rsLog.Fields("LogFormName"))
                 .Cell(K, 5).Text = Right(rsLog.Fields("LogFormName"), Len(rsLog.Fields("LogFormName")) - W)
-                .Cell(K, 6).Text = rsLog.Fields("LogPCIP")
-                .Cell(K, 7).Text = rsLog.Fields("LogPCName")
-                .Cell(K, 8).Text = rsLog.Fields("LogTable")
-                N = N + 1
+                .Cell(K, 6).Text = rsLog.Fields("LogTable")
+                .Cell(K, 7).Text = rsLog.Fields("LogPCIP")
+                .Cell(K, 8).Text = rsLog.Fields("LogPCName")
+                n = n + 1
                 rsLog.MoveNext
             Next
             
@@ -705,8 +707,8 @@ Private Sub msShowValue()
                 For I = I To lngPageSize
                     K = .FixedRows - 1 + I
                     If Len(.Cell(K, 0).Text) = 0 Then Exit For
-                    For N = 0 To .Cols - 1
-                        .Cell(K, N).Text = ""
+                    For n = 0 To .Cols - 1
+                        .Cell(K, n).Text = ""
                     Next
                 Next
             End If
@@ -725,12 +727,12 @@ Private Sub msShowValue()
     
 End Sub
 
-Private Sub Grid1_AfterEdit(ByVal row As Long, ByVal col As Long)
-    Grid1.Cell(row, col).Text = strLastTxt
+Private Sub Grid1_AfterEdit(ByVal Row As Long, ByVal Col As Long)
+    Grid1.Cell(Row, Col).Text = strLastTxt
 End Sub
 
-Private Sub Grid1_BeforeEdit(ByVal row As Long, ByVal col As Long, Cancel As Boolean)
-    strLastTxt = Grid1.Cell(row, col).Text
+Private Sub Grid1_BeforeEdit(ByVal Row As Long, ByVal Col As Long, Cancel As Boolean)
+    strLastTxt = Grid1.Cell(Row, Col).Text
 End Sub
 
 

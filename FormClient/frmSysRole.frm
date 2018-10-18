@@ -1085,11 +1085,11 @@ Private Sub Form_Load()
     Call msLoadRole(TreeView1)  '╫ги╚╨С╪сть
     Call msLoadFunc(TreeView2)
     
-    Call gsLoadAuthority(Me, TreeView1)
-    Call gsLoadAuthority(Me, Command1)
-    Call gsLoadAuthority(Me, Command2)
-    Call gsLoadAuthority(Me, Command3)
-    Call gsLoadAuthority(Me, Combo1.Item(2))
+    Call gfLoadAuthority(Me, TreeView1)
+    Call gfLoadAuthority(Me, Command1)
+    Call gfLoadAuthority(Me, Command2)
+    Call gfLoadAuthority(Me, Command3)
+    Call gfLoadAuthority(Me, Combo1.Item(2))
     
 End Sub
 

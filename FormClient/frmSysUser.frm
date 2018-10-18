@@ -1211,10 +1211,10 @@ Private Sub Form_Load()
     Call msLoadDept(TreeView2)
     Call msLoadRole(TreeView2)
     
-    Call gsLoadAuthority(Me, Command1)
-    Call gsLoadAuthority(Me, Command2)
-    Call gsLoadAuthority(Me, Command3)
-    Call gsLoadAuthority(Me, TreeView1)
+    Call gfLoadAuthority(Me, Command1)
+    Call gfLoadAuthority(Me, Command2)
+    Call gfLoadAuthority(Me, Command3)
+    Call gfLoadAuthority(Me, TreeView1)
     
 End Sub
 

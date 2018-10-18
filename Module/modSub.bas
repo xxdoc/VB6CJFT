@@ -805,37 +805,6 @@ Public Sub gsGridToWord(ByRef gridControl As Control)
     
 End Sub
 
-Public Sub gsLoadAuthority(ByRef frmCur As Form, ByRef ctlCur As Control)
-    '加载窗口中的控制权限
-    
-    Dim strUser As String, strForm As String, strCtlName As String
-    
-    strUser = LCase(gVar.UserLoginName)
-    strForm = LCase(frmCur.Name)
-    strCtlName = LCase(ctlCur.Name)
-    
-    If strUser = LCase(gVar.AccountAdmin) Or strUser = LCase(gVar.AccountSystem) Then Exit Sub
-    ctlCur.Enabled = False
-    
-    With gVar.rsURF
-        If .State = adStateOpen Then
-            If .RecordCount > 0 Then
-                .MoveFirst
-                Do While Not .EOF
-                    If strForm = LCase(.Fields("FuncFormName")) Then
-                        If strCtlName = LCase(.Fields("FuncName")) Then
-                            ctlCur.Enabled = True
-                            Exit Do
-                        End If
-                    End If
-                    .MoveNext
-                Loop
-            End If
-        End If
-    End With
-    
-End Sub
-
 Public Sub gsLoadSkin(ByRef frmCur As Form, ByRef skFRM As XtremeSkinFramework.SkinFramework, _
     Optional ByVal lngResource As genumSkinResChoose, Optional ByVal blnFromReg As Boolean = False)
     '加载主题
