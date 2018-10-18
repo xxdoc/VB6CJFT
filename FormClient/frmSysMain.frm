@@ -699,20 +699,20 @@ Private Sub msAddPopupMenu(ByRef cbsBars As XtremeCommandBars.CommandBars)
     End With
 End Sub
 
-Private Sub msAddTaskPanelItem(ByRef tskPanel As XtremeTaskPanel.taskPanel)
+Private Sub msAddTaskPanelItem(ByRef tskPanel As XtremeTaskPanel.TaskPanel)
     '创建导航菜单
     
     Dim taskGroup As XtremeTaskPanel.TaskPanelGroup
     Dim taskItem As XtremeTaskPanel.TaskPanelGroupItem
     Dim cbsActions As XtremeCommandBars.CommandBarActions
-    Dim lngID As Long, lngMargins As Long, L As Long, T As Long, R As Long, B As Long
+    Dim lngID As Long, lngMargins As Long, L As Long, T As Long, R As Long, b As Long
     
     tskPanel.SetImageList Me.ImageList1
     Set cbsActions = Me.CommandBars1.Actions
     Set taskGroup = tskPanel.Groups.Add(gID.Sys, cbsActions(gID.Sys).Caption)
     With taskGroup.Items
         Set taskItem = .Add(gID.SysAuthChangePassword, cbsActions(gID.SysAuthChangePassword).Caption, xtpTaskItemTypeLink)
-        taskItem.GetRect L, T, R, B
+        taskItem.GetRect L, T, R, b
         lngMargins = L
         .Add gID.SysAuthDepartment, cbsActions(gID.SysAuthDepartment).Caption, xtpTaskItemTypeLink
         .Add gID.SysAuthRole, cbsActions(gID.SysAuthRole).Caption, xtpTaskItemTypeLink
@@ -731,6 +731,8 @@ Private Sub msAddTaskPanelItem(ByRef tskPanel As XtremeTaskPanel.taskPanel)
         Set taskItem = .Add(gID.SysPrintMain, cbsActions(gID.SysPrintMain).Caption, xtpTaskItemTypeText)
         taskItem.Bold = True
         taskItem.SetMargins lngMargins, 0, 0, 0
+        taskItem.AllowDrag = xtpTaskItemAllowDragWithinControl
+        taskItem.AllowDrop = True
         For lngID = gID.SysPrintPageSet To gID.SysPrint
             Set taskItem = .Add(lngID, cbsActions(lngID).Caption, xtpTaskItemTypeLink, lngID)
             taskItem.SetMargins lngMargins, 0, 0, 0
@@ -910,22 +912,24 @@ Private Sub msLeftClick(ByVal CID As Long, ByRef cbsBars As XtremeCommandBars.Co
                 End If
             
             Case .SysExportToCSV To .SysExportToWord, .SysPrintPageSet To .SysPrint
-                If Screen.ActiveControl Is Nothing Then Exit Sub
-                If Not (TypeOf Screen.ActiveControl Is FlexCell.Grid) Then Exit Sub
+                If Me.ActiveForm Is Nothing Then Exit Sub
+                If Me.ActiveForm.ActiveControl Is Nothing Then Exit Sub
+                If Not (TypeOf Me.ActiveForm.ActiveControl Is FlexCell.Grid) Then Exit Sub
+                If Not cbsActions(CID).Enabled Then Exit Sub
                 Select Case CID
                     Case .SysExportToCSV To .SysExportToXML
-                        Call gsGridExportTo(Screen.ActiveControl, CID)
+                        Call gsGridExportTo(Me.ActiveForm.ActiveControl, CID)
                     Case .SysExportToText
-                        If MsgBox("是否将当前表格内容导出至txt文本文档？", vbQuestion + vbYesNo, "询问") = vbYes Then Call gsGridToText(Screen.ActiveControl)
+                        If MsgBox("是否将当前表格内容导出至txt文本文档？", vbQuestion + vbYesNo, "询问") = vbYes Then Call gsGridToText(Me.ActiveForm.ActiveControl)
                     Case .SysExportToWord
-                        If MsgBox("是否将当前表格内容导出至Word文档？", vbQuestion + vbYesNo, "询问") = vbYes Then Call gsGridToWord(Screen.ActiveControl)
+                        If MsgBox("是否将当前表格内容导出至Word文档？", vbQuestion + vbYesNo, "询问") = vbYes Then Call gsGridToWord(Me.ActiveForm.ActiveControl)
                         
                     Case .SysPrint
-                        If MsgBox("确定打印当前表格内容吗？", vbQuestion + vbOKCancel, "打印询问") = vbOK Then Call gsGridPrint
+                        If MsgBox("确定打印当前表格内容吗？", vbQuestion + vbOKCancel, "打印询问") = vbOK Then Call gsGridPrint(Me.ActiveForm.ActiveControl)
                     Case .SysPrintPreview
-                        Call gsGridPrintPreview
+                        Call gsGridPrintPreview(Me.ActiveForm.ActiveControl)
                     Case .SysPrintPageSet
-                        Call gsGridPageSet
+                        Call gsGridPageSet(Me.ActiveForm.ActiveControl)
                 End Select
                 
             Case Else
@@ -1044,7 +1048,7 @@ Private Sub msResetLayout(ByRef cbsBars As XtremeCommandBars.CommandBars)
     '重置窗口布局：CommandBars与Dockingpane控件重置
     
     Dim cBar As XtremeCommandBars.CommandBar
-    Dim L As Long, T As Long, R As Long, B As Long
+    Dim L As Long, T As Long, R As Long, b As Long
 
     For Each cBar In cbsBars
     Debug.Print cBar.BarID, cBar.Title, cBar.Type
@@ -1053,8 +1057,8 @@ Private Sub msResetLayout(ByRef cbsBars As XtremeCommandBars.CommandBars)
     Next
     
     For mlngID = 2 To cbsBars.Count
-        cbsBars.GetClientRect L, T, R, B
-        cbsBars.DockToolBar cbsBars(mlngID), 0, B, xtpBarTop
+        cbsBars.GetClientRect L, T, R, b
+        cbsBars.DockToolBar cbsBars(mlngID), 0, b, xtpBarTop
     Next
     
     Set cBar = Nothing
@@ -1115,17 +1119,13 @@ Private Sub CommandBars1_Update(ByVal Control As XtremeCommandBars.ICommandBarCo
     Dim cbsActions As XtremeCommandBars.CommandBarActions  'cbs控件Actions集合的引用
     Dim blnMainWindow As Boolean '判断主窗体是否已全部加载完成
     Dim tskItems As XtremeTaskPanel.TaskPanelGroupItems   '导航菜单集合
-     
+    
     Set cbsActions = Me.CommandBars1.Actions
     Set tskItems = Me.TaskPanel1.Groups.Find(gID.Sys).Items
     
-    If Screen.ActiveControl Is Nothing Then
-        blnFC = False
-    Else
-        If Screen.ActiveForm.Name = gWind.Name Then '点击导航菜单时焦点窗口变成MDI主窗口了
-            blnFC = True
-        Else
-            blnFC = TypeOf Screen.ActiveForm.ActiveControl Is FlexCell.Grid    '当前活动控件是FC表格
+    If Not Me.ActiveForm Is Nothing Then
+        If Not Me.ActiveForm.ActiveControl Is Nothing Then
+            blnFC = TypeOf Me.ActiveForm.ActiveControl Is FlexCell.Grid    '当前活动控件是FC表格
         End If
     End If
     
@@ -1312,6 +1312,9 @@ End Sub
 
 Private Sub TaskPanel1_ItemClick(ByVal Item As XtremeTaskPanel.ITaskPanelGroupItem)
     '导航菜单响应
+    
+    Rem Debug.Print Me.ActiveForm.Name, Screen.ActiveForm.Name
+    Rem Debug.Print Me.ActiveForm.ActiveControl.Name, Me.ActiveControl.Name
     Call msLeftClick(Item.ID, Me.CommandBars1)
 End Sub
 

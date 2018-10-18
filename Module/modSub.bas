@@ -519,16 +519,11 @@ Public Sub gsFormSizeSave(ByRef frmSave As Form, Optional ByVal blnServer As Boo
     End If
 End Sub
 
-Public Sub gsGridPageSet()
+Public Sub gsGridPageSet(ByRef gridControl As Control)
     '打印页面设置
     
-    Dim gridControl As Control
     Dim blnFlexCell As Boolean
     
-    If Screen.ActiveForm Is Nothing Then GoTo LineBreak
-    If Screen.ActiveForm.ActiveControl Is Nothing Then GoTo LineBreak
-    
-    Set gridControl = Screen.ActiveForm.ActiveControl
     If TypeOf gridControl Is FlexCell.Grid Then blnFlexCell = True
     
     If blnFlexCell Then
@@ -545,25 +540,20 @@ LineBreak:
     
 End Sub
 
-Public Sub gsGridPrint()
+Public Sub gsGridPrint(ByRef printGrid As Control)
     '打印表格内容
     
-    Call gsGridPrintPreview
+    Call gsGridPrintPreview(printGrid)
     
 End Sub
 
-Public Sub gsGridPrintPreview()
+Public Sub gsGridPrintPreview(ByRef gridControl As Control)
     '预览表格内容
     
-    Dim gridControl As Control
     Dim blnFlexCell As Boolean
     
-    If Screen.ActiveForm Is Nothing Then GoTo LineBreak
-    If Screen.ActiveForm.ActiveControl Is Nothing Then GoTo LineBreak
-    
-    Set gridControl = Screen.ActiveForm.ActiveControl
     If TypeOf gridControl Is FlexCell.Grid Then blnFlexCell = True
-
+    
     If blnFlexCell Then
         With gridControl
             With .PageSetup
@@ -760,6 +750,7 @@ Public Sub gsGridToWord(ByRef gridControl As Control)
     Dim lngRows As Long, lngCols As Long
     Dim I As Long, J As Long
     Dim blnFlexCell As Boolean
+    Dim strFileName As String
     
     If gridControl Is Nothing Then Exit Sub
     
@@ -768,12 +759,16 @@ Public Sub gsGridToWord(ByRef gridControl As Control)
     lngCols = gridControl.Cols
     
     On Error Resume Next
-'    Set wordApp = New Word.Application
+        
     Set wordApp = CreateObject("Word.Application")
     Set docOut = wordApp.Documents.Add()
-    Set tbOut = docOut.Tables.Add(docOut.Range, lngRows, lngCols, True)
     
     If blnFlexCell Then
+        If gridControl.PageSetup.Orientation = cellLandscape Then
+            docOut.Range.PageSetup.Orientation = wdOrientLandscape '表格预览为横向则设置纸张为横向
+        End If
+        Set tbOut = docOut.Tables.Add(docOut.Range, lngRows, lngCols, True)
+        
         For I = 0 To lngRows - 1
             For J = 0 To lngCols - 1
                 tbOut.Cell(I + 1, J + 1).Range.Text = gridControl.Cell(I, J).Text
@@ -791,7 +786,18 @@ Public Sub gsGridToWord(ByRef gridControl As Control)
     tbOut.Range.ParagraphFormat.Alignment = 1   '表格内容居中显示
     Call tbOut.AutoFitBehavior(1)               '根据内容自动调整列宽
     
-    wordApp.Visible = True
+    For I = 1 To 8
+        strFileName = strFileName & gfBackOneChar(udNumber + udUpperCase) '文件名中的8个随机字符，不含小写字母
+    Next
+    strFileName = gVar.FolderNameTemp & Format(Now, gVar.Formatymdhms & "_") & strFileName & ".doc"
+    If gfFileRepair(strFileName) Then
+        docOut.SaveAs strFileName   '另存为
+    Else
+        Call gsAlarmAndLogEx("创建" & strFileName & "文件失败！", "文件生成警告")
+    End If
+    
+    wordApp.Visible = True  '显示文档
+    wordApp.Activate    '顶层显示
     
     Set tbOut = Nothing
     Set docOut = Nothing
