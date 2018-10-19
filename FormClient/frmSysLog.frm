@@ -199,7 +199,7 @@ Begin VB.Form frmSysLog
             _ExtentX        =   2355
             _ExtentY        =   450
             _Version        =   393216
-            Format          =   87359489
+            Format          =   89128961
             CurrentDate     =   42628
          End
          Begin MSComCtl2.DTPicker DTPicker1 
@@ -212,7 +212,7 @@ Begin VB.Form frmSysLog
             _ExtentX        =   2355
             _ExtentY        =   450
             _Version        =   393216
-            Format          =   87359489
+            Format          =   89128961
             CurrentDate     =   42628
          End
          Begin VB.Label Label1 
@@ -628,9 +628,15 @@ Private Sub msSetTable()
         .Column(3).Width = 80
         .Column(4).Width = 300
         .Column(5).Width = 80
-        .Column(6).Width = 100
+        .Column(6).Width = 120
         .Column(7).Width = 100
-        If Not gfLoadAuthority(Me, Me.Grid1) Then .Column(6).Width = 0
+        .Column(8).Width = 80
+        If Not (LCase(gVar.UserLoginName) = LCase(gVar.AccountAdmin) _
+          Or LCase(gVar.UserLoginName) = LCase(gVar.AccountSystem)) Then
+            If Not gfLoadAuthority(Me, Me.Grid1) Then
+                .Column(6).Width = 0 '系统表名列只显示给系统管理者
+            End If
+        End If
         .Enabled = True '当没有权限时会被disable
         
         .AutoRedraw = True

@@ -706,6 +706,7 @@ Private Sub msAddTaskPanelItem(ByRef tskPanel As XtremeTaskPanel.TaskPanel)
     Dim taskItem As XtremeTaskPanel.TaskPanelGroupItem
     Dim cbsActions As XtremeCommandBars.CommandBarActions
     Dim lngID As Long, lngMargins As Long, L As Long, T As Long, R As Long, b As Long
+    Dim cbsAction As XtremeCommandBars.CommandBarAction
     
     tskPanel.SetImageList Me.ImageList1 '暂没研究其用途
     Set cbsActions = Me.CommandBars1.Actions
@@ -741,15 +742,18 @@ Private Sub msAddTaskPanelItem(ByRef tskPanel As XtremeTaskPanel.TaskPanel)
         .Add gID.SysLoginAgain, cbsActions(gID.SysLoginAgain).Caption, xtpTaskItemTypeLink
         .Add gID.SysLoginOut, cbsActions(gID.SysLoginOut).Caption, xtpTaskItemTypeLink
     End With
-    For Each taskItem In taskGroup.Items '权限同步。暂没找到简写方法，每个Group都这么循环一次。
-        taskItem.Enabled = cbsActions(taskItem.ID).Enabled
-    Next
-    
     
 '    .Add , cbsActions(0).Caption, xtpTaskItemTypeLink
     
+    For Each cbsAction In cbsActions '权限同步
+        If Not tskPanel.Find(cbsAction.ID) Is Nothing Then
+            tskPanel.Find(cbsAction.ID).Enabled = cbsAction.Enabled
+        End If
+    Next
+    
     Set taskItem = Nothing
     Set taskGroup = Nothing
+    Set cbsAction = Nothing
     Set cbsActions = Nothing
 End Sub
 
@@ -1004,6 +1008,7 @@ Private Sub msLoadUserAuthority(ByVal strUID As String)
     If strSys = LCase(gVar.AccountAdmin) Or strSys = LCase(gVar.AccountSystem) Then   '程序内定两个用户拥有所有权限
         For Each cbsAction In gWind.CommandBars1.Actions
             cbsAction.Enabled = True
+            If Not Me.TaskPanel1.Find(cbsAction.ID) Is Nothing Then Me.TaskPanel1.Find(cbsAction.ID).Enabled = True
         Next
         Exit Sub
     End If
