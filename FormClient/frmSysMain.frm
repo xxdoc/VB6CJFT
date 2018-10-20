@@ -437,7 +437,9 @@ Option Explicit
 Dim mlngID As Long  '循环变量ID
 Dim WithEvents mXtrStatusBar As XtremeCommandBars.StatusBar  '状态栏控件
 Attribute mXtrStatusBar.VB_VarHelpID = -1
-Dim mcbsPopupIcon As XtremeCommandBars.CommandBar    '托盘图标Pupup菜单
+Dim mcbsPopupIcon As XtremeCommandBars.CommandBar   '托盘图标Pupup菜单
+Dim mcbsPopupNavi As XtremeCommandBars.CommandBar   '导航菜单标题行Popup菜单
+Dim mcbsPopupTab As XtremeCommandBars.CommandBar    '多标签右键Popup菜单
 Dim WithEvents mTabWorkspace As XtremeCommandBars.TabWorkspace '多标签窗口控件
 Attribute mTabWorkspace.VB_VarHelpID = -1
 
@@ -482,7 +484,10 @@ Private Sub msAddAction(ByRef cbsBars As XtremeCommandBars.CommandBars)
         
         .Add gID.Wnd, "窗口", "", "", "窗口"
         
+        .Add gID.WndThemeSkinSet, "窗口主题设置...", "", "", ""
         .Add gID.WndResetLayout, "重置窗口布局", "", "", ""
+        .Add gID.WndToolBarCustomize, "自定义工具栏…", "自定义工具栏", "自定义工具栏", ""
+        .Add gID.WndToolBarList, "工具栏列表", "工具栏列表", "工具栏列表", ""
         
         .Add gID.WndThemeCommandBars, "工具栏主题", "", "", ""
         .Add gID.WndThemeCommandBarsOffice2000, "Office2000", "", "", ""
@@ -496,9 +501,54 @@ Private Sub msAddAction(ByRef cbsBars As XtremeCommandBars.CommandBars)
         .Add gID.WndThemeCommandBarsWhidbey, "Whidbey", "", "", ""
         .Add gID.WndThemeCommandBarsWinXP, "WinXP", "", "", ""
         
+        .Add gID.WndThemeTaskPanel, "任务面板主题", "", "", ""
+        .Add gID.WndThemeTaskPanelListView, "ListView", "", "", ""
+        .Add gID.WndThemeTaskPanelListViewOffice2003, "ListViewOffice2003", "", "", ""
+        .Add gID.WndThemeTaskPanelListViewOfficeXP, "ListViewOfficeXP", "", "", ""
+        .Add gID.WndThemeTaskPanelNativeWinXP, "NativeWinXP", "", "", ""
+        .Add gID.WndThemeTaskPanelNativeWinXPPlain, "NativeWinXPPlain", "", "", ""
+        .Add gID.WndThemeTaskPanelOffice2000, "Office2000", "", "", ""
+        .Add gID.WndThemeTaskPanelOffice2000Plain, "Office2000Plain", "", "", ""
+        .Add gID.WndThemeTaskPanelOffice2003, "Office2003", "", "", ""
+        .Add gID.WndThemeTaskPanelOffice2003Plain, "Office2003Plain", "", "", ""
+        .Add gID.WndThemeTaskPanelOfficeXPPlain, "OfficeXPPlain", "", "", ""
+        .Add gID.WndThemeTaskPanelResource, "Resource", "", "", ""
+        .Add gID.WndThemeTaskPanelShortcutBarOffice2003, "ShortcutBarOffice2003", "", "", ""
+        .Add gID.WndThemeTaskPanelToolbox, "Toolbox", "", "", ""
+        .Add gID.WndThemeTaskPanelToolboxWhidbey, "ToolboxWhidbey", "", "", ""
+        .Add gID.WndThemeTaskPanelVisualStudio2010, "VisualStudio2010", "", "", ""
+        
+        .Add gID.WndSon, "子窗口控制", "", "", ""
+        .Add gID.WndSonCloseAll, "关闭所有子窗口", "", "", ""
+        .Add gID.WndSonCloseCurrent, "关闭当前子窗口", "", "", ""
+        .Add gID.WndSonCloseLeft, "关闭当前标签左侧子窗口", "", "", ""
+        .Add gID.WndSonCloseOther, "关闭其它子窗口", "", "", ""
+        .Add gID.WndSonCloseRight, "关闭当前标签右侧子窗口", "", "", ""
+        .Add gID.WndSonVbAllBack, "恢复子窗口", "", "", ""
+        .Add gID.WndSonVbAllMin, "最小化所有子窗口", "", "", ""
+        .Add gID.WndSonVbArrangeIcons, "重新排列最小化图标", "", "", ""
+        .Add gID.WndSonVbCascade, "子窗口层叠", "", "", ""
+        .Add gID.WndSonVbTileHorizontal, "子窗口水平平铺", "", "", ""
+        .Add gID.WndSonVbTileVertical, "子窗口垂直平铺", "", "", ""
+        
+        .Add gID.WndThemeSkin, "窗口主题", "", "", ""
+        .Add gID.WndThemeSkinCodejock, "Codejock", "", "", ""
+        .Add gID.WndThemeSkinOffice2007, "Office2007", "", "", ""
+        .Add gID.WndThemeSkinOffice2010, "Office2010", "", "", ""
+        .Add gID.WndThemeSkinVista, "Vista", "", "", ""
+        .Add gID.WndThemeSkinWinXPLuna, "WinXPLuna", "", "", ""
+        .Add gID.WndThemeSkinWinXPRoyale, "WinXPRoyale", "", "", ""
+        .Add gID.WndThemeSkinZune, "Zune", "", "", ""
+        
+        
+        .Add gID.Tool, "工具", "", "", "工具"
+        .Add gID.toolOptions, "选项…", "选项", "选项", "frmOption"
+        
         .Add gID.Help, "帮助", "", "", "帮助"
         .Add gID.HelpAbout, "关于…", "", "", ""
+        .Add gID.HelpDocument, "帮助文档", "", "", ""
         .Add gID.HelpUpdate, "更新检查", "", "", ""
+                
         
         .Add gID.StatusBarPane, "状态栏", "", "", ""
         .Add gID.StatusBarPaneProgress, "进度条", "", "", ""
@@ -518,10 +568,16 @@ Private Sub msAddAction(ByRef cbsBars As XtremeCommandBars.CommandBars)
         .Add gID.IconPopupMenuMaxWindow, "最大化窗口", "", "", ""
         .Add gID.IconPopupMenuMinWindow, "最小化窗口", "", "", ""
         .Add gID.IconPopupMenuShowWindow, "显示窗口", "", "", ""
+
+        .Add gID.Pane, "任务面板", "", "", ""
+        .Add gID.PaneNavi, "导航菜单", "", "导航菜单显示/隐藏", ""
         
-        .Add gID.Tool, "工具", "", "", "工具"
-        .Add gID.toolOptions, "选项", "", "", "frmOption"
+        .Add gID.PanePopupMenuNavi, "导航菜单标题行Popup菜单", "", "", ""
+        .Add gID.PanePopupMenuNaviAutoFoldOther, "自动收拢", "", "点击某子菜单时收拢导航菜单中所有其它主菜单", ""
+        .Add gID.PanePopupMenuNaviExpandALL, "全部展开", "", "展开导航菜单中所有主菜单", ""
+        .Add gID.PanePopupMenuNaviFoldALL, "全部收拢", "", "收拢导航菜单中所有主菜单", ""
         
+        .Add gID.TabWorkspacePopupMenu, "多标签右键菜单", "", "", ""
         
 '        .Add gID, "", "", "", ""
         
@@ -583,12 +639,22 @@ Private Sub msAddDockingPane(ByRef cbsBars As XtremeCommandBars.CommandBars)
     '创建浮动面板
     
     Dim paneNavigation As XtremeDockingPane.Pane
+    Dim cbsActions As XtremeCommandBars.CommandBarActions
     
-    Me.DockingPane1.SetCommandBars Me.CommandBars1 '若这两种控制同时使用必需这么设置，且CommandBars控件在DockingPane控件顶层
+    Me.DockingPane1.SetCommandBars cbsBars '若这两种控制同时使用必需这么设置，且CommandBars控件在DockingPane控件顶层
     
-    Set paneNavigation = Me.DockingPane1.CreatePane(1, 240, 240, DockLeftOf)
-    paneNavigation.Handle = Me.Picture1.hwnd
+    Set cbsActions = cbsBars.Actions
+    Set paneNavigation = Me.DockingPane1.CreatePane(cbsActions(gID.PaneNavi).ID, 240, 240, DockLeftOf)
+    With paneNavigation
+        .Title = cbsActions(gID.PaneNavi).Caption
+        .TitleToolTip = .Title
+        .TabCaption = .Title
+        .Options = PaneHasMenuButton
+        .Handle = Me.Picture1.hwnd
+    End With
     
+    Set paneNavigation = Nothing
+    Set cbsActions = Nothing
 End Sub
 
 Private Sub msAddKeyBindings(ByRef cbsBars As XtremeCommandBars.CommandBars)
@@ -650,16 +716,16 @@ Private Sub msAddMenu(ByRef cbsBars As XtremeCommandBars.CommandBars)
     '窗口主菜单
     Set cbsMenuMain = cbsMenuBar.Controls.Add(xtpControlPopup, gID.Wnd, "")
     With cbsMenuMain.CommandBar.Controls
-        '重置布局
-        Set cbsMenuCtrl = .Add(xtpControlButton, gID.WndResetLayout, "")
-        cbsMenuCtrl.BeginGroup = True
+        .Add xtpControlButton, gID.WndThemeSkinSet, "" '皮肤设置
+        .Add xtpControlButton, gID.WndResetLayout, "" '重置布局
+        .Add xtpControlButton, gID.PaneNavi, ""  '导航菜单显示/隐藏
         
-        '特殊ID35001自定义工具栏
-        Set cbsMenuCtrl = .Add(xtpControlButton, XTP_ID_CUSTOMIZE, "自定义工具栏...")
+        '特殊ID XTP_ID_CUSTOMIZE=35001自定义工具栏
+        Set cbsMenuCtrl = .Add(xtpControlButton, gID.WndToolBarCustomize, "")
         cbsMenuCtrl.BeginGroup = True
     
-        '特殊ID59392工具栏列表
-        Set cbsMenuCtrl = .Add(xtpControlPopup, 0, "工具栏列表")
+        '特殊ID XTP_ID_TOOLBARLIST=59392工具栏列表
+        Set cbsMenuCtrl = .Add(xtpControlPopup, gID.WndToolBarList, "")
         cbsMenuCtrl.CommandBar.Controls.Add xtpControlButton, XTP_ID_TOOLBARLIST, ""
         
         'CommandBars工具栏主题子菜单
@@ -669,6 +735,26 @@ Private Sub msAddMenu(ByRef cbsBars As XtremeCommandBars.CommandBars)
                 .Add xtpControlButton, mlngID, ""
             Next
         End With
+        
+        'TaskPanel任务面板主题
+        Set cbsMenuCtrl = .Add(xtpControlPopup, gID.WndThemeTaskPanel, "")
+        cbsMenuCtrl.BeginGroup = True
+        With cbsMenuCtrl.CommandBar.Controls
+            For mlngID = gID.WndThemeTaskPanelListView To gID.WndThemeTaskPanelVisualStudio2010
+                .Add xtpControlButton, mlngID, ""
+            Next
+        End With
+        
+        '子窗口控制
+        Set cbsMenuCtrl = .Add(xtpControlPopup, gID.WndSon, "")
+        cbsMenuCtrl.BeginGroup = True
+        With cbsMenuCtrl.CommandBar.Controls
+            For mlngID = gID.WndSonCloseAll To gID.WndSonVbTileVertical
+                .Add xtpControlButton, mlngID, ""
+            Next
+            .Find(, gID.WndSonVbAllBack).BeginGroup = True
+        End With
+                
     End With
     
     '工具菜单
@@ -677,9 +763,12 @@ Private Sub msAddMenu(ByRef cbsBars As XtremeCommandBars.CommandBars)
     
     '帮助主菜单
     Set cbsMenuMain = cbsMenuBar.Controls.Add(xtpControlPopup, gID.Help, "")
-    cbsMenuMain.CommandBar.Controls.Add xtpControlButton, gID.HelpAbout, ""
-    cbsMenuMain.CommandBar.Controls.Add xtpControlButton, gID.HelpUpdate, ""
-    
+    With cbsMenuMain.CommandBar.Controls
+        For mlngID = gID.HelpAbout To gID.HelpUpdate
+            .Add xtpControlButton, mlngID, ""
+        Next
+    End With
+        
     Set cbsMenuBar = Nothing
     Set cbsMenuMain = Nothing
     Set cbsMenuCtrl = Nothing
@@ -688,7 +777,6 @@ End Sub
 
 Private Sub msAddPopupMenu(ByRef cbsBars As XtremeCommandBars.CommandBars)
     '创建托盘图标右键弹出式菜单
-        
     Set mcbsPopupIcon = cbsBars.Add(cbsBars.Actions(gID.IconPopupMenu).Caption, xtpBarPopup)
     With mcbsPopupIcon.Controls
         .Add xtpControlButton, gID.IconPopupMenuMaxWindow, ""
@@ -697,6 +785,24 @@ Private Sub msAddPopupMenu(ByRef cbsBars As XtremeCommandBars.CommandBars)
         .Add xtpControlButton, gID.SysLoginAgain, ""
         .Add xtpControlButton, gID.SysLoginOut, ""
     End With
+    
+    '创建导航菜单面板上标题行上的弹出式菜单
+    Set mcbsPopupNavi = cbsBars.Add(cbsBars.Actions(gID.PanePopupMenuNavi).Caption, xtpBarPopup)
+    With mcbsPopupNavi.Controls
+        .Add xtpControlButton, gID.PanePopupMenuNaviAutoFoldOther, ""
+        .Add xtpControlButton, gID.PanePopupMenuNaviExpandALL, ""
+        .Add xtpControlButton, gID.PanePopupMenuNaviFoldALL, ""
+    End With
+    
+    '创建多标签上的右键菜单
+    Set mcbsPopupTab = cbsBars.Add(cbsBars.Actions(gID.TabWorkspacePopupMenu).Caption, xtpBarPopup)
+    With mcbsPopupTab.Controls
+        For mlngID = gID.WndSonCloseAll To gID.WndSonVbTileVertical
+            .Add xtpControlButton, mlngID, ""
+        Next
+        .Find(, gID.WndSonVbAllBack).BeginGroup = True
+    End With
+        
 End Sub
 
 Private Sub msAddTaskPanelItem(ByRef tskPanel As XtremeTaskPanel.TaskPanel)
@@ -705,16 +811,18 @@ Private Sub msAddTaskPanelItem(ByRef tskPanel As XtremeTaskPanel.TaskPanel)
     Dim taskGroup As XtremeTaskPanel.TaskPanelGroup
     Dim taskItem As XtremeTaskPanel.TaskPanelGroupItem
     Dim cbsActions As XtremeCommandBars.CommandBarActions
-    Dim lngID As Long, lngMargins As Long, L As Long, T As Long, R As Long, b As Long
+    Dim lngID As Long, lngLeftMargins As Long, L As Long, T As Long, R As Long, B As Long
     Dim cbsAction As XtremeCommandBars.CommandBarAction
     
     tskPanel.SetImageList Me.ImageList1 '暂没研究其用途
     Set cbsActions = Me.CommandBars1.Actions
+    
+    '创建系统菜单
     Set taskGroup = tskPanel.Groups.Add(gID.Sys, cbsActions(gID.Sys).Caption)
     With taskGroup.Items
         Set taskItem = .Add(gID.SysAuthChangePassword, cbsActions(gID.SysAuthChangePassword).Caption, xtpTaskItemTypeLink)
-        taskItem.GetRect L, T, R, b
-        lngMargins = L
+        taskItem.GetRect L, T, R, B '为了排列好看，每一级子菜单使用同样的缩进距离,主要是为了获取L值(左边距)
+        lngLeftMargins = L
         .Add gID.SysAuthDepartment, cbsActions(gID.SysAuthDepartment).Caption, xtpTaskItemTypeLink
         .Add gID.SysAuthRole, cbsActions(gID.SysAuthRole).Caption, xtpTaskItemTypeLink
         .Add gID.SysAuthUser, cbsActions(gID.SysAuthUser).Caption, xtpTaskItemTypeLink
@@ -722,31 +830,68 @@ Private Sub msAddTaskPanelItem(ByRef tskPanel As XtremeTaskPanel.TaskPanel)
         .Add gID.SysAuthLog, cbsActions(gID.SysAuthLog).Caption, xtpTaskItemTypeLink
         
         Set taskItem = .Add(gID.SysExportMain, cbsActions(gID.SysExportMain).Caption, xtpTaskItemTypeText)
-        taskItem.SetMargins lngMargins, 0, 0, 0
         taskItem.Bold = True
+        taskItem.SetMargins lngLeftMargins, 0, 0, 0
         For lngID = gID.SysExportToCSV To gID.SysExportToWord
             Set taskItem = .Add(lngID, cbsActions(lngID).Caption, xtpTaskItemTypeLink)
-            taskItem.SetMargins lngMargins, 0, 0, 0
+            taskItem.SetMargins lngLeftMargins, 0, 0, 0
         Next
         
         Set taskItem = .Add(gID.SysPrintMain, cbsActions(gID.SysPrintMain).Caption, xtpTaskItemTypeText)
         taskItem.Bold = True
-        taskItem.SetMargins lngMargins, 0, 0, 0
-        taskItem.AllowDrag = xtpTaskItemAllowDragWithinControl
-        taskItem.AllowDrop = True
+        taskItem.SetMargins lngLeftMargins, 0, 0, 0
         For lngID = gID.SysPrintPageSet To gID.SysPrint
             Set taskItem = .Add(lngID, cbsActions(lngID).Caption, xtpTaskItemTypeLink, lngID)
-            taskItem.SetMargins lngMargins, 0, 0, 0
+            taskItem.SetMargins lngLeftMargins, 0, 0, 0
         Next
         
         .Add gID.SysLoginAgain, cbsActions(gID.SysLoginAgain).Caption, xtpTaskItemTypeLink
         .Add gID.SysLoginOut, cbsActions(gID.SysLoginOut).Caption, xtpTaskItemTypeLink
     End With
     
-'    .Add , cbsActions(0).Caption, xtpTaskItemTypeLink
+    '创建窗口菜单
+    Set taskGroup = tskPanel.Groups.Add(gID.Wnd, cbsActions(gID.Wnd).Caption)
+    With taskGroup.Items
+        .Add gID.WndThemeSkinSet, cbsActions(gID.WndThemeSkinSet).Caption, xtpTaskItemTypeLink
+        .Add gID.WndResetLayout, cbsActions(gID.WndResetLayout).Caption, xtpTaskItemTypeLink
+        
+        .Add gID.WndToolBarCustomize, cbsActions(gID.WndToolBarCustomize).Caption, xtpTaskItemTypeLink
+        Set taskItem = .Add(gID.WndThemeCommandBars, cbsActions(gID.WndThemeCommandBars).Caption, xtpTaskItemTypeText)
+        taskItem.Bold = True
+        taskItem.SetMargins lngLeftMargins, 0, 0, 0
+        For mlngID = gID.WndThemeCommandBarsOffice2000 To gID.WndThemeCommandBarsWinXP
+            .Add mlngID, cbsActions(mlngID).Caption, xtpTaskItemTypeLink
+            .Find(mlngID).SetMargins lngLeftMargins, 0, 0, 0
+        Next
+        
+        Set taskItem = .Add(gID.WndSon, cbsActions(gID.WndSon).Caption, xtpTaskItemTypeText)
+        taskItem.Bold = True
+        taskItem.SetMargins lngLeftMargins, 0, 0, 0
+        For mlngID = gID.WndSonCloseAll To gID.WndSonVbTileVertical
+            .Add mlngID, cbsActions(mlngID).Caption, xtpTaskItemTypeLink
+            .Find(mlngID).SetMargins lngLeftMargins, 0, 0, 0
+        Next
+    End With
     
-    For Each cbsAction In cbsActions '权限同步
-        If Not tskPanel.Find(cbsAction.ID) Is Nothing Then
+    '创建工具菜单
+    Set taskGroup = tskPanel.Groups.Add(gID.Tool, cbsActions(gID.Tool).Caption)
+    With taskGroup.Group.Items
+        .Add gID.toolOptions, cbsActions(gID.toolOptions).Caption, xtpTaskItemTypeLink
+    End With
+    
+    
+    '创建帮助菜单
+    Set taskGroup = tskPanel.Groups.Add(gID.Help, cbsActions(gID.Help).Caption)
+    With taskGroup.Group.Items
+        For mlngID = gID.HelpAbout To gID.HelpUpdate
+            .Add mlngID, cbsActions(mlngID).Caption, xtpTaskItemTypeLink
+        Next
+    End With
+    
+    
+    '同步权限
+    For Each cbsAction In cbsActions
+        If Not tskPanel.Find(cbsAction.ID) Is Nothing Then '并不是每个Action对应一个GroupItem
             tskPanel.Find(cbsAction.ID).Enabled = cbsAction.Enabled
         End If
     Next
@@ -1061,7 +1206,7 @@ Private Sub msResetLayout(ByRef cbsBars As XtremeCommandBars.CommandBars)
     '重置窗口布局：CommandBars与Dockingpane控件重置
     
     Dim cBar As XtremeCommandBars.CommandBar
-    Dim L As Long, T As Long, R As Long, b As Long
+    Dim L As Long, T As Long, R As Long, B As Long
 
     For Each cBar In cbsBars
     Debug.Print cBar.BarID, cBar.Title, cBar.Type
@@ -1070,8 +1215,8 @@ Private Sub msResetLayout(ByRef cbsBars As XtremeCommandBars.CommandBars)
     Next
     
     For mlngID = 2 To cbsBars.Count
-        cbsBars.GetClientRect L, T, R, b
-        cbsBars.DockToolBar cbsBars(mlngID), 0, b, xtpBarTop
+        cbsBars.GetClientRect L, T, R, B
+        cbsBars.DockToolBar cbsBars(mlngID), 0, B, xtpBarTop
     Next
     
     Set cBar = Nothing
@@ -1162,6 +1307,23 @@ Private Sub CommandBars1_Update(ByVal Control As XtremeCommandBars.ICommandBarCo
     Set tskItems = Nothing
 End Sub
 
+
+Private Sub DockingPane1_Action(ByVal Action As XtremeDockingPane.DockingPaneAction, ByVal Pane As XtremeDockingPane.IPane, ByVal Container As XtremeDockingPane.IPaneActionContainer, Cancel As Boolean)
+    '导航菜单任务面板显示与隐藏（关闭）
+    If Action = PaneActionClosed Then
+        If Pane.ID = gID.PaneNavi Then
+            Me.CommandBars1.Actions(gID.PaneNavi).Checked = False
+        End If
+    End If
+End Sub
+
+Private Sub DockingPane1_PanePopupMenu(ByVal Pane As XtremeDockingPane.IPane, ByVal x As Long, ByVal y As Long, Handled As Boolean)
+    '导航菜单任务面板上标题行上弹出式菜单
+    If Pane.ID = gID.PaneNavi Then
+        mcbsPopupNavi.ShowPopup , x * 15, y * 15
+    End If
+End Sub
+
 Private Sub MDIForm_Load()
     '窗体加载
     
@@ -1235,12 +1397,12 @@ Private Sub MDIForm_Load()
     
 End Sub
 
-Private Sub MDIForm_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
+Private Sub MDIForm_MouseMove(Button As Integer, Shift As Integer, x As Single, y As Single)
     '响应托盘图标左键、右键动作，托盘菜单
     Dim sngMsg As Single
     
-    If Y <> 0 Then Exit Sub    '似乎此句可限制住鼠标一定是在托盘图标上，不是在窗体上
-    sngMsg = X / Screen.TwipsPerPixelX
+    If y <> 0 Then Exit Sub    '似乎此句可限制住鼠标一定是在托盘图标上，不是在窗体上
+    sngMsg = x / Screen.TwipsPerPixelX
     Select Case sngMsg
         Case WM_RBUTTONUP
             mcbsPopupIcon.ShowPopup  '右键弹出Popup菜单
@@ -1316,6 +1478,15 @@ Private Sub MDIForm_Unload(Cancel As Integer)
     
     Set gWind = Nothing '清除全局窗体引用
     
+End Sub
+
+Private Sub mTabWorkspace_RClick(ByVal Item As XtremeCommandBars.ITabControlItem)
+    '右键多标签显示菜单
+    If Not Item Is Nothing Then
+        Item.Selected = True
+        mTabWorkspace.Refresh
+        mcbsPopupTab.ShowPopup
+    End If
 End Sub
 
 Private Sub Picture1_Resize()

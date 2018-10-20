@@ -455,11 +455,13 @@ Public Type gtypeCommandBarID
     
     Wnd As Long '模块-窗口控制
     
+    WndThemeSkinSet As Long '窗口主题设置
     WndResetLayout As Long  '窗口布局重置
     
-    TabWorkspacePopupMenu As Long   '多标签右键菜单模块
+    WndToolBarCustomize As Long '自定义工具栏
+    WndToolBarList As Long '工具栏列表
     
-    WndThemeCommandBars As Long '主题-CommandBars
+    WndThemeCommandBars As Long '工具栏主题-CommandBars
     WndThemeCommandBarsOffice2000 As Long
     WndThemeCommandBarsOfficeXp As Long
     WndThemeCommandBarsOffice2003 As Long
@@ -471,7 +473,7 @@ Public Type gtypeCommandBarID
     WndThemeCommandBarsVS6 As Long
     WndThemeCommandBarsVS2010 As Long
     
-    WndThemeTaskPanel As Long   '主题-TaskPanel
+    WndThemeTaskPanel As Long   '任务面板(导航菜单)主题-TaskPanel
     WndThemeTaskPanelOffice2000 As Long
     WndThemeTaskPanelOffice2003 As Long
     WndThemeTaskPanelNativeWinXP As Long
@@ -488,7 +490,7 @@ Public Type gtypeCommandBarID
     WndThemeTaskPanelResource As Long
     WndThemeTaskPanelVisualStudio2010 As Long
     
-    WndThemeSkin As Long    '主题-SkinFrameWork
+    WndThemeSkin As Long    '系统皮肤主题-SkinFrameWork
     WndThemeSkinCodejock As Long
     WndThemeSkinOffice2007 As Long
     WndThemeSkinOffice2010 As Long
@@ -496,7 +498,6 @@ Public Type gtypeCommandBarID
     WndThemeSkinWinXPRoyale As Long
     WndThemeSkinWinXPLuna As Long
     WndThemeSkinZune As Long
-    WndThemeSkinSet As Long
     
     WndSon As Long  '子窗口控制
     WndSonVbCascade As Long
@@ -522,14 +523,14 @@ Public Type gtypeCommandBarID
     
     Pane As Long   '模块--浮动面板
     
-    PaneIDFirst As Long     '面板ID
-    PaneTitleFirst As Long  '面板标题
+    PaneNavi As Long '导航菜单
     
-    PanePopupMenu As Long   '面板弹出式菜单模块
-    PanePopupMenuExpandALL As Long  '展开所有
-    PanePopupMenuAutoFoldOther As Long  '自动折叠其它
-    PanePopupMenuFoldALL As Long    '折叠所有
+    PanePopupMenuNavi As Long   '导航菜单任务面板弹出式菜单模块
+    PanePopupMenuNaviExpandALL As Long  '展开所有
+    PanePopupMenuNaviAutoFoldOther As Long  '自动折叠其它
+    PanePopupMenuNaviFoldALL As Long    '折叠所有
     
+    TabWorkspacePopupMenu As Long   '多标签右键菜单模块
     
     StatusBarPane As Long               '模块-状态栏面板
     

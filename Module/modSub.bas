@@ -37,7 +37,8 @@ Public Sub Main(Optional ByVal blnLoad As Boolean = True)
         .Wnd = 2000
         
         .WndResetLayout = 2050
-        
+        .WndToolBarCustomize = XTP_ID_CUSTOMIZE '=35001
+        .WndToolBarList = XTP_ID_TOOLBARLIST '=59392
         .TabWorkspacePopupMenu = 2051
         
         .WndThemeCommandBars = 2100
@@ -110,13 +111,12 @@ Public Sub Main(Optional ByVal blnLoad As Boolean = True)
         
         .Pane = 21000
         
-        .PaneIDFirst = 21101
-        .PaneTitleFirst = 21102
+        .PaneNavi = 21102
         
-        .PanePopupMenu = 21103
-        .PanePopupMenuAutoFoldOther = 21104
-        .PanePopupMenuExpandALL = 21105
-        .PanePopupMenuFoldALL = 21106
+        .PanePopupMenuNavi = 21103
+        .PanePopupMenuNaviAutoFoldOther = 21104
+        .PanePopupMenuNaviExpandALL = 21105
+        .PanePopupMenuNaviFoldALL = 21106
         
         
         .StatusBarPane = 22000

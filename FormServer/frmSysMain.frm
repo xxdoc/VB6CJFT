@@ -1,7 +1,7 @@
 VERSION 5.00
 Object = "{248DD890-BB45-11CF-9ABC-0080C7E7B78D}#1.0#0"; "MSWINSCK.OCX"
 Object = "{E08BA07E-6463-4EAB-8437-99F08000BAD9}#1.9#0"; "FlexCell.ocx"
-Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.0#0"; "MSCOMCTL.OCX"
+Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.1#0"; "MSCOMCTL.OCX"
 Object = "{555E8FCC-830E-45CC-AF00-A012D5AE7451}#15.3#0"; "Codejock.CommandBars.v15.3.1.ocx"
 Object = "{BD0C1912-66C3-49CC-8B12-7B347BF6C846}#15.3#0"; "Codejock.SkinFramework.v15.3.1.ocx"
 Begin VB.Form frmSysMain 
@@ -902,19 +902,25 @@ Private Sub msLeftClick(ByVal CID As Long, ByRef cbsBars As XtremeCommandBars.Co
                            "版权所有：XMH"
                 MsgBox strAbout, vbInformation, "关于" & App.Title
                 
-            Case .SysExportToCSV To .SysExportToXML
-                Call gsGridExportTo(Screen.ActiveControl, CID)
-            Case .SysExportToText
-                If MsgBox("是否将当前表格内容导出至txt文本文档？", vbQuestion + vbYesNo, "询问") = vbYes Then Call gsGridToText(Screen.ActiveControl)
-            Case .SysExportToWord
-                If MsgBox("是否将当前表格内容导出至Word文档？", vbQuestion + vbYesNo, "询问") = vbYes Then Call gsGridToWord(Screen.ActiveControl)
-                
-            Case .SysPrint
-                If MsgBox("确定打印当前表格内容吗？", vbQuestion + vbOKCancel, "打印询问") = vbOK Then Call gsGridPrint
-            Case .SysPrintPreview
-                Call gsGridPrintPreview
-            Case .SysPrintPageSet
-                Call gsGridPageSet
+            Case .SysExportToCSV To .SysExportToWord, .SysPrintPageSet To .SysPrint
+                If Me.ActiveControl Is Nothing Then Exit Sub
+                If Not (TypeOf Me.ActiveControl Is FlexCell.Grid) Then Exit Sub
+                If Not cbsActions(CID).Enabled Then Exit Sub
+                Select Case CID
+                    Case .SysExportToCSV To .SysExportToXML
+                        Call gsGridExportTo(Me.ActiveControl, CID)
+                    Case .SysExportToText
+                        If MsgBox("是否将当前表格内容导出至txt文本文档？", vbQuestion + vbYesNo, "询问") = vbYes Then Call gsGridToText(Me.ActiveControl)
+                    Case .SysExportToWord
+                        If MsgBox("是否将当前表格内容导出至Word文档？", vbQuestion + vbYesNo, "询问") = vbYes Then Call gsGridToWord(Me.ActiveControl)
+                        
+                    Case .SysPrint
+                        If MsgBox("确定打印当前表格内容吗？", vbQuestion + vbOKCancel, "打印询问") = vbOK Then Call gsGridPrint(Me.ActiveControl)
+                    Case .SysPrintPreview
+                        Call gsGridPrintPreview(Me.ActiveControl)
+                    Case .SysPrintPageSet
+                        Call gsGridPageSet(Me.ActiveControl)
+                End Select
                 
             Case Else
                 strKey = LCase(cbsActions.Action(CID).Key)
