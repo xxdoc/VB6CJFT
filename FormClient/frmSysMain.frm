@@ -310,7 +310,7 @@ Begin VB.MDIForm frmSysMain
          BeginProperty ListImage48 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmSysMain.frx":171E0
             Key             =   "SysDepartment"
-            Object.Tag             =   "104"
+            Object.Tag             =   "1104"
          EndProperty
          BeginProperty ListImage49 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmSysMain.frx":17E32
@@ -319,7 +319,7 @@ Begin VB.MDIForm frmSysMain
          BeginProperty ListImage50 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmSysMain.frx":18A84
             Key             =   "SysUser"
-            Object.Tag             =   "105"
+            Object.Tag             =   "1105"
          EndProperty
          BeginProperty ListImage51 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmSysMain.frx":196D6
@@ -332,17 +332,17 @@ Begin VB.MDIForm frmSysMain
          BeginProperty ListImage53 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmSysMain.frx":1AF7A
             Key             =   "SysPassword"
-            Object.Tag             =   "102"
+            Object.Tag             =   "1103"
          EndProperty
          BeginProperty ListImage54 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmSysMain.frx":1BBCC
             Key             =   ""
-            Object.Tag             =   "902"
+            Object.Tag             =   "3102"
          EndProperty
          BeginProperty ListImage55 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmSysMain.frx":1BF1E
-            Key             =   "themes"
-            Object.Tag             =   "801"
+            Key             =   "themeSet"
+            Object.Tag             =   "2450"
          EndProperty
          BeginProperty ListImage56 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmSysMain.frx":1CB70
@@ -355,12 +355,12 @@ Begin VB.MDIForm frmSysMain
          BeginProperty ListImage58 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmSysMain.frx":1D8CC
             Key             =   "SysLog"
-            Object.Tag             =   "106"
+            Object.Tag             =   "1108"
          EndProperty
          BeginProperty ListImage59 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmSysMain.frx":1E51E
             Key             =   "SysRole"
-            Object.Tag             =   "107"
+            Object.Tag             =   "1106"
          EndProperty
          BeginProperty ListImage60 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmSysMain.frx":1F170
@@ -369,7 +369,7 @@ Begin VB.MDIForm frmSysMain
          BeginProperty ListImage61 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmSysMain.frx":1FDC2
             Key             =   "SysFunc"
-            Object.Tag             =   "108"
+            Object.Tag             =   "1107"
          EndProperty
          BeginProperty ListImage62 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmSysMain.frx":20A14
@@ -397,8 +397,8 @@ Begin VB.MDIForm frmSysMain
          EndProperty
          BeginProperty ListImage68 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmSysMain.frx":25DC0
-            Key             =   "themeSet"
-            Object.Tag             =   "802"
+            Key             =   "ResetSet"
+            Object.Tag             =   "2050"
          EndProperty
       EndProperty
    End
@@ -641,10 +641,17 @@ Private Sub msAddDockingPane(ByRef cbsBars As XtremeCommandBars.CommandBars)
     Dim paneNavigation As XtremeDockingPane.Pane
     Dim cbsActions As XtremeCommandBars.CommandBarActions
     
-    Me.DockingPane1.SetCommandBars cbsBars '若这两种控制同时使用必需这么设置，且CommandBars控件在DockingPane控件顶层
-    
     Set cbsActions = cbsBars.Actions
-    Set paneNavigation = Me.DockingPane1.CreatePane(cbsActions(gID.PaneNavi).ID, 240, 240, DockLeftOf)
+    
+    With Me.DockingPane1
+        .SetCommandBars cbsBars '若这两种控制同时使用必需这么设置，且CommandBars控件在DockingPane控件的顶层
+        With .Options
+            .AlphaDockingContext = True
+            .ShowDockingContextStickers = True
+            .StickerStyle = StickerStyleVisualStudio2008 '必须使AlphaDockingContext、ShowDockingContextStickers都为True
+        End With
+        Set paneNavigation = .CreatePane(cbsActions(gID.PaneNavi).ID, 260, 240, DockLeftOf)
+    End With
     With paneNavigation
         .Title = cbsActions(gID.PaneNavi).Caption
         .TitleToolTip = .Title
@@ -811,17 +818,17 @@ Private Sub msAddTaskPanelItem(ByRef tskPanel As XtremeTaskPanel.TaskPanel)
     Dim taskGroup As XtremeTaskPanel.TaskPanelGroup
     Dim taskItem As XtremeTaskPanel.TaskPanelGroupItem
     Dim cbsActions As XtremeCommandBars.CommandBarActions
-    Dim lngID As Long, lngLeftMargins As Long, L As Long, T As Long, R As Long, B As Long
+    Dim lngID As Long, lngLeftMargins As Long, L As Long, T As Long, R As Long, b As Long
     Dim cbsAction As XtremeCommandBars.CommandBarAction
+    Dim imgIcon As MSComctlLib.ListImage
     
-    tskPanel.SetImageList Me.ImageList1 '暂没研究其用途
     Set cbsActions = Me.CommandBars1.Actions
     
     '创建系统菜单
     Set taskGroup = tskPanel.Groups.Add(gID.Sys, cbsActions(gID.Sys).Caption)
     With taskGroup.Items
         Set taskItem = .Add(gID.SysAuthChangePassword, cbsActions(gID.SysAuthChangePassword).Caption, xtpTaskItemTypeLink)
-        taskItem.GetRect L, T, R, B '为了排列好看，每一级子菜单使用同样的缩进距离,主要是为了获取L值(左边距)
+        taskItem.GetRect L, T, R, b '为了排列好看，每一级子菜单使用同样的缩进距离,主要是为了获取L值(左边距)
         lngLeftMargins = L
         .Add gID.SysAuthDepartment, cbsActions(gID.SysAuthDepartment).Caption, xtpTaskItemTypeLink
         .Add gID.SysAuthRole, cbsActions(gID.SysAuthRole).Caption, xtpTaskItemTypeLink
@@ -889,6 +896,19 @@ Private Sub msAddTaskPanelItem(ByRef tskPanel As XtremeTaskPanel.TaskPanel)
     End With
     
     
+    '添加GroupItem图标
+    tskPanel.SetImageList Me.ImageList1 '绑定图标集合
+    For Each taskGroup In tskPanel.Groups
+        For Each taskItem In taskGroup.Items
+            For Each imgIcon In Me.ImageList1.ListImages
+                If Val(imgIcon.Tag) = taskItem.ID Then '先预告在ImageList1控件中设置每个图标的Tag值为GroupItem的ID值
+                    taskItem.IconIndex = imgIcon.Index
+                    Exit For
+                End If
+            Next
+        Next
+    Next
+    
     '同步权限
     For Each cbsAction In cbsActions
         If Not tskPanel.Find(cbsAction.ID) Is Nothing Then '并不是每个Action对应一个GroupItem
@@ -900,6 +920,7 @@ Private Sub msAddTaskPanelItem(ByRef tskPanel As XtremeTaskPanel.TaskPanel)
     Set taskGroup = Nothing
     Set cbsAction = Nothing
     Set cbsActions = Nothing
+    Set imgIcon = Nothing
 End Sub
 
 Private Sub msAddToolBar(ByRef cbsBars As XtremeCommandBars.CommandBars)
@@ -1206,7 +1227,7 @@ Private Sub msResetLayout(ByRef cbsBars As XtremeCommandBars.CommandBars)
     '重置窗口布局：CommandBars与Dockingpane控件重置
     
     Dim cBar As XtremeCommandBars.CommandBar
-    Dim L As Long, T As Long, R As Long, B As Long
+    Dim L As Long, T As Long, R As Long, b As Long
 
     For Each cBar In cbsBars
     Debug.Print cBar.BarID, cBar.Title, cBar.Type
@@ -1215,8 +1236,8 @@ Private Sub msResetLayout(ByRef cbsBars As XtremeCommandBars.CommandBars)
     Next
     
     For mlngID = 2 To cbsBars.Count
-        cbsBars.GetClientRect L, T, R, B
-        cbsBars.DockToolBar cbsBars(mlngID), 0, B, xtpBarTop
+        cbsBars.GetClientRect L, T, R, b
+        cbsBars.DockToolBar cbsBars(mlngID), 0, b, xtpBarTop
     Next
     
     Set cBar = Nothing
@@ -1317,10 +1338,10 @@ Private Sub DockingPane1_Action(ByVal Action As XtremeDockingPane.DockingPaneAct
     End If
 End Sub
 
-Private Sub DockingPane1_PanePopupMenu(ByVal Pane As XtremeDockingPane.IPane, ByVal x As Long, ByVal y As Long, Handled As Boolean)
+Private Sub DockingPane1_PanePopupMenu(ByVal Pane As XtremeDockingPane.IPane, ByVal X As Long, ByVal Y As Long, Handled As Boolean)
     '导航菜单任务面板上标题行上弹出式菜单
     If Pane.ID = gID.PaneNavi Then
-        mcbsPopupNavi.ShowPopup , x * 15, y * 15
+        mcbsPopupNavi.ShowPopup , X * 15, Y * 15
     End If
 End Sub
 
@@ -1397,12 +1418,12 @@ Private Sub MDIForm_Load()
     
 End Sub
 
-Private Sub MDIForm_MouseMove(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub MDIForm_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
     '响应托盘图标左键、右键动作，托盘菜单
     Dim sngMsg As Single
     
-    If y <> 0 Then Exit Sub    '似乎此句可限制住鼠标一定是在托盘图标上，不是在窗体上
-    sngMsg = x / Screen.TwipsPerPixelX
+    If Y <> 0 Then Exit Sub    '似乎此句可限制住鼠标一定是在托盘图标上，不是在窗体上
+    sngMsg = X / Screen.TwipsPerPixelX
     Select Case sngMsg
         Case WM_RBUTTONUP
             mcbsPopupIcon.ShowPopup  '右键弹出Popup菜单

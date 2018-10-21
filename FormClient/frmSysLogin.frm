@@ -401,6 +401,8 @@ End Sub
 
 Private Sub Form_Load()
     '加载窗体
+    
+    Me.Icon = gWind.Icon
     Timer1.Enabled = False
     Timer1.Interval = 1000 '只能设1秒
     Timer2.Enabled = False
