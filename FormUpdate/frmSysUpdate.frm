@@ -100,7 +100,7 @@ Option Explicit
 Dim mblnHide As Boolean     '更新窗口有隐藏打开模式与显示打开模式
 Dim mblnCheckStart As Boolean   '已开始检查标识
 Dim mblnUpdateFinish As Boolean     '更新完成标识
-
+Dim mblnUnload As Boolean '退出程序标识
 
 
 
@@ -160,7 +160,8 @@ Private Function mfShellSetup(ByVal strFile As String) As Boolean
         End If
     Else
         Call Winsock1_Close(1)
-        Unload Me
+        Rem Unload Me   '暂没找到合适方法来无异常地退出程序，起用mblnUnload标识在Timer控件中来退出。
+        mblnUnload = True '退出程序标识，代替Unload Me语句
     End If
 End Function
 
@@ -260,6 +261,11 @@ Private Sub Timer1_Timer()
     Static byteConn As Byte
     Static byteState As Byte
     Static byteDotCount As Byte
+    
+    If mblnUnload Then '退出程序
+        Unload Me
+        Exit Sub
+    End If
     
     byteConn = byteConn + 1
     byteState = byteState + 1
