@@ -136,92 +136,92 @@ Begin VB.MDIForm frmSysMain
          BeginProperty ListImage13 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmSysMain.frx":3A4F
             Key             =   "tListView"
-            Object.Tag             =   "841"
+            Object.Tag             =   "2201"
          EndProperty
          BeginProperty ListImage14 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmSysMain.frx":3D0D
             Key             =   "tListViewOffice2003"
-            Object.Tag             =   "842"
+            Object.Tag             =   "2202"
          EndProperty
          BeginProperty ListImage15 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmSysMain.frx":400D
             Key             =   "tListViewOfficeXP"
-            Object.Tag             =   "843"
+            Object.Tag             =   "2203"
          EndProperty
          BeginProperty ListImage16 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmSysMain.frx":42CA
             Key             =   "tNativeWinXP"
-            Object.Tag             =   "844"
+            Object.Tag             =   "2204"
          EndProperty
          BeginProperty ListImage17 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmSysMain.frx":4876
             Key             =   "tNativeWinXPPlain"
-            Object.Tag             =   "845"
+            Object.Tag             =   "2205"
          EndProperty
          BeginProperty ListImage18 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmSysMain.frx":4CF7
             Key             =   "tOffice2000"
-            Object.Tag             =   "846"
+            Object.Tag             =   "2206"
          EndProperty
          BeginProperty ListImage19 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmSysMain.frx":5106
             Key             =   "tOffice2000Plain"
-            Object.Tag             =   "847"
+            Object.Tag             =   "2207"
          EndProperty
          BeginProperty ListImage20 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmSysMain.frx":551B
             Key             =   "tOffice2003"
-            Object.Tag             =   "848"
+            Object.Tag             =   "2208"
          EndProperty
          BeginProperty ListImage21 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmSysMain.frx":5825
             Key             =   "tOffice2003Plain"
-            Object.Tag             =   "849"
+            Object.Tag             =   "2209"
          EndProperty
          BeginProperty ListImage22 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmSysMain.frx":5B28
             Key             =   "tOfficeXPPlain"
-            Object.Tag             =   "850"
+            Object.Tag             =   "2210"
          EndProperty
          BeginProperty ListImage23 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmSysMain.frx":5DE4
             Key             =   "tResource"
-            Object.Tag             =   "851"
+            Object.Tag             =   "2211"
          EndProperty
          BeginProperty ListImage24 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmSysMain.frx":60DE
             Key             =   "tShortcutBarOffice2003"
-            Object.Tag             =   "852"
+            Object.Tag             =   "2212"
          EndProperty
          BeginProperty ListImage25 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmSysMain.frx":63FE
             Key             =   "tToolbox"
-            Object.Tag             =   "853"
+            Object.Tag             =   "2213"
          EndProperty
          BeginProperty ListImage26 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmSysMain.frx":66BB
             Key             =   "tToolboxWhidbey"
-            Object.Tag             =   "854"
+            Object.Tag             =   "2214"
          EndProperty
          BeginProperty ListImage27 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmSysMain.frx":6A78
             Key             =   "tVisualStudio2010"
-            Object.Tag             =   "855"
+            Object.Tag             =   "2215"
          EndProperty
          BeginProperty ListImage28 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmSysMain.frx":6E40
             Key             =   "sCodejock"
-            Object.Tag             =   "871"
+            Object.Tag             =   "2401"
          EndProperty
          BeginProperty ListImage29 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmSysMain.frx":7E92
             Key             =   "sOffice2007"
-            Object.Tag             =   "872"
+            Object.Tag             =   "2402"
          EndProperty
          BeginProperty ListImage30 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmSysMain.frx":8EE4
             Key             =   "sOffice2010"
-            Object.Tag             =   "873"
+            Object.Tag             =   "2403"
          EndProperty
          BeginProperty ListImage31 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmSysMain.frx":9F36
@@ -231,22 +231,22 @@ Begin VB.MDIForm frmSysMain
          BeginProperty ListImage32 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmSysMain.frx":AF88
             Key             =   "sVista"
-            Object.Tag             =   "874"
+            Object.Tag             =   "2404"
          EndProperty
          BeginProperty ListImage33 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmSysMain.frx":BFDA
             Key             =   "sWinXPLuna"
-            Object.Tag             =   "875"
+            Object.Tag             =   "2405"
          EndProperty
          BeginProperty ListImage34 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmSysMain.frx":D02C
             Key             =   "sWinXPRoyale"
-            Object.Tag             =   "876"
+            Object.Tag             =   "2406"
          EndProperty
          BeginProperty ListImage35 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmSysMain.frx":E07E
             Key             =   "sZune"
-            Object.Tag             =   "877"
+            Object.Tag             =   "2407"
          EndProperty
          BeginProperty ListImage36 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmSysMain.frx":F0D0
@@ -271,7 +271,7 @@ Begin VB.MDIForm frmSysMain
          BeginProperty ListImage40 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmSysMain.frx":11DF8
             Key             =   "SysSearch"
-            Object.Tag             =   "113"
+            Object.Tag             =   "1403"
          EndProperty
          BeginProperty ListImage41 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmSysMain.frx":11F0A
@@ -291,7 +291,7 @@ Begin VB.MDIForm frmSysMain
          BeginProperty ListImage44 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmSysMain.frx":13F00
             Key             =   "SysGo"
-            Object.Tag             =   "116"
+            Object.Tag             =   "1406"
          EndProperty
          BeginProperty ListImage45 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmSysMain.frx":14BDA
@@ -336,13 +336,13 @@ Begin VB.MDIForm frmSysMain
          EndProperty
          BeginProperty ListImage54 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmSysMain.frx":1BBCC
-            Key             =   ""
+            Key             =   "helpDoc"
             Object.Tag             =   "3102"
          EndProperty
          BeginProperty ListImage55 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmSysMain.frx":1BF1E
             Key             =   "themeSet"
-            Object.Tag             =   "2450"
+            Object.Tag             =   "2052"
          EndProperty
          BeginProperty ListImage56 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmSysMain.frx":1CB70
@@ -482,12 +482,23 @@ Private Sub msAddAction(ByRef cbsBars As XtremeCommandBars.CommandBars)
         .Add gID.SysPrintPageSet, "打印页面设置", "", "", ""
         .Add gID.SysPrintPreview, "打印预览", "", "", ""
         
+        .Add gID.SysSearch, "窗口检索", "", "", ""
+        .Add gID.SysSearch1Label, "输入窗口名称关键字", "", "", ""
+        .Add gID.SysSearch2TextBox, "关键字输入框", "", "", ""
+        .Add gID.SysSearch3Button, "检索窗口", "", "", ""
+        .Add gID.SysSearch4ListBoxCaption, "检索到的窗口标题列表", "", "", ""
+        .Add gID.SysSearch4ListBoxFormID, "检索到的窗体名称列表", "", "", ""
+        .Add gID.SysSearch5Go, "跳转至选定窗口", "", "", ""
+        
+        
         .Add gID.Wnd, "窗口", "", "", "窗口"
         
         .Add gID.WndThemeSkinSet, "窗口主题设置...", "", "", ""
         .Add gID.WndResetLayout, "重置窗口布局", "", "", ""
         .Add gID.WndToolBarCustomize, "自定义工具栏…", "自定义工具栏", "自定义工具栏", ""
         .Add gID.WndToolBarList, "工具栏列表", "工具栏列表", "工具栏列表", ""
+        .Add gID.WndOpenListCaption, "已打开窗口列表", "", "", ""
+        .Add gID.WndOpenListID, "", "", "", ""
         
         .Add gID.WndThemeCommandBars, "工具栏主题", "", "", ""
         .Add gID.WndThemeCommandBarsOffice2000, "Office2000", "", "", ""
@@ -650,7 +661,8 @@ Private Sub msAddDockingPane(ByRef cbsBars As XtremeCommandBars.CommandBars)
             .ShowDockingContextStickers = True
             .StickerStyle = StickerStyleVisualStudio2008 '必须使AlphaDockingContext、ShowDockingContextStickers都为True
         End With
-        Set paneNavigation = .CreatePane(cbsActions(gID.PaneNavi).ID, 260, 240, DockLeftOf)
+        Set paneNavigation = .CreatePane(gID.PaneNavi, 260, 240, DockLeftOf)
+        cbsBars.Actions(gID.PaneNavi).Checked = True
     End With
     With paneNavigation
         .Title = cbsActions(gID.PaneNavi).Caption
@@ -762,6 +774,10 @@ Private Sub msAddMenu(ByRef cbsBars As XtremeCommandBars.CommandBars)
             .Find(, gID.WndSonVbAllBack).BeginGroup = True
         End With
                 
+        '子窗口列表
+        Set cbsMenuCtrl = .Add(xtpControlPopup, gID.WndOpenListCaption, "")
+        cbsMenuCtrl.BeginGroup = True
+        cbsMenuCtrl.CommandBar.Controls.Add xtpControlButton, gID.WndOpenListID, ""
     End With
     
     '工具菜单
@@ -863,10 +879,19 @@ Private Sub msAddTaskPanelItem(ByRef tskPanel As XtremeTaskPanel.TaskPanel)
         .Add gID.WndResetLayout, cbsActions(gID.WndResetLayout).Caption, xtpTaskItemTypeLink
         
         .Add gID.WndToolBarCustomize, cbsActions(gID.WndToolBarCustomize).Caption, xtpTaskItemTypeLink
+        
         Set taskItem = .Add(gID.WndThemeCommandBars, cbsActions(gID.WndThemeCommandBars).Caption, xtpTaskItemTypeText)
         taskItem.Bold = True
         taskItem.SetMargins lngLeftMargins, 0, 0, 0
         For mlngID = gID.WndThemeCommandBarsOffice2000 To gID.WndThemeCommandBarsWinXP
+            .Add mlngID, cbsActions(mlngID).Caption, xtpTaskItemTypeLink
+            .Find(mlngID).SetMargins lngLeftMargins, 0, 0, 0
+        Next
+        
+        Set taskItem = .Add(gID.WndThemeTaskPanel, cbsActions(gID.WndThemeTaskPanel).Caption, xtpTaskItemTypeText)
+        taskItem.Bold = True
+        taskItem.SetMargins lngLeftMargins, 0, 0, 0
+        For mlngID = gID.WndThemeTaskPanelListView To gID.WndThemeTaskPanelVisualStudio2010
             .Add mlngID, cbsActions(mlngID).Caption, xtpTaskItemTypeLink
             .Find(mlngID).SetMargins lngLeftMargins, 0, 0, 0
         Next
@@ -960,6 +985,31 @@ Private Sub msAddToolBar(ByRef cbsBars As XtremeCommandBars.CommandBars)
         Next
     End With
     
+    '导航菜单主题
+    Set cbsBar = cbsBars.Add(cbsActions(gID.WndThemeTaskPanel).Caption, xtpBarTop)
+    With cbsBar.Controls
+        For mlngID = gID.WndThemeTaskPanelListView To gID.WndThemeTaskPanelVisualStudio2010
+            Set cbsCtr = .Add(xtpControlButton, mlngID, "")
+            cbsCtr.BeginGroup = True
+        Next
+    End With
+    
+    '窗口检索工具栏
+    Set cbsBar = cbsBars.Add(cbsActions(gID.SysSearch).Caption, xtpBarTop)
+    With cbsBar.Controls
+        .Add xtpControlLabel, gID.SysSearch1Label, ""
+        Set cbsCtr = .Add(xtpControlEdit, gID.SysSearch2TextBox, "")
+        cbsCtr.Width = 200
+        cbsCtr.EditHint = "输入窗口标题关键字"
+        .Add xtpControlButton, gID.SysSearch3Button, ""
+        Set cbsCtr = .Add(xtpControlComboBox, gID.SysSearch4ListBoxCaption, "")
+        cbsCtr.Width = 200
+        cbsCtr.EditHint = "从列表中选择一个窗口标题"
+        Set cbsCtr = .Add(xtpControlComboBox, gID.SysSearch4ListBoxFormID, "")
+        cbsCtr.Visible = False
+        .Add xtpControlButton, gID.SysSearch5Go, ""
+    End With
+    
     Set cbsBar = Nothing
     Set cbsCtr = Nothing
     Set cbsActions = Nothing
@@ -1046,9 +1096,21 @@ Private Sub msLeftClick(ByVal CID As Long, ByRef cbsBars As XtremeCommandBars.Co
         Select Case CID
             Case .WndThemeCommandBarsOffice2000 To .WndThemeCommandBarsWinXP
                 Call gsThemeCommandBar(CID, cbsBars)
+            Case .WndThemeTaskPanelListView To .WndThemeTaskPanelVisualStudio2010
+                Call msThemeTaskPanel(CID, cbsBars)
+            Case .WndSonCloseAll To .WndSonVbTileVertical
+                Call msWindowControl(CID)
+            Case .SysSearch5Go, .SysSearch4ListBoxCaption
+                If Len(cbsBars.FindControl(xtpControlComboBox, gID.SysSearch4ListBoxCaption).Text) > 0 Then
+                    Call msLeftClick(CLng(cbsBars.FindControl(xtpControlComboBox, gID.SysSearch4ListBoxFormID).List(cbsBars.FindControl(xtpControlComboBox, gID.SysSearch4ListBoxCaption).ListIndex)), cbsBars)
+                End If
+            Case .SysSearch3Button
+                Call msSearchWindow(CID, cbsBars)
             Case .WndResetLayout
                 Call msResetLayout(cbsBars)
-                
+            Case .PaneNavi
+                Me.DockingPane1.FindPane(CID).Closed = Not Me.DockingPane1.FindPane(CID).Closed
+                cbsActions.Action(CID).Checked = Not Me.DockingPane1.FindPane(CID).Closed
             Case .SysLoginAgain
                 If MsgBox("确定重新启动客户端程序吗？", vbQuestion + vbOKCancel, "重启主程序询问") = vbOK Then
                     Call msUnloadMe(True)
@@ -1243,6 +1305,50 @@ Private Sub msResetLayout(ByRef cbsBars As XtremeCommandBars.CommandBars)
     Set cBar = Nothing
 End Sub
 
+Private Sub msSearchWindow(ByVal WID As Long, ByRef cbsBars As XtremeCommandBars.CommandBars)
+    '窗口标题检索
+    
+    
+    Dim strName As String
+    Dim cbsAction As CommandBarAction
+    Dim cbsCtrlCaption As CommandBarComboBox
+    Dim cbsCtrlFormID As CommandBarComboBox
+    Dim blnClear As Boolean
+    
+    strName = LCase(Trim(cbsBars.FindControl(xtpControlEdit, gID.SysSearch2TextBox).Text))
+    If Len(strName) = 0 Then Exit Sub
+    
+    Set cbsCtrlCaption = cbsBars.FindControl(xtpControlComboBox, gID.SysSearch4ListBoxCaption)
+    Set cbsCtrlFormID = cbsBars.FindControl(xtpControlComboBox, gID.SysSearch4ListBoxFormID)
+    
+    For Each cbsAction In cbsBars.Actions
+        If cbsAction.ID < 20000 Then     '所有窗口的ID小于2000
+            If LCase(Left(cbsAction.Key, 3)) = "frm" Then   '窗口的Name属性以frm开头
+                If InStr(LCase(cbsAction.Caption), strName) > 0 Then
+                    If Not blnClear Then
+                        cbsCtrlCaption.Clear
+                        cbsCtrlFormID.Clear
+                        blnClear = True
+                    End If
+                    cbsCtrlCaption.AddItem cbsAction.Caption
+                    cbsCtrlFormID.AddItem cbsAction.ID
+                End If
+            End If
+        End If
+    Next
+    
+    If blnClear Then
+        If cbsCtrlCaption.ListCount > 0 Then cbsCtrlCaption.ListIndex = 1
+    Else
+        cbsCtrlCaption.ListIndex = 0
+    End If
+    
+    Set cbsAction = Nothing
+    Set cbsCtrlCaption = Nothing
+    Set cbsCtrlFormID = Nothing
+    
+End Sub
+
 Private Sub msSetClientState(ByVal ColorSet As Long)
     '设置状态栏中客户端连接服务端的状态
     
@@ -1269,6 +1375,51 @@ Private Sub msSetClientState(ByVal ColorSet As Long)
     
 End Sub
 
+Private Sub msThemeTaskPanel(ByVal LID As Long, ByRef cbsSet As XtremeCommandBars.CommandBars)
+    '任务面板主题设置
+    Dim lngTheme As XtremeTaskPanel.XTPTaskPanelVisualTheme
+    
+    Select Case LID
+        Case gID.WndThemeTaskPanelListView
+            lngTheme = xtpTaskPanelThemeListView
+        Case gID.WndThemeTaskPanelListViewOffice2003
+            lngTheme = xtpTaskPanelThemeListViewOffice2003
+        Case gID.WndThemeTaskPanelListViewOfficeXP
+            lngTheme = xtpTaskPanelThemeListViewOfficeXP
+        Case gID.WndThemeTaskPanelNativeWinXP
+            lngTheme = xtpTaskPanelThemeNativeWinXP
+        Case gID.WndThemeTaskPanelNativeWinXPPlain
+            lngTheme = xtpTaskPanelThemeNativeWinXPPlain
+        Case gID.WndThemeTaskPanelOffice2000
+            lngTheme = xtpTaskPanelThemeOffice2000
+        Case gID.WndThemeTaskPanelOffice2000Plain
+            lngTheme = xtpTaskPanelThemeOffice2000Plain
+        Case gID.WndThemeTaskPanelOffice2003
+            lngTheme = xtpTaskPanelThemeOffice2003
+        Case gID.WndThemeTaskPanelOffice2003Plain
+            lngTheme = xtpTaskPanelThemeOffice2003Plain
+        Case gID.WndThemeTaskPanelOfficeXPPlain
+            lngTheme = xtpTaskPanelThemeOfficeXPPlain
+        Case gID.WndThemeTaskPanelResource
+            lngTheme = xtpTaskPanelThemeResource
+        Case gID.WndThemeTaskPanelShortcutBarOffice2003
+            lngTheme = xtpTaskPanelThemeShortcutBarOffice2003
+        Case gID.WndThemeTaskPanelToolbox
+            lngTheme = xtpTaskPanelThemeToolbox
+        Case gID.WndThemeTaskPanelToolboxWhidbey
+            lngTheme = xtpTaskPanelThemeToolboxWhidbey
+        Case Else
+            lngTheme = xtpTaskPanelThemeVisualStudio2010
+            LID = gID.WndThemeTaskPanelVisualStudio2010
+    End Select
+    
+    Me.TaskPanel1.VisualTheme = lngTheme
+    For mlngID = gID.WndThemeTaskPanelListView To gID.WndThemeTaskPanelVisualStudio2010
+        cbsSet.Actions(mlngID).Checked = False
+    Next
+    cbsSet.Actions(LID).Checked = True
+End Sub
+
 Private Sub msUnloadMe(Optional ByVal blnUnload As Boolean = True)
     '卸载窗体
     If Not blnUnload Then Exit Sub
@@ -1282,6 +1433,82 @@ Private Sub msUnloadMe(Optional ByVal blnUnload As Boolean = True)
         Set frmUld = Nothing
     End If
     Unload Me
+End Sub
+
+Private Sub msWindowControl(ByVal WID As Long)
+    '子窗口控制
+    
+    Dim frmTag As Form
+    Dim C As Long
+    Dim itemCur As XtremeCommandBars.TabControlItem
+        
+    With gID
+        Select Case WID
+            Case .WndSonCloseAll    '关闭所有窗口
+                For Each frmTag In Forms
+                    If frmTag.Name <> gWind.Name Then Unload frmTag
+                Next
+            Case .WndSonCloseCurrent    '关闭当前窗口
+                If Not ActiveForm Is Nothing Then Unload ActiveForm
+            Case .WndSonCloseLeft   '关闭左侧窗口
+                If Forms.Count > 2 Then
+                    Set itemCur = mTabWorkspace.Selected
+                    itemCur.Tag = "c"   '标记当前窗口，因为Index值在窗口数量变化时会变化，不能作为唯一判断依据
+                    For C = 0 To mTabWorkspace.ItemCount - 1
+                        If mTabWorkspace.Item(0).Tag = itemCur.Tag Then
+                            itemCur.Tag = ""    '记得清空。Tag属性默认值就是空字符串
+                            Exit For
+                        Else
+                            mTabWorkspace.Item(0).Selected = True   '激活要删除的窗口
+                            Unload ActiveForm
+                        End If
+                    Next
+                End If
+            Case .WndSonCloseOther  '关闭其它窗口
+                If Forms.Count > 1 Then
+                    For Each frmTag In Forms
+                        If frmTag.Name <> gWind.Name Then
+                            If Not (frmTag.Name = ActiveForm.Name And frmTag.Caption = ActiveForm.Caption) Then
+                                Unload frmTag
+                            End If
+                        End If
+                    Next
+                End If
+            Case .WndSonCloseRight  '关闭右侧窗口
+                If Forms.Count > 2 Then
+                    Set itemCur = mTabWorkspace.Selected
+                    itemCur.Tag = "c"
+                    For C = mTabWorkspace.ItemCount - 1 To 0 Step -1
+                        If mTabWorkspace.Item(C).Tag = itemCur.Tag Then
+                            itemCur.Tag = ""
+                            Exit For
+                        Else
+                            mTabWorkspace.Item(C).Selected = True
+                            Unload ActiveForm
+                        End If
+                    Next
+                End If
+            Case .WndSonVbAllBack
+                For Each frmTag In Forms
+                    If frmTag.Name <> gWind.Name Then frmTag.WindowState = vbNormal
+                Next
+            Case .WndSonVbAllMin
+                For Each frmTag In Forms
+                    If frmTag.Name <> gWind.Name Then frmTag.WindowState = vbMinimized
+                Next
+            Case .WndSonVbCascade
+                Me.Arrange vbCascade
+            Case .WndSonVbArrangeIcons
+                Me.Arrange vbArrangeIcons
+            Case .WndSonVbTileHorizontal
+                Me.Arrange vbTileHorizontal
+            Case .WndSonVbTileVertical
+                Me.Arrange vbTileVertical
+        End Select
+    End With
+    
+    Set frmTag = Nothing
+    Set itemCur = Nothing
 End Sub
 
 
@@ -1333,7 +1560,7 @@ Private Sub DockingPane1_Action(ByVal Action As XtremeDockingPane.DockingPaneAct
     '导航菜单任务面板显示与隐藏（关闭）
     If Action = PaneActionClosed Then
         If Pane.ID = gID.PaneNavi Then
-            Me.CommandBars1.Actions(gID.PaneNavi).Checked = False
+            Me.CommandBars1.Actions(Pane.ID).Checked = False
         End If
     End If
 End Sub
@@ -1385,6 +1612,9 @@ Private Sub MDIForm_Load()
     
     '注册表信息加载-CommandBars设置
     Call cbsBars.LoadCommandBars(gVar.RegKeyCommandBars, gVar.RegAppName, gVar.RegKeyCBSClientSetting)
+    
+'    '加载面板样式。暂未知原因，加载后连添加的TaskPanel内容都抹掉了
+'    Call Me.DockingPane1.LoadState(gVar.RegKeyDockingPane, gVar.RegAppName, gVar.RegKeyDockPaneClientSetting)
     
     Set cbsBars = Nothing   '销毁使用完的对象
     
@@ -1478,6 +1708,12 @@ Private Sub MDIForm_Unload(Cancel As Integer)
     
     '保存注册表信息-CommandBars设置
     Call Me.CommandBars1.SaveCommandBars(gVar.RegKeyCommandBars, gVar.RegAppName, gVar.RegKeyCBSClientSetting)
+    
+    '保存浮动面板样式
+    Call Me.DockingPane1.SaveState(gVar.RegKeyDockingPane, gVar.RegAppName, gVar.RegKeyDockPaneClientSetting)
+    
+    '保存导航菜单样式
+    
     
     Call gsFormSizeSave(Me, False) '保存注册表信息-窗口位置大小
     Call gsSaveCommandbarsTheme(Me.CommandBars1, False)   '保存CommandBars的风格主题

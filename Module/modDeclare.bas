@@ -304,6 +304,9 @@ Public Type gtypeCommonVariant
     RegKeyCommandBars As String 'SaveCommandBars参数RegistryKey
     RegKeyCBSServerSetting As String    'Server上的CBS控件注册信息保存Key值
     RegKeyCBSClientSetting As String    'Client上的CBS控件注册信息保存Key值
+    RegKeyDockingPane As String
+    RegKeyDockPaneServerSetting As String
+    RegKeyDockPaneClientSetting As String
     
     RegSectionSettings As String    'Section_Settings区
     RegKeyServerWindowLeft As String  'Server上Key_窗口Left值
@@ -445,6 +448,13 @@ Public Type gtypeCommandBarID
     SysExportToCSV As Long  '导出为CSV文件
     SysExportToHTML As Long '导出为HTML
     
+    SysSearch As Long   '窗口检索工具栏
+    SysSearch1Label As Long
+    SysSearch2TextBox As Long
+    SysSearch3Button As Long
+    SysSearch4ListBoxCaption As Long
+    SysSearch4ListBoxFormID As Long
+    SysSearch5Go As Long
     
     Help As Long        '模块-帮助
     
@@ -457,6 +467,9 @@ Public Type gtypeCommandBarID
     
     WndThemeSkinSet As Long '窗口主题设置
     WndResetLayout As Long  '窗口布局重置
+    
+    WndOpenListCaption As Long '已打开窗口列表
+    WndOpenListID As Long
     
     WndToolBarCustomize As Long '自定义工具栏
     WndToolBarList As Long '工具栏列表

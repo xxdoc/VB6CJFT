@@ -33,13 +33,25 @@ Public Sub Main(Optional ByVal blnLoad As Boolean = True)
         .SysPrintPageSet = 1301
         .SysPrintPreview = 1302
                 
+        .SysSearch = 1400
+        .SysSearch1Label = 1401
+        .SysSearch2TextBox = 1402
+        .SysSearch3Button = 1403
+        .SysSearch4ListBoxCaption = 1404
+        .SysSearch4ListBoxFormID = 1405
+        .SysSearch5Go = 1406
+        
         
         .Wnd = 2000
         
         .WndResetLayout = 2050
+        .TabWorkspacePopupMenu = 2051
+        .WndThemeSkinSet = 2052
+        .WndOpenListCaption = 2053
+        
+        .WndOpenListID = XTP_ID_WINDOWLIST '=35000
         .WndToolBarCustomize = XTP_ID_CUSTOMIZE '=35001
         .WndToolBarList = XTP_ID_TOOLBARLIST '=59392
-        .TabWorkspacePopupMenu = 2051
         
         .WndThemeCommandBars = 2100
         .WndThemeCommandBarsOffice2000 = 2101
@@ -92,9 +104,7 @@ Public Sub Main(Optional ByVal blnLoad As Boolean = True)
         .WndThemeSkinWinXPLuna = 2405
         .WndThemeSkinWinXPRoyale = 2406
         .WndThemeSkinZune = 2407
-        
-        .WndThemeSkinSet = 2450
-        
+               
         
         .Help = 3000
         .HelpAbout = 3101
@@ -223,6 +233,9 @@ Public Sub Main(Optional ByVal blnLoad As Boolean = True)
         .RegKeyCommandBars = "FF"
         .RegKeyCBSClientSetting = "ClientSetting"
         .RegKeyCBSServerSetting = "ServerSetting"
+        .RegKeyDockingPane = .RegKeyCommandBars
+        .RegKeyDockPaneClientSetting = "ClientSetting"
+        .RegKeyDockPaneServerSetting = "ServerSetting"
         
         .RegSectionSettings = "Settings"
         .RegKeyServerWindowHeight = "ServerWindowHeight"
