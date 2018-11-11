@@ -316,12 +316,16 @@ Public Type gtypeCommonVariant
     RegKeyServerWindowStateMax As String
     RegKeyServerCommandbarsTheme As String    '
     
+    
     RegKeyClientWindowLeft As String  'Client上Key_窗口Left值
     RegKeyClientWindowTop As String   '
     RegKeyClientWindowWidth As String '
     RegKeyClientWindowHeight As String    '
     RegKeyClientWindowStateMax As String
     RegKeyClientCommandbarsTheme As String    '
+    RegKeyClientTaskPanelTheme As String '导航菜单主题
+    RegKeyClientTaskPanelAutoFold As String '导航菜单自动折叠
+    
     
     RegTrailPath As String  '注册表中HKEY_CURRENT_USER下SOFTWARE路径
     RegTrailKey As String   '试用信息-Key值

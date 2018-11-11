@@ -251,6 +251,8 @@ Public Sub Main(Optional ByVal blnLoad As Boolean = True)
         .RegKeyClientWindowWidth = "ClientWindowWidth"
         .RegKeyClientWindowStateMax = "ClientWindowStateMax"
         .RegKeyClientCommandbarsTheme = "ClientcbsTheme"
+        .RegKeyClientTaskPanelAutoFold = "ClientTPAutoFold"
+        .RegKeyClientTaskPanelTheme = "ClientTPTheme"
         
         .RegTrailPath = "SoftWare\Common\Section"   'HKEY_CURRENT_USER\SoftWare\бнбн
         .RegTrailKey = "Key"
