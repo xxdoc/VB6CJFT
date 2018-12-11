@@ -1120,7 +1120,7 @@ Private Sub msWriteLoginInfoLog(ByVal strIP As String, ByVal strPC As String, By
     
     If FileLen(gVar.FileNameLoginLog) > conSize Then    '日志文件太大时存档
         strNewFile = Left(gVar.FileNameLoginLog, InStrRev(gVar.FileNameLoginLog, ".") - 1) & _
-            Format(Now, "yyyy.MM.dd_HH-mm-ss") & Mid(gVar.FileNameLoginLog, InStrRev(gVar.FileNameLoginLog, "."))
+            Format(Now, gVar.Formatymdhms) & Mid(gVar.FileNameLoginLog, InStrRev(gVar.FileNameLoginLog, "."))
         Debug.Print strNewFile  '生成按日期保存的文件名
         Close
         If Not gfFileRename(gVar.FileNameLoginLog, strNewFile) Then Exit Sub    '改名存储
@@ -1397,7 +1397,12 @@ Private Sub Timer1_Timer(Index As Integer)
             If Not gVar.ParaBlnLimitClientConnect Then  '若没有选择限制客户端连接功能
                 ConfirmOK(Index) = False
                 CountTime(Index) = 0    '限制连接计时器清零
-                Unload Me.Timer1.Item(Index) '确认完后卸载掉对应计时器控件
+                For Each tmrUld In Me.Timer1
+                    If tmrUld.Index = Index Then
+                        Unload tmrUld   'Unload Me.Timer1.Item(Index) '确认完后卸载掉对应计时器控件
+                        Exit For
+                    End If
+                Next
             End If
         End If
             
