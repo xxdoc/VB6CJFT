@@ -819,6 +819,11 @@ Private Sub msGetClientInfo(ByVal strInfo As String, ByVal Index As Long)
                 .Cell(lngTemp, 2).Text = strPC
                 .Cell(lngTemp, 3).Text = strLogin
                 .Cell(lngTemp, 4).Text = strFull
+                If LCase(strLogin) <> LCase(gVar.UpdateAccount) Then
+                    Call msWriteLoginInfoLog(.Cell(lngTemp, 1).Text, .Cell(lngTemp, 2).Text, _
+                        .Cell(lngTemp, 3).Text, .Cell(lngTemp, 4).Text, .Cell(lngTemp, 5).Text, _
+                        .Cell(lngTemp, 6).Text, .Cell(lngTemp, 7).Text)
+                End If
                 Exit For
             End If
         Next
@@ -838,7 +843,7 @@ Private Sub msGridSet(ByRef gridSet As FlexCell.Grid)
         .ReadOnly = True    '禁止表格编辑
         
         .Cols = 9
-        .Rows = 50
+        .Rows = 2
         .Cell(0, 0).Text = "序号"
         .Cell(0, 1).Text = "连接用户IP地址"
         .Cell(0, 2).Text = "连接用户计算机名称"
@@ -1100,6 +1105,35 @@ Private Sub msVersionCS(ByVal strVer As String, ByRef sckVer As MSWinsockLib.Win
         Call gfSendInfo(gVar.PTVersionNotUpdate & strCompare, sckVer)
         Call gsAlarmAndLogEx("客户端版本：" & strVC & ",服务端版本：" & strVS, "Server端版本检测异常", False)
     End If
+End Sub
+
+Private Sub msWriteLoginInfoLog(ByVal strIP As String, ByVal strPC As String, ByVal strAccount As String, _
+    ByVal strUserName As String, ByVal strTime As String, ByVal strIndex As String, ByVal strApplyID As String)
+    '记录用户的登陆日志，文件名保存在gVar.FileNameLoginLog中
+    
+    Const conSize As Long = 1000000 '固定日志文件大小，超过则按日期存储
+    Dim strNewFile As String
+    Dim intNum As Integer
+    
+    If Not gfFileRepair(gVar.FolderData, True) Then Exit Sub    '判断日志目录是否存在
+    If Not gfFileRepair(gVar.FileNameLoginLog) Then Exit Sub    '判断日志文件是否存在
+    
+    If FileLen(gVar.FileNameLoginLog) > conSize Then    '日志文件太大时存档
+        strNewFile = Left(gVar.FileNameLoginLog, InStrRev(gVar.FileNameLoginLog, ".") - 1) & _
+            Format(Now, "yyyy.MM.dd_HH-mm-ss") & Mid(gVar.FileNameLoginLog, InStrRev(gVar.FileNameLoginLog, "."))
+        Debug.Print strNewFile  '生成按日期保存的文件名
+        Close
+        If Not gfFileRename(gVar.FileNameLoginLog, strNewFile) Then Exit Sub    '改名存储
+    End If
+    
+    intNum = FreeFile
+    On Error Resume Next
+    
+    Open gVar.FileNameLoginLog For Append As intNum
+    Print #intNum, strIP & vbTab & strPC & vbTab & strAccount & _
+        vbTab & strUserName & vbTab & strTime & vbTab & strIndex & vbTab & strApplyID
+    Close
+    
 End Sub
 
 Private Sub CommandBars1_Execute(ByVal Control As XtremeCommandBars.ICommandBarControl)

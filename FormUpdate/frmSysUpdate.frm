@@ -334,7 +334,7 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
             
             If InStr(strGet, gVar.PTClientConfirm) Then '收到要回复服务端确认连接的信息
                 Call gfSendInfo(gVar.PTClientIsTrue, Me.Winsock1.Item(Index))
-                Call gfSendClientInfo("UpdatePC", "Update", "UpdateProgram", Me.Winsock1.Item(Index))
+                Call gfSendClientInfo(gVar.UpdatePCName, gVar.UpdateAccount, gVar.UpdateUserName, Me.Winsock1.Item(Index))
                 .Connected = True
                 
             ElseIf InStr(strGet, gVar.PTConnectIsFull) > 0 Then '服务端发来连接数已满

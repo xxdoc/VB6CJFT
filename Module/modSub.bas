@@ -158,6 +158,10 @@ Public Sub Main(Optional ByVal blnLoad As Boolean = True)
         .TCPDefaultPort = 19898
         .TCPWaitTime = 3    '单位秒
                 
+        .UpdateAccount = "UpdatePC"
+        .UpdatePCName = "Update"
+        .UpdateUserName = "UpdateProgram"
+        
         .FTChunkSize = 5734
         .FTWaitTime = 3     '单位秒
         
@@ -282,6 +286,7 @@ Public Sub Main(Optional ByVal blnLoad As Boolean = True)
         .FileNameErrLog = .FolderNameData & "ErrorRecord.LOG"
         .FileNameSkin = ""
         .FileNameSkinIni = ""
+        .FileNameLoginLog = .FolderNameData & "LoginLog.LOG"
         
         .AccountAdmin = "Admin"     '两个特殊用户
         .AccountSystem = "System"   '两个特殊用户
@@ -601,7 +606,7 @@ Public Sub gsGridToExcel(ByRef gridControl As Control, Optional ByVal TimeCol As
 '    Dim sheetOut As Excel.Worksheet
     Dim sheetOut  As Object
     Dim blnFlexCell As Boolean
-    Dim R As Long, C As Long, I As Long, J As Long
+    Dim R As Long, C As Long, i As Long, J As Long
     
     If gridControl Is Nothing Then Exit Sub
     
@@ -619,15 +624,15 @@ Public Sub gsGridToExcel(ByRef gridControl As Control, Optional ByVal TimeCol As
         C = .Cols
         '表格内容复制到Excel中
         If blnFlexCell Then
-            For I = 0 To R - 1
+            For i = 0 To R - 1
                 For J = 0 To C - 1
-                    sheetOut.Cells(I + 1, J + 1) = .Cell(I, J).Text
+                    sheetOut.Cells(i + 1, J + 1) = .Cell(i, J).Text
                 Next
             Next
         Else
-            For I = 0 To R - 1
+            For i = 0 To R - 1
                 For J = 0 To C - 1
-                    sheetOut.Cells(I + 1, J + 1) = .TextMatrix(I, J)
+                    sheetOut.Cells(i + 1, J + 1) = .TextMatrix(i, J)
                 Next
             Next
         End If
@@ -643,7 +648,7 @@ Public Sub gsGridToExcel(ByRef gridControl As Control, Optional ByVal TimeCol As
         .Range(.Cells(1, 1), .Cells(R, C)).HorizontalAlignment = -4108  'xlCenter= -4108(&HFFFFEFF4)   '居中显示
         .Range(.Cells(1, 1), .Cells(R, C)).Borders.Weight = 2   'xlThin=2  '单元格显示黑色线宽
         .Columns.EntireColumn.AutoFit   '自动列宽
-        .Rows(1).rowHeight = 23 '第一行行高
+        .Rows(1).RowHeight = 23 '第一行行高
     End With
     
     xlsOut.Visible = True   '显示Excel文档
@@ -714,12 +719,12 @@ Public Sub gsGridToText(ByRef gridControl As Control)
     Dim strFileName As String
     Dim blnFlexCell As Boolean
     Dim intFree As Integer
-    Dim R As Long, C As Long, I As Long, J As Long
+    Dim R As Long, C As Long, i As Long, J As Long
     Dim strTxt As String
     
     If gridControl Is Nothing Then Exit Sub
     
-    For I = 1 To 8
+    For i = 1 To 8
         strFileName = strFileName & gfBackOneChar(udNumber + udUpperCase) '文件名中的8个随机字符，不含小写字母
     Next
     strFileName = gVar.FolderNameTemp & Format(Now, gVar.Formatymdhms & "_") & strFileName & ".txt"
@@ -736,10 +741,10 @@ Public Sub gsGridToText(ByRef gridControl As Control)
         R = .Rows - 1
         C = .Cols - 1
         If blnFlexCell Then
-            For I = 0 To R
+            For i = 0 To R
                 strTxt = ""
                 For J = 0 To C
-                    strTxt = strTxt & .Cell(I, J).Text & vbTab
+                    strTxt = strTxt & .Cell(i, J).Text & vbTab
                 Next
                 Print #intFree, strTxt
             Next
@@ -763,7 +768,7 @@ Public Sub gsGridToWord(ByRef gridControl As Control)
 '    Dim tbOut As Word.Table
     Dim tbOut As Object
     Dim lngRows As Long, lngCols As Long
-    Dim I As Long, J As Long
+    Dim i As Long, J As Long
     Dim blnFlexCell As Boolean
     Dim strFileName As String
     
@@ -784,16 +789,16 @@ Public Sub gsGridToWord(ByRef gridControl As Control)
         End If
         Set tbOut = docOut.Tables.Add(docOut.Range, lngRows, lngCols, True)
         
-        For I = 0 To lngRows - 1
+        For i = 0 To lngRows - 1
             For J = 0 To lngCols - 1
-                tbOut.Cell(I + 1, J + 1).Range.Text = gridControl.Cell(I, J).Text
+                tbOut.Cell(i + 1, J + 1).Range.Text = gridControl.Cell(i, J).Text
             Next
-            If Len(gridControl.Cell(I, 0).Text) = 0 Then tbOut.Cell(I + 1, 1).Range.Text = I
+            If Len(gridControl.Cell(i, 0).Text) = 0 Then tbOut.Cell(i + 1, 1).Range.Text = i
         Next
     Else
-        For I = 0 To lngRows - 1
+        For i = 0 To lngRows - 1
             For J = 0 To lngCols - 1
-                tbOut.Cell(I + 1, J + 1).Range.Text = gridControl.TextMatrix(I, J)
+                tbOut.Cell(i + 1, J + 1).Range.Text = gridControl.TextMatrix(i, J)
             Next
         Next
     End If
@@ -801,7 +806,7 @@ Public Sub gsGridToWord(ByRef gridControl As Control)
     tbOut.Range.ParagraphFormat.Alignment = 1   '表格内容居中显示
     Call tbOut.AutoFitBehavior(1)               '根据内容自动调整列宽
     
-    For I = 1 To 8
+    For i = 1 To 8
         strFileName = strFileName & gfBackOneChar(udNumber + udUpperCase) '文件名中的8个随机字符，不含小写字母
     Next
     strFileName = gVar.FolderNameTemp & Format(Now, gVar.Formatymdhms & "_") & strFileName & ".doc"

@@ -226,6 +226,10 @@ Public Type gtypeCommonVariant
     TCPStateConnected As Boolean     '客户端连接服务端成功标识
     TCPStateServerStarted As Boolean '服务器启动标识
     
+    UpdatePCName As String  '启动更新程序的电脑名
+    UpdateAccount As String '启动更新程序的账号
+    UpdateUserName As String    '启动更新程序的用户名
+    
     FTChunkSize As Long   '文件传输时的分块大小
     FTWaitTime As Long    '每段文件传输时的等待时间，单位秒
     
@@ -354,6 +358,7 @@ Public Type gtypeCommonVariant
     FileNameErrLog As String    '错误记录日志文件的全路径
     FileNameSkin As String      '主题资源文件名
     FileNameSkinIni As String   '主题配置文件名
+    FileNameLoginLog As String  '登陆日志文件名
     
     UserAutoID As String    '用户标识ID
     UserLoginName As String '用户登陆名

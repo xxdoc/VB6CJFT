@@ -402,6 +402,21 @@ LineErr:
     
 End Function
 
+Public Function gfFileRename(ByVal strOld As String, ByVal strNew As String) As Boolean
+    '重命名文件或文件名
+    
+    On Error GoTo LineErr
+    
+    Close
+    Name strOld As strNew
+    Close
+    gfFileRename = True
+    Exit Function
+LineErr:
+    Close
+    Call gsAlarmAndLog("文件/文件夹重命名异常", False)
+End Function
+
 
 Public Function gfFileRepair(ByVal strFile As String, Optional ByVal blnFolder As Boolean) As Boolean
     '如果 文件/文件夹 不存在 则创建
@@ -447,7 +462,7 @@ Public Function gfFileRepair(ByVal strFile As String, Optional ByVal blnFolder A
     End If
 
 LineErr:
-    
+    Close
 End Function
 
 
@@ -537,14 +552,14 @@ End Function
 Public Function gfIsTreeViewChild(ByRef nodeDad As MSComctlLib.Node, ByVal strKey As String) As Boolean
     '判断传入Key值是不是自己的子结点
     
-    Dim I As Long, C As Long
+    Dim i As Long, C As Long
     Dim nodeSon As MSComctlLib.Node
     
     C = nodeDad.Children
     If C = 0 Then Exit Function
 
-    For I = 1 To C
-        If I = 1 Then
+    For i = 1 To C
+        If i = 1 Then
             Set nodeSon = nodeDad.Child
         Else
             Set nodeSon = nodeSon.Next
@@ -571,14 +586,14 @@ Public Function gfStringCheck(ByVal strIn As String) As String
     '''敏感字符检测
     
     Dim arrStr As Variant
-    Dim I As Long
+    Dim i As Long
     
     arrStr = Array(";", "--", "'", "//", "/*", "*/", "select", "update", _
                    "delete", "insert", "alter", "drop", "create")
     strIn = LCase(strIn)
-    For I = LBound(arrStr) To UBound(arrStr)
-        If InStr(strIn, arrStr(I)) > 0 Then
-            gfStringCheck = arrStr(I)
+    For i = LBound(arrStr) To UBound(arrStr)
+        If InStr(strIn, arrStr(i)) > 0 Then
+            gfStringCheck = arrStr(i)
             Exit Function
         End If
     Next
