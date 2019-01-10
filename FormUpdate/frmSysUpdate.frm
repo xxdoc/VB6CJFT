@@ -101,7 +101,7 @@ Dim mblnHide As Boolean     '更新窗口有隐藏打开模式与显示打开模式
 Dim mblnCheckStart As Boolean   '已开始检查标识
 Dim mblnUpdateFinish As Boolean     '更新完成标识
 Dim mblnUnload As Boolean '退出程序标识
-
+Dim mblnFTErr As Boolean '传输异常退出标识
 
 
 Private Function mfCheckUpdate() As Boolean
@@ -129,7 +129,7 @@ Private Function mfConnect(Optional ByVal blnCon As Boolean = True) As Boolean
                        "请确认服务器IP地址是否正确或服务器已启动，排除后请重新运行更新程序！", vbRed)
         If mblnHide Then
             Call gsAlarmAndLogEx("更新程序无法与服务器建立连接，请确认IP地址是否正确或服务器已启动！", "更新检测失败")
-            Unload Me  '登陆客户端程序激活的更新程序则卸载
+            mblnUnload = True 'Unload Me  '登陆客户端程序激活的更新程序则卸载
         End If
         Exit Function    '尝试[lngCount]次后不再连接了
     End If
@@ -159,8 +159,9 @@ Private Function mfShellSetup(ByVal strFile As String) As Boolean
             MsgBox "请确认已关闭客户端程序，并重新运行更新程序！", vbInformation, "警告"
         End If
     Else
-        Call Winsock1_Close(1)
+        Rem Call Winsock1_Close(1)
         Rem Unload Me   '暂没找到合适方法来无异常地退出程序，起用mblnUnload标识在Timer控件中来退出。
+        MsgBox "已取消本次更新了。", vbInformation, "更新取消"
         mblnUnload = True '退出程序标识，代替Unload Me语句
     End If
 End Function
@@ -264,6 +265,7 @@ Private Sub Timer1_Timer()
     
     If mblnUnload Then '退出程序
         Unload Me
+        If mblnFTErr Then MsgBox "与服务器传输过程发生异常，请点击确定退出程序。", vbExclamation, "传输异常"
         Exit Sub
     End If
     
@@ -312,7 +314,7 @@ Private Sub Winsock1_Close(Index As Integer)
     End If
     Label1.Item(0).Caption = ""
     
-    If mblnHide Then Unload Me  '异常时卸载
+    If mblnHide Then mblnUnload = True 'Unload Me  '异常时卸载
 End Sub
 
 
@@ -367,7 +369,7 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
                 If Len(strGet) = Len(gVar.PTVersionNotUpdate) Then
                     strNot = "您当前的版本已是最新版本，不需要更新。"
                     Call msSetText(strNot, vbBlue)
-                    If mblnHide Then Unload Me  '隐藏模式打开更新窗口时，无更新则直接退出
+                    If mblnHide Then mblnUnload = True 'Unload Me  '隐藏模式打开更新窗口时，无更新则直接退出
                 Else
                     strNot = Mid(strGet, Len(gVar.PTVersionNotUpdate) + 1)
                     strNot = "版本检测异常：" & strNot
@@ -386,13 +388,18 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
             
             If .FileNumber = 0 Then
                 .FileNumber = FreeFile
-                Open .FilePath For Binary As #.FileNumber
+                
+                If gfCloseApp(.FileName) Then
+                    Open .FilePath For Binary As #.FileNumber
+                End If
+                Rem MsgBox .FileNumber & "文件信息：" & .FilePath
                 
                 LabelProgressBar1.Min = 0
                 LabelProgressBar1.Max = .FileSizeTotal
                 LabelProgressBar1.Value = 0
             End If
             
+            Rem On Error GoTo LineErr
             ReDim byteGet(bytesTotal - 1)
             Me.Winsock1.Item(Index).GetData byteGet, vbArray + vbByte
             Put #.FileNumber, , byteGet
@@ -417,6 +424,10 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
         End If
     End With
     
+    Exit Sub
+LineErr:
+    mblnFTErr = True
+    mblnUnload = True
 End Sub
 
 

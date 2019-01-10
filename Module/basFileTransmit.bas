@@ -610,7 +610,7 @@ Public Function gfRestoreInfo(ByVal strInfo As String, sckGet As MSWinsockLib.Wi
                 lngType = IIf(lngSend > 0, lngSend, lngReceive)
                 
                 .FileFolder = Mid(strInfo, lngFod + Len(gVar.PTFileFolder), lngFile - (lngFod + Len(gVar.PTFileFolder)))
-                strFod = gVar.AppPath & .FileFolder
+                strFod = gVar.AppPath & IIf(Len(.FileFolder) = 0, "", .FileFolder & "\")
                 If Not gfDirFolder(strFod) Then Exit Function
                 
                 .FileName = Mid(strInfo, lngFile + Len(gVar.PTFileName), lngSize - (lngFile + Len(gVar.PTFileName)))
@@ -622,12 +622,12 @@ Public Function gfRestoreInfo(ByVal strInfo As String, sckGet As MSWinsockLib.Wi
                 
                 If strType = gVar.PTFileSend Then   '此状态是相对于客户端的。客户端向服务器发送文件。
                     .FileSizeTotal = CLng(strSize)
-                    .FilePath = strFod & "\" & .FileName
+                    .FilePath = strFod & .FileName
                     Call gfSendInfo(gVar.PTFileStart, sckGet)
                     .FileTransmitState = True
                     
                 ElseIf strType = gVar.PTFileReceive Then    '客户端要求服务端传送指定文件给客户端。
-                    .FilePath = strFod & "\" & .FileName
+                    .FilePath = strFod & .FileName
                     If gfDirFile(.FilePath) Then
                         .FileSizeTotal = FileLen(.FilePath)
                         Call gfSendInfo(gVar.PTFileExist & gVar.PTFileSize & .FileSizeTotal, sckGet)
