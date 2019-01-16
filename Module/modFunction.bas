@@ -80,6 +80,33 @@ Public Function gfAsciiSub(ByVal strIn As String) As String
     
 End Function
 
+Public Function gfBackComputerInfo(Optional ByVal cType As genumComputerInfoType = ciComputerName, _
+        Optional ByVal UseDefault As Boolean = True, Optional ByVal DefaultValue As String = "Null") As String
+    '返回指定的电脑上的信息
+    
+    Dim strBack As String, strBuffer As String * 255
+    
+    If cType = ciComputerName Then  '计算机名称
+        strBack = VBA.Environ("ComputerName")   '直接VBA函数获取
+        If Len(strBack) = 0 Then
+            Call GetComputerName(strBuffer, 255) '若获取失败则用API函数再获取一次
+            strBack = strBuffer
+        End If
+    ElseIf cType = ciUserName Then  '计算机当前用户名
+        strBack = VBA.Environ("UserName")
+        If Len(strBack) = 0 Then
+            Call GetUserName(strBuffer, 255)
+            strBack = strBuffer
+        End If
+    End If
+    
+    If Len(strBack) = 0 Then  '如果为空时是否使用默认值
+        If UseDefault Then strBack = DefaultValue
+    End If
+    gfBackComputerInfo = strBack
+    
+End Function
+
 
 Public Function gfBackConnection(ByVal strCon As String, _
         Optional ByVal CursorLocation As CursorLocationEnum = adUseClient) As ADODB.Connection
@@ -177,7 +204,7 @@ Public Function gfBackOneChar(Optional ByVal CharType As genumCharType = udUpper
 End Function
 
 
-Public Function gfDecryptSimple(ByVal strIn As String) As String
+Public Function DecryptStringSimple(ByVal strIn As String) As String
     '解密输入的字符串密文为明文
     '密文长度限定为gconSumLen位
     
@@ -213,7 +240,7 @@ Public Function gfDecryptSimple(ByVal strIn As String) As String
     Next
     If Len(strPt) <> C / 2 Then GoTo LineBreak
     
-    gfDecryptSimple = strPt  '将解密好的密文返回给函数的调用者
+    DecryptStringSimple = strPt  '将解密好的密文返回给函数的调用者
     
     Exit Function
     
@@ -225,7 +252,7 @@ LineBreak:
     Call gsAlarmAndLogEx("密文[" & strIn & "]被破坏，无法解密！", "密文警告", False)
 End Function
 
-Public Function gfEncryptSimple(ByVal strIn As String) As String
+Public Function EncryptStringSimple(ByVal strIn As String) As String
     '将传入的字符串(明文)进行简单加密，生成密文并返回给调用者
     '明文长度<=20个字符，且只能是大写或小写字母、数字，否则转化时会报错
     
@@ -291,7 +318,7 @@ Public Function gfEncryptSimple(ByVal strIn As String) As String
         Next
     End If
     
-    gfEncryptSimple = strEt  '最后将strEt赋给函数的返回值
+    EncryptStringSimple = strEt  '最后将strEt赋给函数的返回值
     
 End Function
 
@@ -375,6 +402,21 @@ LineErr:
     
 End Function
 
+Public Function gfFileRename(ByVal strOld As String, ByVal strNew As String) As Boolean
+    '重命名文件或文件名
+    
+    On Error GoTo LineErr
+    
+    Close
+    Name strOld As strNew
+    Close
+    gfFileRename = True
+    Exit Function
+LineErr:
+    Close
+    Call gsAlarmAndLog("文件/文件夹重命名异常", False)
+End Function
+
 
 Public Function gfFileRepair(ByVal strFile As String, Optional ByVal blnFolder As Boolean) As Boolean
     '如果 文件/文件夹 不存在 则创建
@@ -420,7 +462,7 @@ Public Function gfFileRepair(ByVal strFile As String, Optional ByVal blnFolder A
     End If
 
 LineErr:
-    
+    Close
 End Function
 
 
@@ -463,6 +505,47 @@ Public Function gfGetRegNumericValue(ByVal AppName As String, ByVal Section As S
         If lngGet < nMin Or lngGet > nMax Then lngGet = Default
     End If
     gfGetRegNumericValue = lngGet
+    
+End Function
+
+Public Function gfGetSetting(ByVal AppName As String, ByVal Section As String, ByVal Key As String, Optional ByVal strNO As String = "*&^%$#@!") As Boolean
+    '判断注册项是否存在
+    
+    Dim strGet As String
+    
+    strGet = GetSetting(AppName, Section, Key, strNO)
+    If strGet <> strNO Then gfGetSetting = True
+End Function
+
+Public Function gfLoadAuthority(ByRef frmCur As Form, ByRef ctlCur As Control) As Boolean
+    '加载窗口中的控制权限
+    
+    Dim strUser As String, strForm As String, strCtlName As String
+    
+    strUser = LCase(gVar.UserLoginName)
+    strForm = LCase(frmCur.Name)
+    strCtlName = LCase(ctlCur.Name)
+    
+    If strUser = LCase(gVar.AccountAdmin) Or strUser = LCase(gVar.AccountSystem) Then Exit Function
+    ctlCur.Enabled = False
+    
+    With gVar.rsURF
+        If .State = adStateOpen Then
+            If .RecordCount > 0 Then
+                .MoveFirst
+                Do While Not .EOF
+                    If strForm = LCase(.Fields("FuncFormName")) Then
+                        If strCtlName = LCase(.Fields("FuncName")) Then
+                            ctlCur.Enabled = True
+                            gfLoadAuthority = True
+                            Exit Do
+                        End If
+                    End If
+                    .MoveNext
+                Loop
+            End If
+        End If
+    End With
     
 End Function
 

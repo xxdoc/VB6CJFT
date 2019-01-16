@@ -109,10 +109,15 @@ Public Function EncryptString(ByVal str As String, password As String) As String
     Dim byt() As Byte
     Dim HASHALGORITHM As HASHALGORITHM
     Dim ENCALGORITHM As ENCALGORITHM
+On Error GoTo LineErr
     byt = str
     HASHALGORITHM = MD5
     ENCALGORITHM = RC4
     EncryptString = BytesToHex(Encrypt(byt, password, HASHALGORITHM, ENCALGORITHM))
+LineErr:
+    If Err.Number <> 0 Then
+        Call gsAlarmAndLog("加密异常", False)
+    End If
 End Function
 
 Public Function EncryptByte(byt() As Byte, password As String) As Byte()
@@ -171,10 +176,15 @@ Public Function DecryptString(ByVal str As String, password As String) As String
     Dim byt() As Byte
     Dim HASHALGORITHM As HASHALGORITHM
     Dim ENCALGORITHM As ENCALGORITHM
+On Error GoTo LineErr
     byt = HexToBytes(str)
     HASHALGORITHM = MD5
     ENCALGORITHM = RC4
     DecryptString = Decrypt(byt, password, HASHALGORITHM, ENCALGORITHM)
+LineErr:
+    If Err.Number <> 0 Then
+        Call gsAlarmAndLog("解密异常", False)
+    End If
 End Function
 
 Public Function DecryptByte(byt() As Byte, password As String) As Byte()
@@ -307,6 +317,28 @@ End Sub
 '要求Winsock控件在客户端与服务端都必须建成数组，且其Index值与对应的数组变量的下标要相同
 '''===============================================================================
 
+Public Function gfAppExist(ByVal strName As String) As Boolean
+    '指定应用程序进程是否存在
+    
+    Dim RetVal As Long
+    Dim objWMIService As Object
+    Dim colProcessList As Object
+    Dim objProcess As Object
+    
+    On Error GoTo LineErr
+    
+    Set objWMIService = GetObject("winmgmts:\\.\root\cimv2")
+    Set colProcessList = objWMIService.ExecQuery("select * from Win32_Process where Name='" & strName & "' ")
+    For Each objProcess In colProcessList
+        gfAppExist = True   '存在该进程名时
+    Next
+    
+LineErr:
+    Set objProcess = Nothing
+    Set colProcessList = Nothing
+    Set objWMIService = Nothing
+End Function
+
 Public Function gfBackVersion(ByVal strFile As String) As String
     '返回文件的版本号
     Dim objFile As Scripting.FileSystemObject
@@ -385,7 +417,8 @@ Public Function gfDirFile(ByVal strFile As String) As Boolean
     
     Exit Function
 LineErr:
-    Debug.Print "Error:gfDirFile--" & Err.Number & "  " & Err.Description
+    Debug.Print "Error:gfDirFile--" & Err.Number & "  " & Err.Description & ";" & strFile
+    Call gsAlarmAndLog("文件路径识别异常", False)
 End Function
 
 Public Function gfDirFolder(ByVal strFolder As String) As Boolean
@@ -406,7 +439,21 @@ Public Function gfDirFolder(ByVal strFolder As String) As Boolean
     
     Exit Function
 LineErr:
-    Debug.Print "Error:gfDirFolder--" & Err.Number & "  " & Err.Description
+    Debug.Print "Error:gfDirFolder--" & Err.Number & "  " & Err.Description & ";" & strFolder
+    Call gsAlarmAndLog("文件夹路径识别异常", False)
+End Function
+
+Public Function gfDatabaseInfoJoin(Optional ByVal blnJoin As Boolean = True) As String
+    '数据库连接信息加密后拼接
+    
+    If Not blnJoin Then Exit Function
+    With gVar
+        gfDatabaseInfoJoin = .PTDBDataSource & EncryptString(.ConSource, .EncryptKey) & _
+                             .PTDBDatabase & EncryptString(.ConDatabase, .EncryptKey) & _
+                             .PTDBUserID & EncryptString(.ConUserID, .EncryptKey) & _
+                             .PTDBPassword & EncryptString(.ConPassword, .EncryptKey)
+    End With
+    
 End Function
 
 Public Function gfFileInfoJoin(ByVal intIndex As Integer, Optional ByVal enmType As genumFileTransimitType = ftSend) As String
@@ -503,6 +550,40 @@ Public Function gfRegOperate(ByVal RegHKEY As genumRegRootDirectory, ByVal lpSub
     
 End Function
 
+Public Function gfRestoreDBInfo(ByVal strInfo As String) As Boolean
+    '还原数据库连接信息
+    Dim lngSrc As Long, lngDB As Long, lngID As Long, lngPWD As Long
+    Dim strSrc As String, strDB As String, strID As String, strPWD As String
+        
+    On Error Resume Next    '解密非正常密文时可能出错
+    
+    With gVar
+        lngSrc = InStr(strInfo, .PTDBDataSource) '数据库服务器地址
+        lngDB = InStr(strInfo, .PTDBDatabase)   '数据库名
+        lngID = InStr(strInfo, .PTDBUserID)     '数据库访问账号
+        lngPWD = InStr(strInfo, .PTDBPassword)  '数据库访问密码
+        
+        If Not (lngSrc > 0 And lngDB > lngSrc And lngID > lngDB And lngPWD > lngID) Then Exit Function '信息中的顺序不对
+        strSrc = Mid(strInfo, Len(.PTDBDataSource) + lngSrc, lngDB - lngSrc - Len(.PTDBDataSource))
+        .ConSource = DecryptString(strSrc, .EncryptKey)
+        
+        strDB = Mid(strInfo, lngDB + Len(.PTDBDatabase), lngID - lngDB - Len(.PTDBDatabase))
+        .ConDatabase = DecryptString(strDB, .EncryptKey)
+        
+        strID = Mid(strInfo, lngID + Len(.PTDBUserID), lngPWD - lngID - Len(.PTDBUserID))
+        .ConUserID = DecryptString(strID, .EncryptKey)
+        
+        strPWD = Mid(strInfo, lngPWD + Len(.PTDBPassword))
+        .ConPassword = DecryptString(strPWD, .EncryptKey)
+                     
+        .ConString = "Provider=SQLOLEDB.1;" & _
+                     "Persist Security Info=False;" & _
+                     "User ID=" & .ConUserID & ";Password=" & .ConPassword & ";" & _
+                     "Initial Catalog=" & .ConDatabase & ";" & _
+                     "Data Source=" & .ConSource & ";"
+    End With
+    If Err.Number = 0 Then gfRestoreDBInfo = True
+End Function
 
 Public Function gfRestoreInfo(ByVal strInfo As String, sckGet As MSWinsockLib.Winsock) As Boolean
     '还原接收到的文件信息
@@ -529,7 +610,7 @@ Public Function gfRestoreInfo(ByVal strInfo As String, sckGet As MSWinsockLib.Wi
                 lngType = IIf(lngSend > 0, lngSend, lngReceive)
                 
                 .FileFolder = Mid(strInfo, lngFod + Len(gVar.PTFileFolder), lngFile - (lngFod + Len(gVar.PTFileFolder)))
-                strFod = gVar.AppPath & .FileFolder
+                strFod = gVar.AppPath & IIf(Len(.FileFolder) = 0, "", .FileFolder & "\")
                 If Not gfDirFolder(strFod) Then Exit Function
                 
                 .FileName = Mid(strInfo, lngFile + Len(gVar.PTFileName), lngSize - (lngFile + Len(gVar.PTFileName)))
@@ -541,12 +622,12 @@ Public Function gfRestoreInfo(ByVal strInfo As String, sckGet As MSWinsockLib.Wi
                 
                 If strType = gVar.PTFileSend Then   '此状态是相对于客户端的。客户端向服务器发送文件。
                     .FileSizeTotal = CLng(strSize)
-                    .FilePath = strFod & "\" & .FileName
+                    .FilePath = strFod & .FileName
                     Call gfSendInfo(gVar.PTFileStart, sckGet)
                     .FileTransmitState = True
                     
                 ElseIf strType = gVar.PTFileReceive Then    '客户端要求服务端传送指定文件给客户端。
-                    .FilePath = strFod & "\" & .FileName
+                    .FilePath = strFod & .FileName
                     If gfDirFile(.FilePath) Then
                         .FileSizeTotal = FileLen(.FilePath)
                         Call gfSendInfo(gVar.PTFileExist & gVar.PTFileSize & .FileSizeTotal, sckGet)
@@ -729,6 +810,19 @@ Public Function gfVersionCompare(ByVal strVerCL As String, ByVal strVerSV As Str
     End If
     
 End Function
+
+
+Public Sub gsConnectToServer(ByRef sckCon As MSWinsockLib.Winsock, Optional ByVal blnConnect As Boolean = False)
+    '启动与服务器的连接
+    
+    If Not blnConnect Then Exit Sub
+    With sckCon
+        If .State <> 0 Then .Close
+        .RemoteHost = gVar.TCPSetIP
+        .RemotePort = gVar.TCPSetPort
+        .Connect
+    End With
+End Sub
 
 Public Sub gsFormEnable(frmCur As Form, Optional ByVal blnState As Boolean = False)
     With frmCur

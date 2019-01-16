@@ -1,19 +1,28 @@
 VERSION 5.00
 Object = "{248DD890-BB45-11CF-9ABC-0080C7E7B78D}#1.0#0"; "MSWINSCK.OCX"
+Object = "{BD0C1912-66C3-49CC-8B12-7B347BF6C846}#15.3#0"; "Codejock.SkinFramework.v15.3.1.ocx"
 Begin VB.Form frmSysUpdate 
    BorderStyle     =   1  'Fixed Single
    Caption         =   "Update"
    ClientHeight    =   3405
    ClientLeft      =   45
    ClientTop       =   375
-   ClientWidth     =   5835
+   ClientWidth     =   5655
    Icon            =   "frmSysUpdate.frx":0000
    LinkTopic       =   "Form1"
    MaxButton       =   0   'False
    MinButton       =   0   'False
    ScaleHeight     =   3405
-   ScaleWidth      =   5835
-   StartUpPosition =   3  '窗口缺省
+   ScaleWidth      =   5655
+   StartUpPosition =   1  '所有者中心
+   Begin VB.CommandButton Command1 
+      Caption         =   "退出"
+      Height          =   375
+      Left            =   4320
+      TabIndex        =   4
+      Top             =   2760
+      Width           =   855
+   End
    Begin FrameFileUpdate.LabelProgressBar LabelProgressBar1 
       Height          =   375
       Left            =   600
@@ -53,6 +62,14 @@ Begin VB.Form frmSysUpdate
       _ExtentY        =   741
       _Version        =   393216
    End
+   Begin XtremeSkinFramework.SkinFramework SkinFramework1 
+      Left            =   2640
+      Top             =   2760
+      _Version        =   983043
+      _ExtentX        =   635
+      _ExtentY        =   635
+      _StockProps     =   0
+   End
    Begin VB.Label Label1 
       Alignment       =   2  'Center
       Caption         =   "Label1"
@@ -83,8 +100,8 @@ Option Explicit
 Dim mblnHide As Boolean     '更新窗口有隐藏打开模式与显示打开模式
 Dim mblnCheckStart As Boolean   '已开始检查标识
 Dim mblnUpdateFinish As Boolean     '更新完成标识
-
-
+Dim mblnUnload As Boolean '退出程序标识
+Dim mblnFTErr As Boolean '传输异常退出标识
 
 
 Private Function mfCheckUpdate() As Boolean
@@ -103,14 +120,18 @@ Private Function mfCheckUpdate() As Boolean
 End Function
 
 Private Function mfConnect(Optional ByVal blnCon As Boolean = True) As Boolean
-    Dim strIP As String, strPort As String
+    '与服务器建立连接
     Static lngCount As Long
             
     lngCount = lngCount + 1
-    If lngCount = 2 Then
+    If lngCount >= 2 Then
         Call msSetText("版本检测失败！无法连接服务器。" & vbCrLf & _
-                       "请确认服务器已启动，并重新运行更新程序！", vbRed)
-        Exit Function    '尝试百次后不再连接了
+                       "请确认服务器IP地址是否正确或服务器已启动，排除后请重新运行更新程序！", vbRed)
+        If mblnHide Then
+            Call gsAlarmAndLogEx("更新程序无法与服务器建立连接，请确认IP地址是否正确或服务器已启动！", "更新检测失败")
+            mblnUnload = True 'Unload Me  '登陆客户端程序激活的更新程序则卸载
+        End If
+        Exit Function    '尝试[lngCount]次后不再连接了
     End If
     
     With Me.Winsock1.Item(1)
@@ -138,8 +159,10 @@ Private Function mfShellSetup(ByVal strFile As String) As Boolean
             MsgBox "请确认已关闭客户端程序，并重新运行更新程序！", vbInformation, "警告"
         End If
     Else
-        Call Winsock1_Close(1)
-        Unload Me
+        Rem Call Winsock1_Close(1)
+        Rem Unload Me   '暂没找到合适方法来无异常地退出程序，起用mblnUnload标识在Timer控件中来退出。
+        MsgBox "已取消本次更新了。", vbInformation, "更新取消"
+        mblnUnload = True '退出程序标识，代替Unload Me语句
     End If
 End Function
 
@@ -153,6 +176,10 @@ Private Sub msLoadParameter(Optional ByVal blnLoad As Boolean = True)
         .TCPDefaultIP = Me.Winsock1.Item(0).LocalIP '本机IP地址
         .TCPSetIP = gfCheckIP(GetSetting(.RegAppName, .RegSectionTCP, .RegKeyTCPIP, .TCPDefaultIP)) '要连接服务端IP地址
         .TCPSetPort = gfGetRegNumericValue(.RegAppName, .RegSectionTCP, .RegKeyTCPPort, , .TCPDefaultPort, 10000, 65535) '要连接的服务器端口
+        
+        .UserComputerName = gfBackComputerInfo(ciComputerName)
+        .UserLoginName = gfBackComputerInfo(ciUserName)
+        .UserFullName = "UpdateProgram"
     End With
 End Sub
 
@@ -166,6 +193,11 @@ Private Sub msSetText(ByVal strTxt As String, ByVal ForeColor As Long)
     Me.Text1.ForeColor = ForeColor
 End Sub
 
+
+
+Private Sub Command1_Click()
+    Unload Me
+End Sub
 
 Private Sub Form_Load()
     
@@ -201,12 +233,26 @@ Private Sub Form_Load()
     End If
     
     Call msSetLabel(gVar.ClientStateDisConnected, vbRed)
+    Call gsLoadSkin(Me, Me.SkinFramework1, sMSVst, False)
     Call mfConnect(True)
     
     Exit Sub
     
 LineUnload:
     Unload Me   '此行以下除End Sub不可再跟任何有效代码
+End Sub
+
+Private Sub Form_Unload(Cancel As Integer)
+    '卸载窗体
+    
+    mblnHide = False
+    mblnCheckStart = False
+    mblnUpdateFinish = False
+    
+    Me.Winsock1.Item(1).Close
+    gArr(1) = gArr(0)
+    Close
+    
 End Sub
 
 Private Sub Timer1_Timer()
@@ -216,6 +262,12 @@ Private Sub Timer1_Timer()
     Static byteConn As Byte
     Static byteState As Byte
     Static byteDotCount As Byte
+    
+    If mblnUnload Then '退出程序
+        Unload Me
+        If mblnFTErr Then MsgBox "与服务器传输过程发生异常，请点击确定退出程序。", vbExclamation, "传输异常"
+        Exit Sub
+    End If
     
     byteConn = byteConn + 1
     byteState = byteState + 1
@@ -261,6 +313,8 @@ Private Sub Winsock1_Close(Index As Integer)
         mblnCheckStart = False
     End If
     Label1.Item(0).Caption = ""
+    
+    If mblnHide Then mblnUnload = True 'Unload Me  '异常时卸载
 End Sub
 
 
@@ -276,31 +330,46 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
             
             Me.Winsock1.Item(Index).GetData strGet
             
-            If InStr(strGet, gVar.PTClientConfirm) Then
+            If Not gfRestoreInfo(strGet, Me.Winsock1.Item(Index)) Then '
+                
+            End If
+            
+            If InStr(strGet, gVar.PTClientConfirm) Then '收到要回复服务端确认连接的信息
                 Call gfSendInfo(gVar.PTClientIsTrue, Me.Winsock1.Item(Index))
+                Call gfSendClientInfo(gVar.UpdatePCName, gVar.UpdateAccount, gVar.UpdateUserName, Me.Winsock1.Item(Index))
                 .Connected = True
-                Call gfSendClientInfo("UpdatePC", "Update", "UpdateProgram", Me.Winsock1.Item(Index))
                 
-            End If
-            
-            If Not gfRestoreInfo(strGet, Me.Winsock1.Item(Index)) Then
+            ElseIf InStr(strGet, gVar.PTConnectIsFull) > 0 Then '服务端发来连接数已满
+                Me.Timer1.Enabled = False
+                If Not mblnHide Then
+                    MsgBox "客户端与服务端连接数受限，请其他用户退出后再试！", vbCritical, "连接数已满警告"
+                End If
+                Call Unload(Me)
                 
-            End If
-            
-            If InStr(strGet, gVar.PTVersionNeedUpdate) > 0 Then
+            ElseIf InStr(strGet, gVar.PTConnectTimeOut) > 0 Then '服务端发来连接时间到
+                Me.Timer1.Enabled = False
+                If Not mblnHide Then
+                    MsgBox "与服务器连续连接时间已到！", vbExclamation, "连接时间限制提示"
+                End If
+                Call Unload(Me)
+                
+            ElseIf InStr(strGet, gVar.PTVersionNeedUpdate) > 0 Then '需要更新
                 Dim strVer As String
                 
                 strVer = Mid(strGet, Len(gVar.PTVersionNeedUpdate) + 1)
                 Call msSetText("发现新版：" & strVer, vbBlue)
-            End If
-            
-            If InStr(strGet, gVar.PTVersionNotUpdate) > 0 Then
+                If Not gfCloseApp(gVar.EXENameOfClient) Then '关闭客户端
+                    Me.Winsock1.Item(Index).Close
+                    MsgBox "无法关闭客户端程序，导致更新异常，已退出更新！", vbCritical, "关闭异常警告"
+                End If
+                
+            ElseIf InStr(strGet, gVar.PTVersionNotUpdate) > 0 Then '不需要更新
                 Dim strNot As String
                 
                 If Len(strGet) = Len(gVar.PTVersionNotUpdate) Then
                     strNot = "您当前的版本已是最新版本，不需要更新。"
-                    Call msSetText(strNot, vbGreen)
-                    If mblnHide Then Unload Me  '隐藏模式打开更新窗口时，无更新则直接退出
+                    Call msSetText(strNot, vbBlue)
+                    If mblnHide Then mblnUnload = True 'Unload Me  '隐藏模式打开更新窗口时，无更新则直接退出
                 Else
                     strNot = Mid(strGet, Len(gVar.PTVersionNotUpdate) + 1)
                     strNot = "版本检测异常：" & strNot
@@ -308,7 +377,9 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
                 End If
                 
                 mblnUpdateFinish = True
+                
             End If
+            
             Debug.Print "Get Server Info:" & strGet, bytesTotal
             '字符信息传输状态↑
             
@@ -317,13 +388,18 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
             
             If .FileNumber = 0 Then
                 .FileNumber = FreeFile
-                Open .FilePath For Binary As #.FileNumber
+                
+                If gfCloseApp(.FileName) Then
+                    Open .FilePath For Binary As #.FileNumber
+                End If
+                Rem MsgBox .FileNumber & "文件信息：" & .FilePath
                 
                 LabelProgressBar1.Min = 0
                 LabelProgressBar1.Max = .FileSizeTotal
                 LabelProgressBar1.Value = 0
             End If
             
+            Rem On Error GoTo LineErr
             ReDim byteGet(bytesTotal - 1)
             Me.Winsock1.Item(Index).GetData byteGet, vbArray + vbByte
             Put #.FileNumber, , byteGet
@@ -348,6 +424,10 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
         End If
     End With
     
+    Exit Sub
+LineErr:
+    mblnFTErr = True
+    mblnUnload = True
 End Sub
 
 
@@ -357,5 +437,6 @@ Private Sub Winsock1_Error(Index As Integer, ByVal Number As Integer, Descriptio
             Close #gArr(Index).FileNumber
             gArr(Index) = gArr(0)
         End If
+        If mblnHide Then Unload Me  '异常时卸载
     End If
 End Sub

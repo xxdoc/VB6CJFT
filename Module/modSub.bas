@@ -19,6 +19,7 @@ Public Sub Main(Optional ByVal blnLoad As Boolean = True)
         .SysAuthFunc = 1107
         .SysAuthLog = 1108
         
+        .SysExportMain = 1200
         .SysExportToCSV = 1201
         .SysExportToExcel = 1202
         .SysExportToHTML = 1203
@@ -27,16 +28,30 @@ Public Sub Main(Optional ByVal blnLoad As Boolean = True)
         .SysExportToText = 1206
         .SysExportToWord = 1207
         
+        .SysPrintMain = 1300
         .SysPrint = 1303
         .SysPrintPageSet = 1301
         .SysPrintPreview = 1302
                 
+        .SysSearch = 1400
+        .SysSearch1Label = 1401
+        .SysSearch2TextBox = 1402
+        .SysSearch3Button = 1403
+        .SysSearch4ListBoxCaption = 1404
+        .SysSearch4ListBoxFormID = 1405
+        .SysSearch5Go = 1406
+        
         
         .Wnd = 2000
         
         .WndResetLayout = 2050
-        
         .TabWorkspacePopupMenu = 2051
+        .WndThemeSkinSet = 2052
+        .WndOpenListCaption = 2053
+        
+        .WndOpenListID = XTP_ID_WINDOWLIST '=35000
+        .WndToolBarCustomize = XTP_ID_CUSTOMIZE '=35001
+        .WndToolBarList = XTP_ID_TOOLBARLIST '=59392
         
         .WndThemeCommandBars = 2100
         .WndThemeCommandBarsOffice2000 = 2101
@@ -89,9 +104,7 @@ Public Sub Main(Optional ByVal blnLoad As Boolean = True)
         .WndThemeSkinWinXPLuna = 2405
         .WndThemeSkinWinXPRoyale = 2406
         .WndThemeSkinZune = 2407
-        
-        .WndThemeSkinSet = 2450
-        
+               
         
         .Help = 3000
         .HelpAbout = 3101
@@ -108,13 +121,12 @@ Public Sub Main(Optional ByVal blnLoad As Boolean = True)
         
         .Pane = 21000
         
-        .PaneIDFirst = 21101
-        .PaneTitleFirst = 21102
+        .PaneNavi = 21102
         
-        .PanePopupMenu = 21103
-        .PanePopupMenuAutoFoldOther = 21104
-        .PanePopupMenuExpandALL = 21105
-        .PanePopupMenuFoldALL = 21106
+        .PanePopupMenuNavi = 21103
+        .PanePopupMenuNaviAutoFoldOther = 21104
+        .PanePopupMenuNaviExpandALL = 21105
+        .PanePopupMenuNaviFoldALL = 21106
         
         
         .StatusBarPane = 22000
@@ -146,6 +158,10 @@ Public Sub Main(Optional ByVal blnLoad As Boolean = True)
         .TCPDefaultPort = 19898
         .TCPWaitTime = 3    '单位秒
                 
+        .UpdateAccount = "UpdatePC"
+        .UpdatePCName = "Update"
+        .UpdateUserName = "UpdateProgram"
+        
         .FTChunkSize = 5734
         .FTWaitTime = 3     '单位秒
         
@@ -187,9 +203,14 @@ Public Sub Main(Optional ByVal blnLoad As Boolean = True)
         .PTClientUserFullName = "<ClientUserFullName>"
         .PTClientUserLoginName = "<ClientUserLoginName>"
         
+        .PTDBDatabase = "<DBDatabase>"
+        .PTDBDataSource = "<DBDataSource>"
+        .PTDBPassword = "<DBPassword>"
+        .PTDBUserID = "<DBUserID>"
+        
         .EXENameOfClient = "FFC.exe"
         .EXENameOfServer = "FFS.exe"
-        .EXENameOfSetup = "FFSetup.exe"
+        .EXENameOfSetup = "FFC.exe" '"FFSetup.exe"
         .EXENameOfUpdate = "FFU.exe"
         
         .CmdLineParaOfHide = "Hide"
@@ -216,19 +237,26 @@ Public Sub Main(Optional ByVal blnLoad As Boolean = True)
         .RegKeyCommandBars = "FF"
         .RegKeyCBSClientSetting = "ClientSetting"
         .RegKeyCBSServerSetting = "ServerSetting"
+        .RegKeyDockingPane = .RegKeyCommandBars
+        .RegKeyDockPaneClientSetting = "ClientSetting"
+        .RegKeyDockPaneServerSetting = "ServerSetting"
         
         .RegSectionSettings = "Settings"
         .RegKeyServerWindowHeight = "ServerWindowHeight"
         .RegKeyServerWindowLeft = "ServerWindowLeft"
         .RegKeyServerWindowTop = "ServerWindowTop"
         .RegKeyServerWindowWidth = "ServerWindowWidth"
+        .RegKeyServerWindowStateMax = "ServerWindowStateMax"
         .RegKeyServerCommandbarsTheme = "ServercbsTheme"
         
         .RegKeyClientWindowHeight = "ClientWindowHeight"
         .RegKeyClientWindowLeft = "ClientWindowLeft"
         .RegKeyClientWindowTop = "ClientWindowTop"
         .RegKeyClientWindowWidth = "ClientWindowWidth"
+        .RegKeyClientWindowStateMax = "ClientWindowStateMax"
         .RegKeyClientCommandbarsTheme = "ClientcbsTheme"
+        .RegKeyClientTaskPanelAutoFold = "ClientTPAutoFold"
+        .RegKeyClientTaskPanelTheme = "ClientTPTheme"
         
         .RegTrailPath = "SoftWare\Common\Section"   'HKEY_CURRENT_USER\SoftWare\……
         .RegTrailKey = "Key"
@@ -242,15 +270,23 @@ Public Sub Main(Optional ByVal blnLoad As Boolean = True)
         .RegKeyParaLimitClientConnectTime = "LimitClientConnectTime"
         .RegKeyParaLimitClientConnectNumber = "LimitClientConnectNumber"
         
+        .RegKeyParaUserAutoLogin = "UserAutoLogin"
+        .RegKeyParaRememberUserList = "RememberUserList"
+        .RegKeyParaRememberUserPassword = "RememberUserPassword "
+        
         .AppPath = App.Path & IIf(Right(App.Path, 1) = "\", "", "\")
         
-        .FolderNameBin = .AppPath & "Bin\"
-        .FolderNameData = .AppPath & "Data\"
-        .FolderNameTemp = .AppPath & "Temp\"
+        .FolderBin = "Bin"
+        .FolderData = "Data"
+        .FolderTemp = "Temp"
+        .FolderNameBin = .AppPath & .FolderBin & "\"
+        .FolderNameData = .AppPath & .FolderData & "\"
+        .FolderNameTemp = .AppPath & .FolderTemp & "\"
         
         .FileNameErrLog = .FolderNameData & "ErrorRecord.LOG"
         .FileNameSkin = ""
         .FileNameSkinIni = ""
+        .FileNameLoginLog = .FolderNameData & "LoginLog.LOG"
         
         .AccountAdmin = "Admin"     '两个特殊用户
         .AccountSystem = "System"   '两个特殊用户
@@ -302,6 +338,16 @@ Public Sub gsAlarmAndLogEx(Optional ByVal strErrDescription As String, Optional 
     If Len(Err.Description) = 0 Then Err.Description = strErrDescription
     Call gsAlarmAndLog(strErrTitle, blnMsgBox, MsgButton)
     
+End Sub
+
+Public Sub gsDeleteSetting(ByVal AppName As String, ByVal Section As String, ByVal Key As String, ByVal strMsg As String)
+    '调用系统函数删除注册信息
+    
+    On Error Resume Next
+    Call DeleteSetting(AppName, Section, Key) '不存在时可能异常
+    If Err.Number <> 0 Then
+        Call gsAlarmAndLog(strMsg, False)
+    End If
 End Sub
 
 Public Sub gsFileWrite(ByVal strFile As String, ByVal strContent As String, _
@@ -427,68 +473,77 @@ End Sub
 Public Sub gsFormSizeLoad(ByRef frmLoad As Form, Optional blnServer As Boolean = True)
     '从注册表中加载窗口的位置与大小信息
     Dim Left As Long, Top As Long, Width As Long, Height As Long
+    Dim blnStateMax As Boolean
     
-    If blnServer Then
-        Left = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerWindowLeft, 0))
-        If Left < 0 Or Left > Screen.Width Then Left = 0
-        Top = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerWindowTop, 0))
-        If Top < 0 Or Left > Screen.Height Then Top = 0
-        Width = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerWindowWidth, gVar.WindowWidth))
-        If Width <= 0 Or Width > Screen.Width Then Width = gVar.WindowWidth
-        Height = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerWindowHeight, gVar.WindowHeight))
-        If Height <= 0 Or Height > Screen.Height Then Height = gVar.WindowHeight
+    blnStateMax = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, IIf(blnServer, gVar.RegKeyServerWindowStateMax, gVar.RegKeyClientWindowStateMax), 1))
+    If blnStateMax Then
+        frmLoad.WindowState = vbMaximized
     Else
-        Left = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientWindowLeft, 0))
-        If Left < 0 Or Left > Screen.Width Then Left = 0
-        Top = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientWindowTop, 0))
-        If Top < 0 Or Left > Screen.Height Then Top = 0
-        Width = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientWindowWidth, gVar.WindowWidth))
-        If Width <= 0 Or Width > Screen.Width Then Width = gVar.WindowWidth
-        Height = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientWindowHeight, gVar.WindowHeight))
-        If Height <= 0 Or Height > Screen.Height Then Height = gVar.WindowHeight
+        If blnServer Then
+            Left = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerWindowLeft, 0))
+            If Left < 0 Or Left > Screen.Width Then Left = 0
+            Top = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerWindowTop, 0))
+            If Top < 0 Or Left > Screen.Height Then Top = 0
+            Width = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerWindowWidth, gVar.WindowWidth))
+            If Width <= 0 Or Width > Screen.Width Then Width = gVar.WindowWidth
+            Height = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerWindowHeight, gVar.WindowHeight))
+            If Height <= 0 Or Height > Screen.Height Then Height = gVar.WindowHeight
+        Else
+            Left = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientWindowLeft, 0))
+            If Left < 0 Or Left > Screen.Width Then Left = 0
+            Top = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientWindowTop, 0))
+            If Top < 0 Or Left > Screen.Height Then Top = 0
+            Width = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientWindowWidth, gVar.WindowWidth))
+            If Width <= 0 Or Width > Screen.Width Then Width = gVar.WindowWidth
+            Height = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientWindowHeight, gVar.WindowHeight))
+            If Height <= 0 Or Height > Screen.Height Then Height = gVar.WindowHeight
+        End If
+        If frmLoad.WindowState = vbNormal Then frmLoad.Move Left, Top, Width, Height
     End If
-    frmLoad.Move Left, Top, Width, Height
-    
 End Sub
 
 Public Sub gsFormSizeSave(ByRef frmSave As Form, Optional ByVal blnServer As Boolean = True)
     '保存窗口的位置与大小信息至注册表中
     Dim Left As Long, Top As Long, Width As Long, Height As Long
+    Dim blnStateMax As Boolean
     
-    With frmSave
-        Left = .Left
-        Top = .Top
-        Width = .Width
-        Height = .Height
-        If Left < 0 Or Left > Screen.Width Then Left = 0
-        If Top < 0 Or Top > Screen.Height Then Top = 0
-        If Width < gVar.WindowWidth Or Width > Screen.Width Then Width = gVar.WindowWidth
-        If Height < gVar.WindowHeight Or Height > Screen.Height Then Height = gVar.WindowHeight
-    End With
+    If frmSave.WindowState = vbMaximized Then blnStateMax = True
     
-    If blnServer Then
-        Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerWindowLeft, CStr(Left))
-        Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerWindowTop, CStr(Top))
-        Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerWindowWidth, CStr(Width))
-        Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerWindowHeight, CStr(Height))
+    If blnStateMax Then
+        Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, IIf(blnServer, gVar.RegKeyServerWindowStateMax, gVar.RegKeyClientWindowStateMax), 1)
     Else
-        Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientWindowLeft, CStr(Left))
-        Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientWindowTop, CStr(Top))
-        Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientWindowWidth, CStr(Width))
-        Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientWindowHeight, CStr(Height))
+        With frmSave
+            Left = .Left
+            Top = .Top
+            Width = .Width
+            Height = .Height
+            If Left < 0 Or Left > Screen.Width Then Left = 0
+            If Top < 0 Or Top > Screen.Height Then Top = 0
+            If Width < gVar.WindowWidth Or Width > Screen.Width Then Width = gVar.WindowWidth
+            If Height < gVar.WindowHeight Or Height > Screen.Height Then Height = gVar.WindowHeight
+        End With
+    
+        If blnServer Then
+            Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerWindowStateMax, 0)
+            Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerWindowLeft, CStr(Left))
+            Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerWindowTop, CStr(Top))
+            Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerWindowWidth, CStr(Width))
+            Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerWindowHeight, CStr(Height))
+        Else
+            Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientWindowStateMax, 0)
+            Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientWindowLeft, CStr(Left))
+            Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientWindowTop, CStr(Top))
+            Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientWindowWidth, CStr(Width))
+            Call SaveSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientWindowHeight, CStr(Height))
+        End If
     End If
 End Sub
 
-Public Sub gsGridPageSet()
+Public Sub gsGridPageSet(ByRef gridControl As Control)
     '打印页面设置
     
-    Dim gridControl As Control
     Dim blnFlexCell As Boolean
     
-    If Screen.ActiveForm Is Nothing Then GoTo LineBreak
-    If Screen.ActiveForm.ActiveControl Is Nothing Then GoTo LineBreak
-    
-    Set gridControl = Screen.ActiveForm.ActiveControl
     If TypeOf gridControl Is FlexCell.Grid Then blnFlexCell = True
     
     If blnFlexCell Then
@@ -505,25 +560,20 @@ LineBreak:
     
 End Sub
 
-Public Sub gsGridPrint()
+Public Sub gsGridPrint(ByRef printGrid As Control)
     '打印表格内容
     
-    Call gsGridPrintPreview
+    Call gsGridPrintPreview(printGrid)
     
 End Sub
 
-Public Sub gsGridPrintPreview()
+Public Sub gsGridPrintPreview(ByRef gridControl As Control)
     '预览表格内容
     
-    Dim gridControl As Control
     Dim blnFlexCell As Boolean
     
-    If Screen.ActiveForm Is Nothing Then GoTo LineBreak
-    If Screen.ActiveForm.ActiveControl Is Nothing Then GoTo LineBreak
-    
-    Set gridControl = Screen.ActiveForm.ActiveControl
     If TypeOf gridControl Is FlexCell.Grid Then blnFlexCell = True
-
+    
     If blnFlexCell Then
         With gridControl
             With .PageSetup
@@ -720,21 +770,25 @@ Public Sub gsGridToWord(ByRef gridControl As Control)
     Dim lngRows As Long, lngCols As Long
     Dim i As Long, J As Long
     Dim blnFlexCell As Boolean
+    Dim strFileName As String
     
     If gridControl Is Nothing Then Exit Sub
     
-    On Error Resume Next
-'    Set wordApp = New Word.Application
-    Set wordApp = CreateObject("Word.Application")
-    Set docOut = wordApp.Documents.Add()
-    Set tbOut = docOut.Tables.Add(docOut.Range, lngRows, lngCols, True)
-    
     If TypeOf gridControl Is FlexCell.Grid Then blnFlexCell = True
-    
     lngRows = gridControl.Rows
     lngCols = gridControl.Cols
     
+    On Error Resume Next
+        
+    Set wordApp = CreateObject("Word.Application")
+    Set docOut = wordApp.Documents.Add()
+    
     If blnFlexCell Then
+        If gridControl.PageSetup.Orientation = cellLandscape Then
+            docOut.Range.PageSetup.Orientation = wdOrientLandscape '表格预览为横向则设置纸张为横向
+        End If
+        Set tbOut = docOut.Tables.Add(docOut.Range, lngRows, lngCols, True)
+        
         For i = 0 To lngRows - 1
             For J = 0 To lngCols - 1
                 tbOut.Cell(i + 1, J + 1).Range.Text = gridControl.Cell(i, J).Text
@@ -752,7 +806,18 @@ Public Sub gsGridToWord(ByRef gridControl As Control)
     tbOut.Range.ParagraphFormat.Alignment = 1   '表格内容居中显示
     Call tbOut.AutoFitBehavior(1)               '根据内容自动调整列宽
     
-    wordApp.Visible = True
+    For i = 1 To 8
+        strFileName = strFileName & gfBackOneChar(udNumber + udUpperCase) '文件名中的8个随机字符，不含小写字母
+    Next
+    strFileName = gVar.FolderNameTemp & Format(Now, gVar.Formatymdhms & "_") & strFileName & ".doc"
+    If gfFileRepair(strFileName) Then
+        docOut.SaveAs strFileName   '另存为
+    Else
+        Call gsAlarmAndLogEx("创建" & strFileName & "文件失败！", "文件生成警告")
+    End If
+    
+    wordApp.Visible = True  '显示文档
+    wordApp.Activate    '顶层显示
     
     Set tbOut = Nothing
     Set docOut = Nothing
@@ -760,39 +825,8 @@ Public Sub gsGridToWord(ByRef gridControl As Control)
     
 End Sub
 
-Public Sub gsLoadAuthority(ByRef frmCur As Form, ByRef ctlCur As Control)
-    '加载窗口中的控制权限
-    
-    Dim strUser As String, strForm As String, strCtlName As String
-    
-    strUser = LCase(gVar.UserLoginName)
-    strForm = LCase(frmCur.Name)
-    strCtlName = LCase(ctlCur.Name)
-    
-    If strUser = LCase(gVar.AccountAdmin) Or strUser = LCase(gVar.AccountSystem) Then Exit Sub
-    ctlCur.Enabled = False
-    
-    With gVar.rsURF
-        If .State = adStateOpen Then
-            If .RecordCount > 0 Then
-                .MoveFirst
-                Do While Not .EOF
-                    If strForm = LCase(.Fields("FuncFormName")) Then
-                        If strCtlName = LCase(.Fields("FuncName")) Then
-                            ctlCur.Enabled = True
-                            Exit Do
-                        End If
-                    End If
-                    .MoveNext
-                Loop
-            End If
-        End If
-    End With
-    
-End Sub
-
 Public Sub gsLoadSkin(ByRef frmCur As Form, ByRef skFRM As XtremeSkinFramework.SkinFramework, _
-    Optional ByVal lngResource As genumSkinResChoose, Optional ByVal blnFromReg As Boolean)
+    Optional ByVal lngResource As genumSkinResChoose, Optional ByVal blnFromReg As Boolean = False)
     '加载主题
     Dim lngReg As Long, strRes As String, strIni As String
     
@@ -836,7 +870,7 @@ Public Sub gsLogAdd(ByRef frmCur As Form, Optional ByVal LogType As genumLogType
     
     strType = gfBackLogType(LogType)
     
-    strSQL = "EXEC sp_Test_Sys_LogAdd '" & strType & "','" & frmCur.Name & "," & frmCur.Caption & "','" & strTable & _
+    strSQL = "EXEC sp_FT_Sys_LogAdd '" & strType & "','" & frmCur.Name & "," & frmCur.Caption & "','" & strTable & _
              "','" & strContent & "','" & gVar.UserLoginName & "," & gVar.UserFullName & "','" & gVar.UserLoginIP & "','" & gVar.UserComputerName & "'"
 'Debug.Print strSQL
     Set rsLog = gfBackRecordset(strSQL, , adLockOptimistic)
@@ -897,7 +931,8 @@ End Sub
 
 Public Sub gsOpenTheWindow(ByVal strFormName As String, _
     Optional ByVal OpenMode As FormShowConstants = vbModeless, _
-    Optional ByVal FormWndState As FormWindowStateConstants = vbMaximized)
+    Optional ByVal FormWndState As FormWindowStateConstants = vbMaximized, _
+    Optional ByVal UseMainIcon As Boolean = True)
     '以指定窗口模式OpenMode与窗口FormWndState状态来打开指定窗体strFormName
     
     Dim frmOpen As Form
@@ -915,6 +950,11 @@ Public Sub gsOpenTheWindow(ByVal strFormName As String, _
         Set frmOpen = Forms.Add(strFormName)    '新建该窗体
     End If
     
+    If UseMainIcon Then
+        If frmOpen.Icon Is Nothing Then
+            Set frmOpen.Icon = gWind.Icon   '使用主窗体图标
+        End If
+    End If
     frmOpen.WindowState = FormWndState
     frmOpen.Show OpenMode               '此句放最后，不能放上句前面，否则退出程序时MDI窗体不能完全关闭，可能因为CommandBars控件的原因。
         

@@ -1,7 +1,7 @@
 VERSION 5.00
 Object = "{248DD890-BB45-11CF-9ABC-0080C7E7B78D}#1.0#0"; "MSWINSCK.OCX"
 Object = "{E08BA07E-6463-4EAB-8437-99F08000BAD9}#1.9#0"; "FlexCell.ocx"
-Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.2#0"; "MSCOMCTL.OCX"
+Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.1#0"; "MSCOMCTL.OCX"
 Object = "{555E8FCC-830E-45CC-AF00-A012D5AE7451}#15.3#0"; "Codejock.CommandBars.v15.3.1.ocx"
 Object = "{BD0C1912-66C3-49CC-8B12-7B347BF6C846}#15.3#0"; "Codejock.SkinFramework.v15.3.1.ocx"
 Begin VB.Form frmSysMain 
@@ -41,8 +41,8 @@ Begin VB.Form frmSysMain
       Rows            =   30
    End
    Begin MSComctlLib.ImageList ImageList1 
-      Left            =   3240
-      Top             =   3720
+      Left            =   3360
+      Top             =   3840
       _ExtentX        =   1005
       _ExtentY        =   1005
       BackColor       =   -2147483643
@@ -409,7 +409,10 @@ Dim mlngID As Long  '循环变量ID
 Dim WithEvents mXtrStatusBar As XtremeCommandBars.StatusBar  '状态栏控件
 Attribute mXtrStatusBar.VB_VarHelpID = -1
 Dim mcbsPopupIcon As XtremeCommandBars.CommandBar    '托盘图标Pupup菜单
-
+Dim CheckConnectTime As Long
+Dim ConfirmTime() As Long
+Dim ConfirmOK() As Boolean
+Dim CountTime() As Long
 
 
 Private Sub msAddAction(ByRef cbsBars As XtremeCommandBars.CommandBars)
@@ -759,7 +762,7 @@ Private Sub msCloseAllConnect(Optional ByVal blnClose As Boolean = True, _
     For Each sckDel In Me.Winsock1
         If sckDel.Index = 0 Then
             If blnCloseListen Then
-                sckDel.Close    '关闭侦听
+                sckDel.Close     '关闭侦听
             End If
         Else
             If sckDel.State <> 0 Then sckDel.Close  '先关闭连接
@@ -767,7 +770,7 @@ Private Sub msCloseAllConnect(Optional ByVal blnClose As Boolean = True, _
             Unload sckDel   '卸载对应控件
         End If
     Next
-    
+            
     With Me.Grid1
         .AutoRedraw = False
         .ReadOnly = False   '不取消锁定好像清除不了表格中内容。但可写入？
@@ -816,6 +819,11 @@ Private Sub msGetClientInfo(ByVal strInfo As String, ByVal Index As Long)
                 .Cell(lngTemp, 2).Text = strPC
                 .Cell(lngTemp, 3).Text = strLogin
                 .Cell(lngTemp, 4).Text = strFull
+                If LCase(strLogin) <> LCase(gVar.UpdateAccount) Then
+                    Call msWriteLoginInfoLog(.Cell(lngTemp, 1).Text, .Cell(lngTemp, 2).Text, _
+                        .Cell(lngTemp, 3).Text, .Cell(lngTemp, 4).Text, .Cell(lngTemp, 5).Text, _
+                        .Cell(lngTemp, 6).Text, .Cell(lngTemp, 7).Text)
+                End If
                 Exit For
             End If
         Next
@@ -835,15 +843,15 @@ Private Sub msGridSet(ByRef gridSet As FlexCell.Grid)
         .ReadOnly = True    '禁止表格编辑
         
         .Cols = 9
-        .Rows = 50
+        .Rows = 2
         .Cell(0, 0).Text = "序号"
         .Cell(0, 1).Text = "连接用户IP地址"
         .Cell(0, 2).Text = "连接用户计算机名称"
         .Cell(0, 3).Text = "连接用户登陆账号"
         .Cell(0, 4).Text = "连接用户姓名"
         .Cell(0, 5).Text = "连接建立时间"
-        .Cell(0, 6).Text = "Index"
-        .Cell(0, 7).Text = "RequestID"
+        .Cell(0, 6).Text = "索引号" '"Index"
+        .Cell(0, 7).Text = "申请号" '"RequestID"
         .Column(1).Width = 120
         .Column(2).Width = 130
         .Column(3).Width = 130
@@ -899,19 +907,25 @@ Private Sub msLeftClick(ByVal CID As Long, ByRef cbsBars As XtremeCommandBars.Co
                            "版权所有：XMH"
                 MsgBox strAbout, vbInformation, "关于" & App.Title
                 
-            Case .SysExportToCSV To .SysExportToXML
-                Call gsGridExportTo(Screen.ActiveControl, CID)
-            Case .SysExportToText
-                If MsgBox("是否将当前表格内容导出至txt文本文档？", vbQuestion + vbYesNo, "询问") = vbYes Then Call gsGridToText(Screen.ActiveControl)
-            Case .SysExportToWord
-                If MsgBox("是否将当前表格内容导出至Word文档？", vbQuestion + vbYesNo, "询问") = vbYes Then Call gsGridToWord(Screen.ActiveControl)
-                
-            Case .SysPrint
-                If MsgBox("确定打印当前表格内容吗？", vbQuestion + vbOKCancel, "打印询问") = vbOK Then Call gsGridPrint
-            Case .SysPrintPreview
-                Call gsGridPrintPreview
-            Case .SysPrintPageSet
-                Call gsGridPageSet
+            Case .SysExportToCSV To .SysExportToWord, .SysPrintPageSet To .SysPrint
+                If Me.ActiveControl Is Nothing Then Exit Sub
+                If Not (TypeOf Me.ActiveControl Is FlexCell.Grid) Then Exit Sub
+                If Not cbsActions(CID).Enabled Then Exit Sub
+                Select Case CID
+                    Case .SysExportToCSV To .SysExportToXML
+                        Call gsGridExportTo(Me.ActiveControl, CID)
+                    Case .SysExportToText
+                        If MsgBox("是否将当前表格内容导出至txt文本文档？", vbQuestion + vbYesNo, "询问") = vbYes Then Call gsGridToText(Me.ActiveControl)
+                    Case .SysExportToWord
+                        If MsgBox("是否将当前表格内容导出至Word文档？", vbQuestion + vbYesNo, "询问") = vbYes Then Call gsGridToWord(Me.ActiveControl)
+                        
+                    Case .SysPrint
+                        If MsgBox("确定打印当前表格内容吗？", vbQuestion + vbOKCancel, "打印询问") = vbOK Then Call gsGridPrint(Me.ActiveControl)
+                    Case .SysPrintPreview
+                        Call gsGridPrintPreview(Me.ActiveControl)
+                    Case .SysPrintPageSet
+                        Call gsGridPageSet(Me.ActiveControl)
+                End Select
                 
             Case Else
                 strKey = LCase(cbsActions.Action(CID).Key)
@@ -1045,7 +1059,7 @@ End Sub
 
 Private Sub msStartServer(ByRef sckCon As MSWinsockLib.Winsock)
     '开启服务
-'    On Error Resume Next
+    
     With sckCon
         If .State <> 0 Then .Close  '先关闭
         .LocalPort = gVar.TCPSetPort
@@ -1076,8 +1090,8 @@ Private Sub msVersionCS(ByVal strVer As String, ByRef sckVer As MSWinsockLib.Win
             Exit Sub
         End If
         With gArr(sckVer.Index)
-            .FileFolder = gVar.FolderNameTemp
-            .FileName = gVar.EXENameOfUpdate
+            .FileFolder = "" ' gVar.FolderTemp
+            .FileName = gVar.EXENameOfSetup
             .FilePath = strSetupFile
             .FileSizeTotal = FileLen(.FilePath)
         End With
@@ -1089,8 +1103,37 @@ Private Sub msVersionCS(ByVal strVer As String, ByRef sckVer As MSWinsockLib.Win
         
     Else    '版本检测异常处理
         Call gfSendInfo(gVar.PTVersionNotUpdate & strCompare, sckVer)
-        Debug.Print "Server:版本检测异常"
+        Call gsAlarmAndLogEx("客户端版本：" & strVC & ",服务端版本：" & strVS, "Server端版本检测异常", False)
     End If
+End Sub
+
+Private Sub msWriteLoginInfoLog(ByVal strIP As String, ByVal strPC As String, ByVal strAccount As String, _
+    ByVal strUserName As String, ByVal strTime As String, ByVal strIndex As String, ByVal strApplyID As String)
+    '记录用户的登陆日志，文件名保存在gVar.FileNameLoginLog中
+    
+    Const conSize As Long = 1000000 '固定日志文件大小，超过则按日期存储
+    Dim strNewFile As String
+    Dim intNum As Integer
+    
+    If Not gfFileRepair(gVar.FolderData, True) Then Exit Sub    '判断日志目录是否存在
+    If Not gfFileRepair(gVar.FileNameLoginLog) Then Exit Sub    '判断日志文件是否存在
+    
+    If FileLen(gVar.FileNameLoginLog) > conSize Then    '日志文件太大时存档
+        strNewFile = Left(gVar.FileNameLoginLog, InStrRev(gVar.FileNameLoginLog, ".") - 1) & _
+            Format(Now, gVar.Formatymdhms) & Mid(gVar.FileNameLoginLog, InStrRev(gVar.FileNameLoginLog, "."))
+        Debug.Print strNewFile  '生成按日期保存的文件名
+        Close
+        If Not gfFileRename(gVar.FileNameLoginLog, strNewFile) Then Exit Sub    '改名存储
+    End If
+    
+    intNum = FreeFile
+    On Error Resume Next
+    
+    Open gVar.FileNameLoginLog For Append As intNum
+    Print #intNum, strIP & vbTab & strPC & vbTab & strAccount & _
+        vbTab & strUserName & vbTab & strTime & vbTab & strIndex & vbTab & strApplyID
+    Close
+    
 End Sub
 
 Private Sub CommandBars1_Execute(ByVal Control As XtremeCommandBars.ICommandBarControl)
@@ -1136,6 +1179,12 @@ Private Sub Form_Load()
     
     Dim cbsBars As XtremeCommandBars.CommandBars
     
+    '打开多个应用程序检查
+    If App.PrevInstance Then
+        MsgBox "不可同时打开多个应用程序！", vbCritical, "警报"
+        End
+    End If
+    
     Timer1.Item(0).Interval = 1000  '计时器循环时间
     Call Main   '初始化全局公用变量
     Set gWind = Me  '指定主窗体给全局引用对象
@@ -1167,12 +1216,6 @@ Private Sub Form_Load()
     
     
     
-    '打开多个应用程序检查。此判断暂放加载注册信息后
-    If App.PrevInstance Then
-        MsgBox "不可同时打开多个应用程序！", vbCritical, "警报"
-        Unload Me
-        Exit Sub
-    End If
     
     '检查是否为试用版******************************
     
@@ -1285,102 +1328,118 @@ End Sub
 
 Private Sub Timer1_Timer(Index As Integer)
     'Index=0的计时器间隔1秒。Timer1的Index值 与 Winsock1的Index对应
-    Dim sckClose As MSWinsockLib.Winsock, sckCheck As MSWinsockLib.Winsock
+    
+    Dim sckClose As MSWinsockLib.Winsock, sckCheck As MSWinsockLib.Winsock, tmrUld As VB.Timer
     Dim timeOut As Long
-    Static CheckConnectTime As Long
-    Static ConfirmTime() As Long
-    Static ConfirmOK() As Boolean
-    Static CountTime() As Long
+'    Static CheckConnectTime As Long
+'    Static ConfirmTime() As Long
+'    Static ConfirmOK() As Boolean
+'    Static CountTime() As Long
         
 '''    On Error Resume Next
-    With Me.Winsock1.Item(Index)
-        If Index = 0 Then
-            If .State = 2 Then  '侦听正常状态
-                Call msSetServerState(vbGreen)
-            Else    '其它状态
-                If .State = 9 Then  '异常状态
-                    Call msSetServerState(vbRed)
-                Else    '关闭等
-                    Call msSetServerState(vbYellow)
-                End If
-                If gVar.ParaBlnAutoReStartServer Then   '若勾选了自动开启服务则重启服务
-                    Call msStartServer(Me.Winsock1.Item(0))
-                End If
+    If Index = 0 Then
+        If Me.Winsock1.Item(Index).State = 2 Then  '侦听正常状态
+            Call msSetServerState(vbGreen)
+        Else    '其它状态
+            If Me.Winsock1.Item(Index).State = 9 Then  '异常状态
+                Call msSetServerState(vbRed)
+            Else    '关闭等
+                Call msSetServerState(vbYellow)
             End If
+            If gVar.ParaBlnAutoReStartServer Then   '若勾选了自动开启服务则重启服务
+                Call msStartServer(Me.Winsock1.Item(0))
+            End If
+        End If
+        
+        '当客户端非正常关闭时，连接不会自动断开，此处每隔一段时间检查一次所有连接的状态，不等于7则关闭掉连接
+        CheckConnectTime = CheckConnectTime + 1
+        If CheckConnectTime > 5 Then    '每隔N秒检查一次
+            For Each sckCheck In Me.Winsock1
+                If sckCheck.Index <> 0 Then
+                    If sckCheck.State <> 7 Then
+                        For Each tmrUld In Me.Timer1
+                            If tmrUld.Index = sckCheck.Index Then
+                                Unload tmrUld 'Me.Timer1.Item(sckCheck.Index)
+                                Exit For
+                            End If
+                        Next
+                        Debug.Print "CheckConnect:" & sckCheck.Index
+                        Call Winsock1_Close(sckCheck.Index)
+                    End If
+                End If
+            Next
+            CheckConnectTime = 0
+        End If
+        '''index=0计时器为服务端自身用
+    
+    Else
+        '''index>0为各个客户端连接用
+        
+        timeOut = gVar.ParaLimitClientConnectTime * 60  '计算允许连接时长的总秒数
+'''        ReDim Preserve ConfirmTime(Me.Timer1.UBound)    '需要每次都这样？
+'''        ReDim Preserve ConfirmOK(Me.Timer1.UBound)
+'''        ReDim Preserve CountTime(Me.Timer1.UBound)
+        
+        If Not ConfirmOK(Index) Then ConfirmTime(Index) = ConfirmTime(Index) + 1
+        If gVar.ParaBlnLimitClientConnect Then CountTime(Index) = CountTime(Index) + 1
+        
+        If ConfirmTime(Index) > gVar.TCPWaitTime Then   '确认是客户端发来的连接
+            If Not gArr(Index).Connected Then   '不是客户端则关闭
+                For Each sckClose In Me.Winsock1
+                    If sckClose.Index = Index Then
+                        Call Winsock1_Close(Index) '关闭连接
+                        Exit For
+                    End If
+                Next
+            End If
+            ConfirmTime(Index) = 0  '确认计时器清零
+            ConfirmOK(Index) = True '确认标志
+            If Not gVar.ParaBlnLimitClientConnect Then  '若没有选择限制客户端连接功能
+                ConfirmOK(Index) = False
+                CountTime(Index) = 0    '限制连接计时器清零
+                For Each tmrUld In Me.Timer1
+                    If tmrUld.Index = Index Then
+                        Unload tmrUld   'Unload Me.Timer1.Item(Index) '确认完后卸载掉对应计时器控件
+                        Exit For
+                    End If
+                Next
+            End If
+        End If
             
-            '当客户端非正常关闭时，连接不会自动断开，此处每隔一段时间检查一次所有连接的状态，不等于7则关闭掉连接
-            CheckConnectTime = CheckConnectTime + 1
-            If CheckConnectTime > 5 Then    '每隔N秒检查一次
+        If CountTime(Index) > timeOut Then   '计时已满则关闭对应客户端连接
+            '若在文件传输状态下则等待传输2分钟后直接关闭
+            If (Not gArr(Index).FileTransmitState) Or (CountTime(Index) - timeOut > 120) Then
+                CountTime(Index) = 0    '清空计时
+                If gArr(Index).FileTransmitState Then   '清空文件传输信息
+                    Close
+                    gArr(Index) = gArr(0)
+                End If
+                Unload Me.Timer1.Item(Index)
                 For Each sckCheck In Me.Winsock1
-                    If sckCheck.Index <> 0 Then
-                        If sckCheck.State <> 7 Then
-                            Call Winsock1_Close(sckCheck.Index) 'sckCheck.Close
-                            Debug.Print "CheckConnect:" & sckCheck.Index
+                    If sckCheck.Index = Index Then '确认控件是否存在
+                        If sckCheck.State = 7 Then '确认控件状态是否对
+                            Call gfSendInfo(gVar.PTConnectTimeOut, Me.Winsock1.Item(Index)) '发送连接时间已到信息给客户端
+                            Exit For
                         End If
                     End If
                 Next
-                CheckConnectTime = 0
             End If
-            '''index=0计时器为服务端自身用
-        
-        Else
-            '''index>0为各个客户端连接用
-            
-            timeOut = gVar.ParaLimitClientConnectTime * 60  '计算允许连接时长的总秒数
-            ReDim Preserve ConfirmTime(Me.Timer1.UBound)    '需要每次都这样？
-            ReDim Preserve ConfirmOK(Me.Timer1.UBound)
-            ReDim Preserve CountTime(Me.Timer1.UBound)
-            
-            If Not ConfirmOK(Index) Then ConfirmTime(Index) = ConfirmTime(Index) + 1
-            If gVar.ParaBlnLimitClientConnect Then CountTime(Index) = CountTime(Index) + 1
-            
-            If ConfirmTime(Index) > gVar.TCPWaitTime Then   '确认是客户端发来的连接
-                If Not gArr(Index).Connected Then   '不是客户端则关闭
-                    For Each sckClose In Me.Winsock1
-                        If sckClose.Index = Index Then
-                            Call Winsock1_Close(Index) 'sckClose.Close
-                            Exit For
-                        End If
-                    Next
-                End If
-                ConfirmTime(Index) = 0  '确认计时器清零
-                ConfirmOK(Index) = True '确认标志
-                If Not gVar.ParaBlnLimitClientConnect Then  '若没有选择限制客户端连接功能
-                    ConfirmOK(Index) = False
-                    CountTime(Index) = 0    '限制连接计时器清零
-'''                    If Not Me.Timer1.Item(Index) Is Nothing Then   '已在Winsock1_Close事件卸载了对应Timer控件
-'''                        Me.Timer1.Item(Index).Enabled = False   '确认完后卸载掉对应计时器控件
-'''                        Unload Me.Timer1.Item(Index)
-'''                    End If
-                End If
-            End If
-            
-            If CountTime(Index) > timeOut Then   '计时已满则关闭对应客户端连接
-                '若在文件传输状态下则等待传输2分钟后直接关闭
-                If (Not gArr(Index).FileTransmitState) Or (CountTime(Index) - timeOut > 120) Then
-                    CountTime(Index) = 0    '清空计时
-                    If gArr(Index).FileTransmitState Then   '清空文件传输信息
-                        Close
-                        gArr(Index) = gArr(0)
-                    End If
-                    Call gfSendInfo(gVar.PTConnectTimeOut, Me.Winsock1.Item(Index)) '发送连接时间已到信息给客户端
-                    Call Winsock1_Close(Index)  '关闭客户端连接
-                End If
-            End If
-            
         End If
-    End With
+        
+    End If
     
     Set sckClose = Nothing
     Set sckCheck = Nothing
+    Set tmrUld = Nothing
 End Sub
 
 Private Sub Winsock1_Close(Index As Integer)
     '关闭连接
     Dim K As Long, C As Long
     Dim strIP As String, strRequestID As String
+    Dim tmDel As VB.Timer
     
-    On Error Resume Next
+'''    On Error Resume Next
     If Index = 0 Then
         Call msCloseAllConnect(True, False)  '关闭侦听控件则关闭所有连接
     Else
@@ -1396,13 +1455,19 @@ Private Sub Winsock1_Close(Index As Integer)
                             (strRequestID = Me.Winsock1.Item(Index).Tag) Then   '有可能同一IP登陆多个客户端，故以RequestID区分
                         .RemoveItem K   '移除对应行信息
                         .AddItem ""     '末尾添加一行维持表格行数不变
+                        Debug.Print K & ",Winsock_Close:" & Index, Me.Winsock1.Item(Index).Tag, Me.Winsock1.Item(Index).RemoteHostIP
+                        For Each tmDel In Me.Timer1 '卸载对应计时器
+                            If tmDel.Index <> 0 Then
+                                If tmDel.Index = Index Then '确认控件是否存在
+                                    Unload tmDel
+                                    If Index <= UBound(CountTime) Then CountTime(Index) = 0
+                                    Exit For
+                                End If
+                            End If
+                        Next
                         Unload Me.Winsock1.Item(Index)  '卸载断开的客户端的连接控件
                         gArr(Index) = gArr(0)   '清除数组
-                        If Not Me.Timer1.Item(Index) Is Nothing Then
-                            Unload Me.Timer1.Item(Index)   '卸载对应计时器
-                        End If
                         Close   '关闭所有打开的文件
-                        Debug.Print "Winsock_Close:" & Index
                         Exit For
                     End If
                 End If
@@ -1412,6 +1477,8 @@ Private Sub Winsock1_Close(Index As Integer)
             .Refresh
         End With
     End If
+    
+    Set tmDel = Nothing
     
 End Sub
 
@@ -1446,18 +1513,22 @@ Private Sub Winsock1_ConnectionRequest(Index As Integer, ByVal requestID As Long
         Load .Item(K)   '生成Winsock1(K)控件
         .Item(K).Accept requestID   '指定客户端申请的连接给新生成的Winsock1(K)控件
         .Item(K).Tag = requestID    '存储该申请号，另作它用
-        
+        Debug.Print "Load winsock1(" & K & ")"
         Call msAddConnectToGrid(.Item(K)) '将连接添加进表格中
         
-        If blnFull Then '若连接数已满，则发信通知客户端，并关闭该客户端的连接
-            Call gfSendInfo(gVar.PTConnectIsFull, .Item(K))
-            Call Winsock1_Close(CInt(K))
-            Exit Sub
-        End If
-        
-        Call gfSendInfo(gVar.PTClientConfirm, .Item(K)) '发送客户端确认信息，若规定时间内返回确认信息则连接正常，否则断开连接。
-        Call msStartConfirm(K)  '激活 返回确认信息 计时器
+        ReDim Preserve ConfirmTime(.UBound) '数组元素值的变化在Timer1控件中，初始化权且放此
+        ReDim Preserve ConfirmOK(.UBound)
+        ReDim Preserve CountTime(.UBound)
     End With
+    
+    If blnFull Then '若连接数已满，则发信通知客户端。该客户端自动关闭连接，客户端同时触发关闭事件.
+        Call gfSendInfo(gVar.PTConnectIsFull, Me.Winsock1.Item(K))
+        Exit Sub
+    End If
+    
+    Call gfSendInfo(gVar.PTClientConfirm, Me.Winsock1.Item(K)) '发送客户端确认信息，若规定时间内返回确认信息则连接正常，否则断开连接。
+    Call msStartConfirm(K)  '激活 返回确认信息 计时器
+    
     
 End Sub
 
@@ -1476,6 +1547,7 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
             
             If InStr(strGet, gVar.PTClientIsTrue) Then '客户端发回的连接确认信息
                 .Connected = True   '设置状态以供计时器判断
+                Call gfSendInfo(gfDatabaseInfoJoin(True), Me.Winsock1.Item(Index))
                 
             ElseIf InStr(strGet, gVar.PTVersionOfClient) > 0 Then '接收到客户端版本信息
                 Call msVersionCS(strGet, Me.Winsock1.Item(Index))
@@ -1484,7 +1556,7 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
                 Call msGetClientInfo(strGet, Index)
                 
             ElseIf InStr(strGet, gVar.PTFileStart) > 0 Then '要开始发送文件给客户端
-                Call gfSendInfo(.FilePath, Me.Winsock1.Item(Index))
+                Call gfSendFile(.FilePath, Me.Winsock1.Item(Index))
                 
             End If
             Debug.Print "Server GetInfo:" & strGet, bytesTotal

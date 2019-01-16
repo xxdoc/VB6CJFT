@@ -2,6 +2,13 @@ Attribute VB_Name = "modDeclare"
 Option Explicit
 
 
+'''鼠标光标变手指状
+Public Declare Function SetCursor Lib "user32" (ByVal hCursor As Long) As Long  'SetCursor确定光标形状
+Public Declare Function LoadCursor Lib "user32" Alias "LoadCursorA" (ByVal hInstance As Long, _
+        ByVal lpCursorName As String) As Long   'LoadCursor载入指定光标资源
+Public Const IDC_HAND = "#32649"
+
+
 '''查找窗口，发送信息
 Public Declare Function FindWindow Lib "user32" Alias "FindWindowA" (ByVal lpClassName As String, ByVal lpWindowName As String) As Long
 Public Declare Function PostMessage Lib "user32" Alias "PostMessageA" (ByVal hwnd As Long, ByVal wMsg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
@@ -88,6 +95,15 @@ Public Enum genumRegOperateType '注册表操作类型
 End Enum
 
 Public Declare Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)  '程序暂停运行（毫秒）
+
+'返回电脑信息API
+Public Declare Function GetComputerName Lib "kernel32" Alias "GetComputerNameA" (ByVal lpBuffer As String, nSize As Long) As Long
+Public Declare Function GetUserName Lib "advapi32.dll" Alias "GetUserNameA" (ByVal lpBuffer As String, nSize As Long) As Long
+
+Public Enum genumComputerInfoType   '要返回的电脑上的信息类别
+    ciComputerName
+    ciUserName
+End Enum
 
 
 '''以下API函数Shell_NotifyIcon与一堆常量、枚举、结构体都有关托盘
@@ -210,6 +226,10 @@ Public Type gtypeCommonVariant
     TCPStateConnected As Boolean     '客户端连接服务端成功标识
     TCPStateServerStarted As Boolean '服务器启动标识
     
+    UpdatePCName As String  '启动更新程序的电脑名
+    UpdateAccount As String '启动更新程序的账号
+    UpdateUserName As String    '启动更新程序的用户名
+    
     FTChunkSize As Long   '文件传输时的分块大小
     FTWaitTime As Long    '每段文件传输时的等待时间，单位秒
     
@@ -243,6 +263,11 @@ Public Type gtypeCommonVariant
     
     PTClientConfirm As String   '协议：客户端确认
     PTClientIsTrue As String    '协议：客户端给服务端的确认
+    
+    PTDBDataSource As String    '协议：数据库服务器地址
+    PTDBDatabase As String      '协议：数据库名
+    PTDBUserID As String        '协议：数据库访问账号
+    PTDBPassword As String      '协议：数据库访问密码
     
     PTConnectIsFull As String   '协议：连接数已满
     PTConnectTimeOut As String  '协议：连续连接时间到
@@ -283,19 +308,28 @@ Public Type gtypeCommonVariant
     RegKeyCommandBars As String 'SaveCommandBars参数RegistryKey
     RegKeyCBSServerSetting As String    'Server上的CBS控件注册信息保存Key值
     RegKeyCBSClientSetting As String    'Client上的CBS控件注册信息保存Key值
+    RegKeyDockingPane As String
+    RegKeyDockPaneServerSetting As String
+    RegKeyDockPaneClientSetting As String
     
     RegSectionSettings As String    'Section_Settings区
     RegKeyServerWindowLeft As String  'Server上Key_窗口Left值
     RegKeyServerWindowTop As String   '
     RegKeyServerWindowWidth As String '
     RegKeyServerWindowHeight As String    '
+    RegKeyServerWindowStateMax As String
     RegKeyServerCommandbarsTheme As String    '
+    
     
     RegKeyClientWindowLeft As String  'Client上Key_窗口Left值
     RegKeyClientWindowTop As String   '
     RegKeyClientWindowWidth As String '
     RegKeyClientWindowHeight As String    '
+    RegKeyClientWindowStateMax As String
     RegKeyClientCommandbarsTheme As String    '
+    RegKeyClientTaskPanelTheme As String '导航菜单主题
+    RegKeyClientTaskPanelAutoFold As String '导航菜单自动折叠
+    
     
     RegTrailPath As String  '注册表中HKEY_CURRENT_USER下SOFTWARE路径
     RegTrailKey As String   '试用信息-Key值
@@ -309,14 +343,22 @@ Public Type gtypeCommonVariant
     RegKeyParaLimitClientConnectTime As String '限制客户端连接时长
     RegKeyParaLimitClientConnectNumber As String '限制客户端连接数
     
+    RegKeyParaRememberUserList As String  '记住用户名
+    RegKeyParaRememberUserPassword As String  '记住密码
+    RegKeyParaUserAutoLogin As String '自动登陆
+    
     AppPath As String           'App路径，确保最后字符为"\"
-    FolderNameTemp As String    '文件夹名称：Temp
-    FolderNameData As String    '文件夹名称：Data
-    FolderNameBin As String     '文件夹名称：Bin
+    FolderNameTemp As String    '文件夹名称：Temp的全路径
+    FolderNameData As String    '文件夹名称：Data的全路径
+    FolderNameBin As String     '文件夹名称：Bin的全路径
+    FolderBin As String     '文件夹名称：Bin
+    FolderData As String    '文件夹名称：Data
+    FolderTemp As String    '文件夹名称：Temp
     
     FileNameErrLog As String    '错误记录日志文件的全路径
     FileNameSkin As String      '主题资源文件名
     FileNameSkinIni As String   '主题配置文件名
+    FileNameLoginLog As String  '登陆日志文件名
     
     UserAutoID As String    '用户标识ID
     UserLoginName As String '用户登陆名
@@ -351,7 +393,16 @@ Public Type gtypeCommonVariant
     
     CloseWindow As Boolean '是否真正关闭窗口。或者说是否点击了窗口右上角的关闭按钮
     ClientLoginShow As Boolean '显示客户端登陆窗口
+    ClientReLoad As Boolean   '接收到服务端发来的重启客户端标志
+    ShowMainWindow As Boolean '客户端成功登陆后显示过主窗体标志
+    UpdateRunOver As Boolean   '更新程序是否运行完成
+    UnloadFromLogin As Boolean '从登陆窗口传过来的关闭程序指令
+    RestoreDBInfoOver As Boolean '接收完数据库连接信息
+    ClientLoginCheckOver As Boolean '登陆检验完成
+    ClientCancelAutoLogin As Boolean '登陆界面中手动临时取消自动登陆
     
+    ParaBlnWindowStateMaxClient As Boolean '窗口上次关闭时是否最大化
+    ParaBlnWindowStateMaxServer As Boolean
     ParaBlnWindowMinHide As Boolean '主窗口最小化时是否隐藏
     ParaBlnWindowCloseMin As Boolean    '主窗口点击关闭按钮时最小化
     ParaBlnAutoReStartServer As Boolean '服务端程序断开服务时自动重新开启服务
@@ -359,6 +410,9 @@ Public Type gtypeCommonVariant
     ParaBlnLimitClientConnect As Boolean '限制客户端连接时间
     ParaLimitClientConnectTime As Long  '限制客户端最大连续连接时长是多少
     
+    ParaBlnRememberUserList As Boolean  '记住用户名
+    ParaBlnRememberUserPassword As Boolean  '记住密码
+    ParaBlnUserAutoLogin As Boolean '自动登陆
     
 End Type
 
@@ -390,17 +444,26 @@ Public Type gtypeCommandBarID
     SysAuthRole As Long     '角色管理
     SysAuthFunc As Long     '功能管理
     
+    SysPrintMain As Long
     SysPrint As Long        '打印
     SysPrintPageSet As Long '打印页面设置
     SysPrintPreview As Long '打印预览
+    SysExportMain As Long
     SysExportToExcel As Long    '导出至Excel
     SysExportToWord As Long '导出至Word
     SysExportToText As Long '导出至文本
     SysExportToXML As Long  '导出为XML文档
     SysExportToPDF As Long  '导出为PDF
-    SysExportToCSV As Long
-    SysExportToHTML As Long
+    SysExportToCSV As Long  '导出为CSV文件
+    SysExportToHTML As Long '导出为HTML
     
+    SysSearch As Long   '窗口检索工具栏
+    SysSearch1Label As Long
+    SysSearch2TextBox As Long
+    SysSearch3Button As Long
+    SysSearch4ListBoxCaption As Long
+    SysSearch4ListBoxFormID As Long
+    SysSearch5Go As Long
     
     Help As Long        '模块-帮助
     
@@ -411,11 +474,16 @@ Public Type gtypeCommandBarID
     
     Wnd As Long '模块-窗口控制
     
+    WndThemeSkinSet As Long '窗口主题设置
     WndResetLayout As Long  '窗口布局重置
     
-    TabWorkspacePopupMenu As Long   '多标签右键菜单模块
+    WndOpenListCaption As Long '已打开窗口列表
+    WndOpenListID As Long
     
-    WndThemeCommandBars As Long '主题-CommandBars
+    WndToolBarCustomize As Long '自定义工具栏
+    WndToolBarList As Long '工具栏列表
+    
+    WndThemeCommandBars As Long '工具栏主题-CommandBars
     WndThemeCommandBarsOffice2000 As Long
     WndThemeCommandBarsOfficeXp As Long
     WndThemeCommandBarsOffice2003 As Long
@@ -427,7 +495,7 @@ Public Type gtypeCommandBarID
     WndThemeCommandBarsVS6 As Long
     WndThemeCommandBarsVS2010 As Long
     
-    WndThemeTaskPanel As Long   '主题-TaskPanel
+    WndThemeTaskPanel As Long   '任务面板(导航菜单)主题-TaskPanel
     WndThemeTaskPanelOffice2000 As Long
     WndThemeTaskPanelOffice2003 As Long
     WndThemeTaskPanelNativeWinXP As Long
@@ -444,7 +512,7 @@ Public Type gtypeCommandBarID
     WndThemeTaskPanelResource As Long
     WndThemeTaskPanelVisualStudio2010 As Long
     
-    WndThemeSkin As Long    '主题-SkinFrameWork
+    WndThemeSkin As Long    '系统皮肤主题-SkinFrameWork
     WndThemeSkinCodejock As Long
     WndThemeSkinOffice2007 As Long
     WndThemeSkinOffice2010 As Long
@@ -452,7 +520,6 @@ Public Type gtypeCommandBarID
     WndThemeSkinWinXPRoyale As Long
     WndThemeSkinWinXPLuna As Long
     WndThemeSkinZune As Long
-    WndThemeSkinSet As Long
     
     WndSon As Long  '子窗口控制
     WndSonVbCascade As Long
@@ -478,14 +545,14 @@ Public Type gtypeCommandBarID
     
     Pane As Long   '模块--浮动面板
     
-    PaneIDFirst As Long     '面板ID
-    PaneTitleFirst As Long  '面板标题
+    PaneNavi As Long '导航菜单
     
-    PanePopupMenu As Long   '面板弹出式菜单模块
-    PanePopupMenuExpandALL As Long  '展开所有
-    PanePopupMenuAutoFoldOther As Long  '自动折叠其它
-    PanePopupMenuFoldALL As Long    '折叠所有
+    PanePopupMenuNavi As Long   '导航菜单任务面板弹出式菜单模块
+    PanePopupMenuNaviExpandALL As Long  '展开所有
+    PanePopupMenuNaviAutoFoldOther As Long  '自动折叠其它
+    PanePopupMenuNaviFoldALL As Long    '折叠所有
     
+    TabWorkspacePopupMenu As Long   '多标签右键菜单模块
     
     StatusBarPane As Long               '模块-状态栏面板
     
@@ -553,7 +620,7 @@ Public Enum genumGridExportType 'Flexcell Grid导出文件的类型
     fcXML
 End Enum
 
-Public Enum genumNumber
+Public Enum genumNumber '顺序数字
     eZero = 0
     eOne = 1
     eTwo = 2
