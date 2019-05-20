@@ -82,6 +82,25 @@ Begin VB.Form frmSysLogin
       Top             =   840
       Width           =   2295
    End
+   Begin VB.Label Label2 
+      BackStyle       =   0  'Transparent
+      Caption         =   "Ver:10.20.30.40"
+      BeginProperty Font 
+         Name            =   "宋体"
+         Size            =   9
+         Charset         =   134
+         Weight          =   400
+         Underline       =   0   'False
+         Italic          =   -1  'True
+         Strikethrough   =   0   'False
+      EndProperty
+      ForeColor       =   &H00000000&
+      Height          =   240
+      Left            =   0
+      TabIndex        =   9
+      Top             =   0
+      Width           =   1875
+   End
    Begin VB.Label Label1 
       Alignment       =   2  'Center
       AutoSize        =   -1  'True
@@ -402,12 +421,22 @@ End Sub
 Private Sub Form_Load()
     '加载窗体
     
+    Dim strFileLoc As String, strVerLoc As String
+    
     Me.Icon = gWind.Icon
     Timer1.Enabled = False
     Timer1.Interval = 1000 '只能设1秒
     Timer2.Enabled = False
     Timer2.Interval = 1000 '只能设1秒
     Command3.Visible = False
+    
+    strFileLoc = gVar.AppPath & gVar.EXENameOfClient
+    If gfDirFile(strFileLoc) Then
+        strVerLoc = Trim(gfBackVersion(strFileLoc))
+        If Len(strVerLoc) > 0 Then
+            Label2.Caption = "Ver:" & strVerLoc
+        End If
+    End If
     
     If gVar.ParaBlnRememberUserList Then
         Call msLoadUserInfo(True) '加载用户信息
