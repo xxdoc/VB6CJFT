@@ -1,7 +1,7 @@
 VERSION 5.00
 Object = "{248DD890-BB45-11CF-9ABC-0080C7E7B78D}#1.0#0"; "MSWINSCK.OCX"
 Object = "{E08BA07E-6463-4EAB-8437-99F08000BAD9}#1.9#0"; "FlexCell.ocx"
-Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.1#0"; "MSCOMCTL.OCX"
+Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.2#0"; "MSCOMCTL.OCX"
 Object = "{555E8FCC-830E-45CC-AF00-A012D5AE7451}#15.3#0"; "Codejock.CommandBars.v15.3.1.ocx"
 Object = "{BD0C1912-66C3-49CC-8B12-7B347BF6C846}#15.3#0"; "Codejock.SkinFramework.v15.3.1.ocx"
 Begin VB.Form frmSysMain 
@@ -852,6 +852,7 @@ Private Sub msGridSet(ByRef gridSet As FlexCell.Grid)
         .Cell(0, 5).Text = "连接建立时间"
         .Cell(0, 6).Text = "索引号" '"Index"
         .Cell(0, 7).Text = "申请号" '"RequestID"
+        .Cell(0, 8).Text = "连接时长"
         .Column(1).Width = 120
         .Column(2).Width = 130
         .Column(3).Width = 130
@@ -1330,7 +1331,7 @@ Private Sub Timer1_Timer(Index As Integer)
     'Index=0的计时器间隔1秒。Timer1的Index值 与 Winsock1的Index对应
     
     Dim sckClose As MSWinsockLib.Winsock, sckCheck As MSWinsockLib.Winsock, tmrUld As VB.Timer
-    Dim timeOut As Long
+    Dim timeOut As Long, lngRows As Long
 '    Static CheckConnectTime As Long
 '    Static ConfirmTime() As Long
 '    Static ConfirmOK() As Boolean
@@ -1371,7 +1372,20 @@ Private Sub Timer1_Timer(Index As Integer)
             CheckConnectTime = 0
         End If
         '''index=0计时器为服务端自身用
-    
+        
+        '刷新每个连接的时长
+        With Me.Grid1
+            lngRows = .Rows - 1
+            If lngRows > 0 Then
+                For mlngID = 1 To lngRows
+                    If Len(.Cell(mlngID, 1).Text) = 0 Or Not IsDate(.Cell(mlngID, 5).Text) Then
+                        Exit For
+                    Else
+                        .Cell(mlngID, 8).Text = Format(Now - CDate(.Cell(mlngID, 5).Text), "HH:mm:ss")
+                    End If
+                Next
+            End If
+        End With
     Else
         '''index>0为各个客户端连接用
         
