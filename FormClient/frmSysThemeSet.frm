@@ -175,8 +175,8 @@ Private Sub List1_Click(Index As Integer)
     
     If Index = 2 Then
         If Me.Visible Then   '保存所选
-            strRes = gVar.FolderNameBin & List1.Item(1).List(List1.Item(1).ListIndex)
-            strIni = gVar.FolderNameBin & List1.Item(2).List(List1.Item(2).ListIndex)
+            strRes = gVar.FolderNameBin & List1.Item(1).List(List1.Item(1).ListIndex)   '全路径文件才有效
+            strIni = List1.Item(2).List(List1.Item(2).ListIndex)    '注意此文件是没有路径的
             Call gsLoadSkin(gWind, gWind.SkinFramework1, -1, False, strRes, strIni, False)
         End If
     End If

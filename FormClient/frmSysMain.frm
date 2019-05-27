@@ -1633,8 +1633,6 @@ Private Sub MDIForm_Load()
     mTabWorkspace.Flags = xtpWorkspaceShowActiveFiles Or xtpWorkspaceShowCloseSelectedTab '显示活动窗口列表、当前窗口显示关闭按钮
     
     
-    Call gsLoadSkin(Me, Me.SkinFramework1, , True)  '加载窗口主题
-    
     '加载工具栏主题
     Call gsThemeCommandBar(Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientCommandbarsTheme, gID.WndThemeCommandBarsRibbon)), cbsBars)
     
@@ -1650,6 +1648,7 @@ Private Sub MDIForm_Load()
     cbsBars.Actions(gID.PanePopupMenuNaviAutoFoldOther).Checked = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientTaskPanelAutoFold, 1))
     '菜单的折叠放在msAddTaskPanelItem方法中
     
+    Call gsLoadSkin(Me, Me.SkinFramework1, sNone, True)  '加载窗口主题
     
     Set cbsBars = Nothing   '销毁使用完的对象
     
