@@ -1,6 +1,6 @@
 VERSION 5.00
 Object = "{248DD890-BB45-11CF-9ABC-0080C7E7B78D}#1.0#0"; "MSWINSCK.OCX"
-Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.1#0"; "MSCOMCTL.OCX"
+Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.2#0"; "mscomctl.ocx"
 Object = "{945E8FCC-830E-45CC-AF00-A012D5AE7451}#15.3#0"; "Codejock.DockingPane.v15.3.1.ocx"
 Object = "{555E8FCC-830E-45CC-AF00-A012D5AE7451}#15.3#0"; "Codejock.CommandBars.v15.3.1.ocx"
 Object = "{B8E5842E-102B-4289-9D57-3B3F5B5E15D3}#15.3#0"; "Codejock.TaskPanel.v15.3.1.ocx"
@@ -451,7 +451,7 @@ Private Sub msAddAction(ByRef cbsBars As XtremeCommandBars.CommandBars)
     Dim cbsAction As XtremeCommandBars.CommandBarAction
     Dim cbsActions As XtremeCommandBars.CommandBarActions  'cbs控件Actions集合的引用
     
-    Set cbsActions = cbsBars.actions
+    Set cbsActions = cbsBars.Actions
     cbsBars.EnableActions   '启用CommandBars的Actions集合
     
 '    cbsActions.Add "Id", "Caption", "TooltipText", "DescriptionText", "Category"   '范例
@@ -493,7 +493,7 @@ Private Sub msAddAction(ByRef cbsBars As XtremeCommandBars.CommandBars)
         
         .Add gID.Wnd, "窗口", "", "", "窗口"
         
-        .Add gID.WndThemeSkinSet, "窗口主题设置...", "", "", ""
+        .Add gID.WndThemeSkinSet, "窗口主题设置...", "", "", "frmSysThemeSet"
         .Add gID.WndResetLayout, "重置窗口布局", "", "", ""
         .Add gID.WndToolBarCustomize, "自定义工具栏…", "自定义工具栏", "自定义工具栏", ""
         .Add gID.WndToolBarList, "工具栏列表", "工具栏列表", "工具栏列表", ""
@@ -603,7 +603,7 @@ Private Sub msAddAction(ByRef cbsBars As XtremeCommandBars.CommandBars)
                 .Key = .Category    '为菜单时有特殊用，创建Action时窗体名保存在Category中
                 If LCase(Left(.Key, 3)) = "frm" Then
                     Select Case .ID
-                        Case gID.toolOptions, gID.SysAuthChangePassword
+                        Case gID.toolOptions, gID.SysAuthChangePassword, gID.WndThemeSkinSet
                             '一些不需要受权限控制的窗口
                         Case Else '受控制窗口
                             cbsAction.Enabled = False '先禁需要权限控制的窗口，加载权限时再解锁
@@ -633,7 +633,7 @@ Private Sub msAddDesignerControls(ByRef cbsBars As XtremeCommandBars.CommandBars
     Dim cbsAction As XtremeCommandBars.CommandBarAction
     Dim cbsActions As XtremeCommandBars.CommandBarActions  'cbs控件Actions集合的引用
     
-    Set cbsActions = cbsBars.actions
+    Set cbsActions = cbsBars.Actions
     Set cbsControls = cbsBars.DesignerControls
     For Each cbsAction In cbsActions
         If cbsAction.ID < 20000 Then
@@ -652,7 +652,7 @@ Private Sub msAddDockingPane(ByRef cbsBars As XtremeCommandBars.CommandBars)
     Dim paneNavigation As XtremeDockingPane.Pane
     Dim cbsActions As XtremeCommandBars.CommandBarActions
     
-    Set cbsActions = cbsBars.actions
+    Set cbsActions = cbsBars.Actions
 '    Me.Picture1.Appearance = 0
 '    Me.Picture1.BackColor = Me.BackColor
     
@@ -664,7 +664,7 @@ Private Sub msAddDockingPane(ByRef cbsBars As XtremeCommandBars.CommandBars)
             .StickerStyle = StickerStyleVisualStudio2008 '必须使AlphaDockingContext、ShowDockingContextStickers都为True
         End With
         Set paneNavigation = .CreatePane(gID.PaneNavi, 260, 240, DockLeftOf)
-        cbsBars.actions(gID.PaneNavi).Checked = True
+        cbsBars.Actions(gID.PaneNavi).Checked = True
     End With
     With paneNavigation
         .Title = cbsActions(gID.PaneNavi).Caption
@@ -802,7 +802,7 @@ End Sub
 
 Private Sub msAddPopupMenu(ByRef cbsBars As XtremeCommandBars.CommandBars)
     '创建托盘图标右键弹出式菜单
-    Set mcbsPopupIcon = cbsBars.Add(cbsBars.actions(gID.IconPopupMenu).Caption, xtpBarPopup)
+    Set mcbsPopupIcon = cbsBars.Add(cbsBars.Actions(gID.IconPopupMenu).Caption, xtpBarPopup)
     With mcbsPopupIcon.Controls
         .Add xtpControlButton, gID.IconPopupMenuMaxWindow, ""
         .Add xtpControlButton, gID.IconPopupMenuMinWindow, ""
@@ -812,7 +812,7 @@ Private Sub msAddPopupMenu(ByRef cbsBars As XtremeCommandBars.CommandBars)
     End With
     
     '创建导航菜单面板上标题行上的弹出式菜单
-    Set mcbsPopupNavi = cbsBars.Add(cbsBars.actions(gID.PanePopupMenuNavi).Caption, xtpBarPopup)
+    Set mcbsPopupNavi = cbsBars.Add(cbsBars.Actions(gID.PanePopupMenuNavi).Caption, xtpBarPopup)
     With mcbsPopupNavi.Controls
         .Add xtpControlButton, gID.PanePopupMenuNaviAutoFoldOther, ""
         .Add xtpControlButton, gID.PanePopupMenuNaviExpandALL, ""
@@ -820,7 +820,7 @@ Private Sub msAddPopupMenu(ByRef cbsBars As XtremeCommandBars.CommandBars)
     End With
     
     '创建多标签上的右键菜单
-    Set mcbsPopupTab = cbsBars.Add(cbsBars.actions(gID.TabWorkspacePopupMenu).Caption, xtpBarPopup)
+    Set mcbsPopupTab = cbsBars.Add(cbsBars.Actions(gID.TabWorkspacePopupMenu).Caption, xtpBarPopup)
     With mcbsPopupTab.Controls
         For mlngID = gID.WndSonCloseAll To gID.WndSonVbTileVertical
             .Add xtpControlButton, mlngID, ""
@@ -840,7 +840,7 @@ Private Sub msAddTaskPanelItem(ByRef tskPanel As XtremeTaskPanel.TaskPanel)
     Dim cbsAction As XtremeCommandBars.CommandBarAction
     Dim imgIcon As MSComctlLib.ListImage
     
-    Set cbsActions = Me.CommandBars1.actions
+    Set cbsActions = Me.CommandBars1.Actions
     
     '创建系统菜单
     Set taskGroup = tskPanel.Groups.Add(gID.Sys, cbsActions(gID.Sys).Caption)
@@ -962,7 +962,7 @@ Private Sub msAddToolBar(ByRef cbsBars As XtremeCommandBars.CommandBars)
     Dim cbsCtr As XtremeCommandBars.CommandBarControl
     Dim cbsActions As XtremeCommandBars.CommandBarActions  'cbs控件Actions集合的引用
     
-    Set cbsActions = cbsBars.actions
+    Set cbsActions = cbsBars.Actions
     
     '系统操作工具栏
     Set cbsBar = cbsBars.Add(cbsActions(gID.Sys).Caption, xtpBarTop)
@@ -1028,7 +1028,7 @@ Private Sub msAddXtrStatusBar(ByRef cbsBars As XtremeCommandBars.CommandBars)
     Dim cbsActions As XtremeCommandBars.CommandBarActions  'cbs控件Actions集合的引用
     Dim BarPane As XtremeCommandBars.StatusBarPane
     
-    Set cbsActions = cbsBars.actions
+    Set cbsActions = cbsBars.Actions
     Set mXtrStatusBar = cbsBars.StatusBar
     With mXtrStatusBar
         .AddPane 0      '系统Pane，显示CommandBarActions的Description
@@ -1098,7 +1098,7 @@ Private Sub msLeftClick(ByVal CID As Long, ByRef cbsBars As XtremeCommandBars.Co
     Dim strKey As String
     Dim cbsActions As XtremeCommandBars.CommandBarActions  'cbs控件Actions集合的引用
     
-    Set cbsActions = cbsBars.actions
+    Set cbsActions = cbsBars.Actions
     With gID
         Select Case CID
             Case .WndThemeCommandBarsOffice2000 To .WndThemeCommandBarsWinXP
@@ -1183,7 +1183,7 @@ Private Sub msLeftClick(ByVal CID As Long, ByRef cbsBars As XtremeCommandBars.Co
                 If Left(strKey, 3) = "frm" Then
                     If cbsActions.Action(CID).Enabled Then
                         Select Case CID
-                            Case .toolOptions, .SysAuthChangePassword
+                            Case .toolOptions, .SysAuthChangePassword, .WndThemeSkinSet
                                 Call gsOpenTheWindow(strKey, vbModal, vbNormal)
                             Case Else
                                 Call gsOpenTheWindow(strKey)
@@ -1243,7 +1243,7 @@ Private Sub msLoadUserAuthority(ByVal strUID As String)
     
     strSys = LCase(gVar.UserLoginName)
     If strSys = LCase(gVar.AccountAdmin) Or strSys = LCase(gVar.AccountSystem) Then   '程序内定两个用户拥有所有权限
-        For Each cbsAction In gWind.CommandBars1.actions
+        For Each cbsAction In gWind.CommandBars1.Actions
             cbsAction.Enabled = True
             If Not Me.TaskPanel1.Find(cbsAction.ID) Is Nothing Then Me.TaskPanel1.Find(cbsAction.ID).Enabled = True
         Next
@@ -1262,7 +1262,7 @@ Private Sub msLoadUserAuthority(ByVal strUID As String)
     With gVar.rsURF
         If .State = adStateOpen Then
             If .RecordCount > 0 Then
-                For Each cbsAction In Me.CommandBars1.actions
+                For Each cbsAction In Me.CommandBars1.Actions
                     strKey = LCase(cbsAction.Key)
                     If Len(strKey) > 0 Then
                         If Left(strKey, 3) = strFRM Then
@@ -1299,7 +1299,7 @@ Private Sub msPopupMenuNavi(ByVal PID As Long, ByRef cbsBars As XtremeCommandBar
     
     Select Case PID
         Case gID.PanePopupMenuNaviAutoFoldOther
-            cbsBars.actions(PID).Checked = Not cbsBars.actions(PID).Checked
+            cbsBars.Actions(PID).Checked = Not cbsBars.Actions(PID).Checked
         Case gID.PanePopupMenuNaviExpandALL
             For Each taskGroup In Me.TaskPanel1.Groups
                 taskGroup.Expanded = True
@@ -1349,7 +1349,7 @@ Private Sub msSearchWindow(ByVal WID As Long, ByRef cbsBars As XtremeCommandBars
     Set cbsCtrlCaption = cbsBars.FindControl(xtpControlComboBox, gID.SysSearch4ListBoxCaption)
     Set cbsCtrlFormID = cbsBars.FindControl(xtpControlComboBox, gID.SysSearch4ListBoxFormID)
     
-    For Each cbsAction In cbsBars.actions
+    For Each cbsAction In cbsBars.Actions
         If cbsAction.ID < 20000 Then     '所有窗口的ID小于2000
             If LCase(Left(cbsAction.Key, 3)) = "frm" Then   '窗口的Name属性以frm开头
                 If InStr(LCase(cbsAction.Caption), strName) > 0 Then
@@ -1443,9 +1443,9 @@ Private Sub msThemeTaskPanel(ByVal LID As Long, ByRef cbsSet As XtremeCommandBar
     
     Me.TaskPanel1.VisualTheme = lngTheme
     For mlngID = gID.WndThemeTaskPanelListView To gID.WndThemeTaskPanelVisualStudio2010
-        cbsSet.actions(mlngID).Checked = False
+        cbsSet.Actions(mlngID).Checked = False
     Next
-    cbsSet.actions(LID).Checked = True
+    cbsSet.Actions(LID).Checked = True
 End Sub
 
 Private Sub msUnloadMe(Optional ByVal blnUnload As Boolean = True)
@@ -1554,7 +1554,7 @@ Private Sub CommandBars1_Update(ByVal Control As XtremeCommandBars.ICommandBarCo
     Dim blnMainWindow As Boolean '判断主窗体是否已全部加载完成
     Dim tskItems As XtremeTaskPanel.TaskPanelGroupItems   '导航菜单集合
     
-    Set cbsActions = Me.CommandBars1.actions
+    Set cbsActions = Me.CommandBars1.Actions
     Set tskItems = Me.TaskPanel1.Groups.Find(gID.Sys).Items
     
     If Not Me.ActiveForm Is Nothing Then
@@ -1588,7 +1588,7 @@ Private Sub DockingPane1_Action(ByVal Action As XtremeDockingPane.DockingPaneAct
     '导航菜单任务面板显示与隐藏（关闭）
     If Action = PaneActionClosed Then
         If Pane.ID = gID.PaneNavi Then
-            Me.CommandBars1.actions(Pane.ID).Checked = False
+            Me.CommandBars1.Actions(Pane.ID).Checked = False
         End If
     End If
 End Sub
@@ -1633,7 +1633,7 @@ Private Sub MDIForm_Load()
     mTabWorkspace.Flags = xtpWorkspaceShowActiveFiles Or xtpWorkspaceShowCloseSelectedTab '显示活动窗口列表、当前窗口显示关闭按钮
     
     
-    Call gsLoadSkin(Me, Me.SkinFramework1, sMSO7, True)  '加载窗口主题
+    Call gsLoadSkin(Me, Me.SkinFramework1, , True)  '加载窗口主题
     
     '加载工具栏主题
     Call gsThemeCommandBar(Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientCommandbarsTheme, gID.WndThemeCommandBarsRibbon)), cbsBars)
@@ -1647,7 +1647,7 @@ Private Sub MDIForm_Load()
     '加载导航菜单的设置
     Call msThemeTaskPanel(gfGetRegNumericValue(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientTaskPanelTheme, _
         True, gID.WndThemeTaskPanelNativeWinXP, gID.WndThemeTaskPanelListView, gID.WndThemeTaskPanelVisualStudio2010), cbsBars)
-    cbsBars.actions(gID.PanePopupMenuNaviAutoFoldOther).Checked = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientTaskPanelAutoFold, 1))
+    cbsBars.Actions(gID.PanePopupMenuNaviAutoFoldOther).Checked = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientTaskPanelAutoFold, 1))
     '菜单的折叠放在msAddTaskPanelItem方法中
     
     
@@ -1744,7 +1744,7 @@ Private Sub MDIForm_Unload(Cancel As Integer)
     Dim cbsActions As XtremeCommandBars.CommandBarActions
     Dim taskGroup As XtremeTaskPanel.TaskPanelGroup
     
-    Set cbsActions = Me.CommandBars1.actions
+    Set cbsActions = Me.CommandBars1.Actions
     
     '保存注册表信息-CommandBars设置
     Call Me.CommandBars1.SaveCommandBars(gVar.RegKeyCommandBars, gVar.RegAppName, gVar.RegKeyCBSClientSetting)
@@ -1822,9 +1822,9 @@ Private Sub TaskPanel1_ItemClick(ByVal Item As XtremeTaskPanel.ITaskPanelGroupIt
     
     Rem Debug.Print Me.ActiveForm.Name, Screen.ActiveForm.Name
     Rem Debug.Print Me.ActiveForm.ActiveControl.Name, Me.ActiveControl.Name
-    If Me.CommandBars1.actions(Item.ID).Enabled Then
+    If Me.CommandBars1.Actions(Item.ID).Enabled Then
         Call msLeftClick(Item.ID, Me.CommandBars1)
-        If Me.CommandBars1.actions(gID.PanePopupMenuNaviAutoFoldOther).Checked Then
+        If Me.CommandBars1.Actions(gID.PanePopupMenuNaviAutoFoldOther).Checked Then
             For Each taskGroup In Me.TaskPanel1.Groups
                 If taskGroup.ID <> Item.Group.ID Then taskGroup.Expanded = False
             Next
