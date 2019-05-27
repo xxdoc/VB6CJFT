@@ -222,7 +222,10 @@ Public Sub Main(Optional ByVal blnLoad As Boolean = True)
         .RegSectionTCP = "TCP"
         
         .RegSectionSkin = "SkinFile"
-        .RegKeySkinFile = "SkinRes"
+        .RegKeySkinRes = "SkinRes"
+        .RegKeySkinIni = "SkinIni"
+        .RegKeySkinSvrRes = "SkinSvrRes"
+        .RegKeySkinSvrIni = "SkinSvrIni"
         
         .RegSectionDBServer = "Server"
         .RegKeyDBServerAccount = "ServerAccount"
@@ -826,28 +829,37 @@ Public Sub gsGridToWord(ByRef gridControl As Control)
 End Sub
 
 Public Sub gsLoadSkin(ByRef frmCur As Form, ByRef skFRM As XtremeSkinFramework.SkinFramework, _
-    Optional ByVal lngResource As genumSkinResChoose, Optional ByVal blnFromReg As Boolean = False)
+    Optional ByVal lngResource As genumSkinResChoose = -1, Optional ByVal blnFromReg As Boolean = False, _
+    Optional ByVal strRes As String = "", Optional ByVal strIni As String = "", _
+    Optional ByVal blnServer As Boolean = False)
     '加载主题
-    Dim lngReg As Long, strRes As String, strIni As String
     
-    lngReg = GetSetting(gVar.RegAppName, gVar.RegSectionSkin, gVar.RegKeySkinFile, 0)
     If blnFromReg Then  '如果从注册表中获取资源文件，则按注册表中值修改lngResource的值
-        If lngReg > sMSO10 Or lngReg < sNone Then lngReg = sNone
-        lngResource = lngReg
+        If blnServer Then   '服务端程序主题设置
+            strRes = GetSetting(gVar.RegAppName, gVar.RegSectionSkin, gVar.RegKeySkinSvrRes, "")
+            strIni = GetSetting(gVar.RegAppName, gVar.RegSectionSkin, gVar.RegKeySkinSvrIni, "")
+        Else    '客户端程序主题设置
+            strRes = GetSetting(gVar.RegAppName, gVar.RegSectionSkin, gVar.RegKeySkinRes, "")
+            strIni = GetSetting(gVar.RegAppName, gVar.RegSectionSkin, gVar.RegKeySkinIni, "")
+        End If
+    Else
+        If lngResource >= sNone And lngResource <= sMSO10 Then
+            Select Case lngResource '选择窗口风格资源文件
+                Case sMSO7
+                    strRes = gVar.FolderNameBin & "cjstylesO7.cjstyles"
+                    strIni = "NormalBlue.ini"   'NormalBlue LightBlue NormalBlack NormalSilver NormalAqua
+                Case sMSO10
+                    strRes = gVar.FolderNameBin & "cjstylesO10.cjstyles"
+                    strIni = "NormalBlue.ini"   'NormalBlue NormalBlack NormalSilver
+                Case sMSVst
+                    strRes = gVar.FolderNameBin & "cjstylesOvst.cjstyles"
+                    strIni = "NormalBlue.ini"   'NormalBlue NormalBlack NormalSilver NormalBlack2
+                Case Else
+                    strRes = gVar.FolderNameBin & "cjstyles.cjstyles"
+                    strIni = "NormalBlue.ini"
+            End Select
+        End If
     End If
-    
-    Select Case lngResource '选择窗口风格资源文件
-        Case sMSO7
-            strRes = gVar.FolderNameBin & "cjstylesO7.dll"
-            strIni = "NormalBlue.ini"   'NormalBlue LightBlue NormalBlack NormalSilver NormalAqua
-        Case sMSO10
-            strRes = gVar.FolderNameBin & "cjstylesO10.dll"
-            strIni = "NormalBlue.ini"   'NormalBlue NormalBlack NormalSilver
-        Case sMSVst
-            strRes = gVar.FolderNameBin & "cjstylesOvst.dll"
-            strIni = "NormalBlue.ini"   'NormalBlue NormalBlack NormalSilver NormalBlack2
-        Case Else
-    End Select
     
     With skFRM
         .LoadSkin strRes, strIni
@@ -856,8 +868,13 @@ Public Sub gsLoadSkin(ByRef frmCur As Form, ByRef skFRM As XtremeSkinFramework.S
         .ApplyWindow frmCur.hwnd
     End With
     
-    If lngReg <> lngResource Then Call SaveSetting(gVar.RegAppName, gVar.RegSectionSkin, gVar.RegKeySkinFile, lngResource)
-    
+    If blnServer Then   '将设置的主题信息保存进注册表
+        Call SaveSetting(gVar.RegAppName, gVar.RegSectionSkin, gVar.RegKeySkinSvrRes, strRes)
+        Call SaveSetting(gVar.RegAppName, gVar.RegSectionSkin, gVar.RegKeySkinSvrIni, strIni)
+    Else
+        Call SaveSetting(gVar.RegAppName, gVar.RegSectionSkin, gVar.RegKeySkinRes, strRes)
+        Call SaveSetting(gVar.RegAppName, gVar.RegSectionSkin, gVar.RegKeySkinIni, strIni)
+    End If
 End Sub
 
 Public Sub gsLogAdd(ByRef frmCur As Form, Optional ByVal LogType As genumLogType = udSelect, _

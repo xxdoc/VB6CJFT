@@ -293,7 +293,11 @@ Public Type gtypeCommonVariant
     RegKeyTCPPort As String     '参数key_port值
     
     RegSectionSkin As String    '参数section_Skin
-    RegKeySkinFile As String    '参数Key_SkinFile
+    RegKeySkinRes As String    '参数Key_SkinRes
+    RegKeySkinIni As String    '参数Key_SkinIni
+    RegKeySkinSvrRes As String    '参数Key_SkinSvrRes
+    RegKeySkinSvrIni As String    '参数Key_SkinSvrIni
+    
     
     RegSectionDBServer As String  '数据库服务器信息块
     RegKeyDBServerIP As String    '数据库服务器IP
