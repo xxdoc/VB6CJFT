@@ -233,7 +233,7 @@ Private Sub Form_Load()
     End If
     
     Call msSetLabel(gVar.ClientStateDisConnected, vbRed)
-    Call gsLoadSkin(Me, Me.SkinFramework1, sMSVst, False)
+    Call gsLoadSkin(Me, Me.SkinFramework1, sMSVst, True)
     Call mfConnect(True)
     
     Exit Sub
