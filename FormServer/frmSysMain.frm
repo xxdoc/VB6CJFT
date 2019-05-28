@@ -1,7 +1,7 @@
 VERSION 5.00
 Object = "{248DD890-BB45-11CF-9ABC-0080C7E7B78D}#1.0#0"; "MSWINSCK.OCX"
 Object = "{E08BA07E-6463-4EAB-8437-99F08000BAD9}#1.9#0"; "FlexCell.ocx"
-Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.2#0"; "MSCOMCTL.OCX"
+Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.2#0"; "mscomctl.ocx"
 Object = "{555E8FCC-830E-45CC-AF00-A012D5AE7451}#15.3#0"; "Codejock.CommandBars.v15.3.1.ocx"
 Object = "{BD0C1912-66C3-49CC-8B12-7B347BF6C846}#15.3#0"; "Codejock.SkinFramework.v15.3.1.ocx"
 Begin VB.Form frmSysMain 
@@ -1205,7 +1205,7 @@ Private Sub Form_Load()
     cbsBars.EnableCustomization True        '允许CommandBars自定义，此属性最好放在所有CommandBars设定之后
     cbsBars.Options.UpdatePeriod = 250      '更改CommandBars的Update事件的执行周期，默认100ms
     
-    Call gsLoadSkin(Me, Me.SkinFramework1, sMSO7, True)  '加载窗口主题
+    Call gsLoadSkin(Me, Me.SkinFramework1, sMSO7, True, , , True) '加载窗口主题
     
     '加载工具栏主题
     Call gsThemeCommandBar(Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerCommandbarsTheme, gID.WndThemeCommandBarsRibbon)), cbsBars)
