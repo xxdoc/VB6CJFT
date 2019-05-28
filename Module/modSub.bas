@@ -1049,11 +1049,11 @@ Public Sub gsThemeCommandBar(ByVal CID As Long, ByRef cbsBars As XtremeCommandBa
     Next
     cbsBars.Actions(CID).Checked = True
     
-    If blnChangeSkin Then   '更改对应窗口主题使颜色统一
-        Call gsLoadSkin(gWind, gWind.SkinFramework1, sMSO7)
-    Else
-        Call gsLoadSkin(gWind, gWind.SkinFramework1, sMSVst)
-    End If
+'''    If blnChangeSkin Then   '更改对应窗口主题使颜色统一。注释于2019.5.28会影响加载主题
+'''        Call gsLoadSkin(gWind, gWind.SkinFramework1, sMSO7)
+'''    Else
+'''        Call gsLoadSkin(gWind, gWind.SkinFramework1, sMSVst)
+'''    End If
     
 End Sub
 
