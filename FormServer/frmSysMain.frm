@@ -445,6 +445,7 @@ Private Sub msAddAction(ByRef cbsBars As XtremeCommandBars.CommandBars)
         
         .Add gID.Wnd, "窗口", "", "", "窗口"
         
+        .Add gID.WndThemeSkinSet, "窗口主题设置", "", "", "frmSysThemeSet"
         .Add gID.WndResetLayout, "重置窗口布局", "", "", ""
         
         .Add gID.WndThemeCommandBars, "工具栏主题", "", "", ""
@@ -598,6 +599,10 @@ Private Sub msAddMenu(ByRef cbsBars As XtremeCommandBars.CommandBars)
     '窗口主菜单
     Set cbsMenuMain = cbsMenuBar.Controls.Add(xtpControlPopup, gID.Wnd, "")
     With cbsMenuMain.CommandBar.Controls
+        '窗口主题设置
+        Set cbsMenuCtrl = .Add(xtpControlButton, gID.WndThemeSkinSet, "")
+        cbsMenuCtrl.BeginGroup = True
+        
         '重置布局
         Set cbsMenuCtrl = .Add(xtpControlButton, gID.WndResetLayout, "")
         cbsMenuCtrl.BeginGroup = True
