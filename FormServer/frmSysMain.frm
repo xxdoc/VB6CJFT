@@ -1,7 +1,7 @@
 VERSION 5.00
 Object = "{248DD890-BB45-11CF-9ABC-0080C7E7B78D}#1.0#0"; "MSWINSCK.OCX"
 Object = "{E08BA07E-6463-4EAB-8437-99F08000BAD9}#1.9#0"; "FlexCell.ocx"
-Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.2#0"; "mscomctl.ocx"
+Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.2#0"; "MSCOMCTL.OCX"
 Object = "{555E8FCC-830E-45CC-AF00-A012D5AE7451}#15.3#0"; "Codejock.CommandBars.v15.3.1.ocx"
 Object = "{BD0C1912-66C3-49CC-8B12-7B347BF6C846}#15.3#0"; "Codejock.SkinFramework.v15.3.1.ocx"
 Begin VB.Form frmSysMain 
@@ -944,7 +944,7 @@ Private Sub msLeftClick(ByVal CID As Long, ByRef cbsBars As XtremeCommandBars.Co
 '''                                Call gsOpenTheWindow(strKey)
 '''                        End Select
                         Select Case CID
-                            Case .toolOptions
+                            Case .toolOptions, .WndThemeSkinSet
                                 Call gsOpenTheWindow(strKey, vbModal, vbNormal)
                             Case Else
                                 Call gsOpenTheWindow(strKey)
