@@ -1,5 +1,6 @@
 VERSION 5.00
 Object = "{E08BA07E-6463-4EAB-8437-99F08000BAD9}#1.9#0"; "FlexCell.ocx"
+Object = "{F9043C88-F6F2-101A-A3C9-08002B2F49FB}#1.2#0"; "ComDlg32.OCX"
 Begin VB.Form frmOption 
    BorderStyle     =   3  'Fixed Dialog
    Caption         =   "选项"
@@ -14,6 +15,13 @@ Begin VB.Form frmOption
    ScaleWidth      =   9030
    ShowInTaskbar   =   0   'False
    StartUpPosition =   1  '所有者中心
+   Begin MSComDlg.CommonDialog CommonDialog1 
+      Left            =   1680
+      Top             =   2520
+      _ExtentX        =   847
+      _ExtentY        =   847
+      _Version        =   393216
+   End
    Begin VB.TextBox Text1 
       Appearance      =   0  'Flat
       Height          =   735
@@ -45,6 +53,25 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Option Explicit
 
+Private Const mconstrTip As String = "选择一个文件夹"
+Private Const mconstrPath As String = "D:\Backup\FT"
+
+Private Function mfCheckFolder(Optional ByVal strFolder As String = mconstrPath) As String
+    '对选择的文件夹名检查
+    Dim strCheck As String
+    
+    strCheck = Trim(strFolder)
+    If Len(strCheck) = 0 Then
+        strCheck = mconstrPath
+    ElseIf LCase(strCheck) = LCase(mconstrTip) Then 'CommonDialog未选择时FileName为默认赋值
+        strCheck = mconstrPath
+    Else
+        If Not gfFileRepair(strCheck, True) Then
+            strCheck = mconstrPath
+        End If
+    End If
+    mfCheckFolder = strCheck
+End Function
 
 Private Sub msLoadParameter(Optional ByVal blnLoad As Boolean = True)
     
@@ -165,6 +192,19 @@ Private Sub Form_Resize()
     Grid1.Move 120, 120, Me.ScaleWidth - 240, Me.ScaleHeight - 240
 End Sub
 
+Private Sub Grid1_ButtonClick(ByVal Row As Long, ByVal Col As Long)
+    If Row = 17 And Col = 3 Then    '选择文件保存路径
+        With CommonDialog1
+            .DialogTitle = "备份路径选择"
+            .Flags = cdlOFNPathMustExist  '路径必须存在且有效 cdlOFNCreatePrompt=cdlOFNFileMustExist + cdlOFNPathMustExist
+            .InitDir = mconstrPath
+            .FileName = mconstrTip
+            .ShowOpen
+            Grid1.Cell(17, 3).Text = mfCheckFolder(.FileName)
+        End With
+    End If
+End Sub
+
 Private Sub Grid1_Click()
     With Grid1.ActiveCell
         If .Row = 10 And .Col = 7 Then  '密码单元格借用TextBox控件处理成星号*
@@ -187,9 +227,9 @@ Private Sub Grid1_HyperLinkClick(ByVal Row As Long, ByVal Col As Long, URL As St
     Changed = True
     If Row <> (Grid1.Rows - 1) Then Exit Sub
     
-    If Col = 1 Then '保存
+    If Col = 3 Then '保存
         If MsgBox("确定保存所有参数值吗？", vbQuestion + vbOKCancel, "保存询问") = vbOK Then Call msSaveParameter(True)
-    ElseIf Col = 5 Then '退出
+    ElseIf Col = 7 Then '退出
         Unload Me
     End If
 End Sub

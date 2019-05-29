@@ -465,6 +465,39 @@ LineErr:
     Close
 End Function
 
+Public Function gfFolderRepair(ByVal strFile As String) As Boolean
+    '如果 文件夹 不存在 则创建
+    '前提是路径的上层目录可访问
+    
+    Dim strTemp As String, strDir As String
+    Dim lngLoc As Long
+    
+    If Right(strFile, 1) = "\" Then
+        strFile = Left(strFile, Len(strFile) - 1)   '去掉最末的"\"
+    End If
+    strTemp = strFile
+    If Len(strTemp) = 0 Then Exit Function          '防止传入空字符串
+    
+    On Error GoTo LineErr
+
+    strDir = Trim(Dir(strTemp, vbDirectory + vbVolume))   '判断是否存在
+    If Len(strDir) = 0 Then        '文件不存在
+            lngLoc = InStrRev(strTemp, "\") '判断是否有上层目录
+            If lngLoc > 0 Then              '有上层目录则递归
+                strTemp = Left(strTemp, lngLoc - 1) '得出上层目录的具体路径
+                Call gfFolderRepair(strTemp, True)    '递归调用自身，以保证上层目录存在
+            End If
+            MkDir strFile                   '则创建文件夹
+            Close                           '则创建文件
+            gfFolderRepair = True '创建成功返回True
+        End If
+    Else
+        gfFolderRepair = True '路径完整直接返回True
+    End If
+LineErr:
+    Close
+End Function
+
 
 Public Function gfFormLoad(ByVal strFormName As String) As Boolean
     '判断指定窗口是否被加载了
