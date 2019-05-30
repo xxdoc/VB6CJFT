@@ -53,21 +53,25 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Option Explicit
 
-Private Const mconstrTip As String = "选择一个文件夹"
-Private Const mconstrPath As String = "D:\Backup\FT"
+Private Const mconstrTip As String = "选择一个文件夹" '选择一个文件夹点击打开即可
 
-Private Function mfCheckFolder(Optional ByVal strFolder As String = mconstrPath) As String
+
+Private Function mfCheckFolder(ByVal strFolder As String) As String
     '对选择的文件夹名检查
-    Dim strCheck As String
+    Dim strCheck As String, strEnd As String
     
     strCheck = Trim(strFolder)
     If Len(strCheck) = 0 Then
-        strCheck = mconstrPath
-    ElseIf LCase(strCheck) = LCase(mconstrTip) Then 'CommonDialog未选择时FileName为默认赋值
-        strCheck = mconstrPath
+        strCheck = gVar.FolderNameBackup
+    ElseIf LCase(strFolder) = LCase(mconstrTip) Then    '未选择路径，点了取消
+        strCheck = ""
     Else
-        If Not gfFileRepair(strCheck, True) Then
-            strCheck = mconstrPath
+        strEnd = Mid(strCheck, InStrRev(strCheck, "\") + 1)
+        If LCase(strEnd) = LCase(mconstrTip) Then
+            strCheck = Left(strCheck, InStrRev(strCheck, "\"))
+        End If
+        If Not gfFolderRepair(strCheck) Then
+            strCheck = gVar.FolderNameBackup
         End If
     End If
     mfCheckFolder = strCheck
@@ -95,6 +99,7 @@ Private Sub msLoadParameter(Optional ByVal blnLoad As Boolean = True)
         .Cell(13, 7).Text = gVar.ParaLimitClientConnectTime '限制客户端连接时长
         .Cell(14, 3).Text = gVar.TCPConnectMax '限制客户端连接数
         
+        .Cell(17, 3).Text = gVar.ParaBackupStore '备份路径
     End With
     
 End Sub
@@ -124,6 +129,7 @@ Private Sub msSaveParameter(Optional ByVal blnSave As Boolean = True)
         tempVal = Val(.Cell(14, 3).Text)
         gVar.TCPConnectMax = IIf(tempVal < 1 Or tempVal > 20, 2, tempVal) '限制客户端连接数
         
+        gVar.ParaBackupStore = mfCheckFolder(.Cell(17, 3).Text) '备份路径
     End With
     
     '参数值通过公用变量保存进注册表中
@@ -148,6 +154,7 @@ Private Sub msSaveParameter(Optional ByVal blnSave As Boolean = True)
         Call SaveSetting(.RegAppName, .RegSectionTCP, .RegKeyParaLimitClientConnectTime, .ParaLimitClientConnectTime) '限制客户端连接时长
         Call SaveSetting(.RegAppName, .RegSectionTCP, .RegKeyParaLimitClientConnectNumber, .TCPConnectMax) '限制客户端连接数
         
+        Call SaveSetting(.RegAppName, .RegSectionDBServer, .RegKeyServerBackStore, .ParaBackupStore) '备份路径
     End With
     
     Call msLoadParameter(True)  '窗口重新加载一次保存后的值
@@ -193,14 +200,20 @@ Private Sub Form_Resize()
 End Sub
 
 Private Sub Grid1_ButtonClick(ByVal Row As Long, ByVal Col As Long)
+    Dim strPath As String
+    
     If Row = 17 And Col = 3 Then    '选择文件保存路径
         With CommonDialog1
             .DialogTitle = "备份路径选择"
             .Flags = cdlOFNPathMustExist  '路径必须存在且有效 cdlOFNCreatePrompt=cdlOFNFileMustExist + cdlOFNPathMustExist
-            .InitDir = mconstrPath
+            .InitDir = IIf(Len(Grid1.Cell(17, 3).Text) > 0, Grid1.Cell(17, 3).Text, gVar.FolderNameBackup)
             .FileName = mconstrTip
             .ShowOpen
-            Grid1.Cell(17, 3).Text = mfCheckFolder(.FileName)
+            strPath = mfCheckFolder(.FileName)
+            If Len(strPath) > 0 Then
+                If Not Right(strPath, 1) = "\" Then strPath = strPath & "\"
+                Grid1.Cell(17, 3).Text = strPath
+            End If
         End With
     End If
 End Sub
@@ -231,6 +244,26 @@ Private Sub Grid1_HyperLinkClick(ByVal Row As Long, ByVal Col As Long, URL As St
         If MsgBox("确定保存所有参数值吗？", vbQuestion + vbOKCancel, "保存询问") = vbOK Then Call msSaveParameter(True)
     ElseIf Col = 7 Then '退出
         Unload Me
+    End If
+End Sub
+
+Private Sub Grid1_KeyDown(KeyCode As Integer, ByVal Shift As Integer)
+    Dim intRow As Integer, intCol As Integer
+
+    intRow = Grid1.ActiveCell.Row
+    intCol = Grid1.ActiveCell.Col
+    If intRow = 17 And intCol = 3 Then  '屏蔽输入：备份路径
+        KeyCode = 0
+    End If
+End Sub
+
+Private Sub Grid1_KeyPress(KeyAscii As Integer)
+    Dim intRow As Integer, intCol As Integer
+
+    intRow = Grid1.ActiveCell.Row
+    intCol = Grid1.ActiveCell.Col
+    If intRow = 17 And intCol = 3 Then  '屏蔽输入：备份路径
+        KeyAscii = 0
     End If
 End Sub
 

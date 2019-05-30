@@ -304,6 +304,7 @@ Public Type gtypeCommonVariant
     RegKeyDBServerDatabase As String    '数据库名
     RegKeyDBServerAccount As String   '数据库服务器连接账号
     RegKeyDBServerPassword As String  '数据库服务器连接密码
+    RegKeyServerBackStore As String     '服务器端资料文件备份路径
         
     RegSectionUser As String    'Section_用户信息
     RegKeyUserLast As String    '最后登陆用户名
@@ -355,9 +356,12 @@ Public Type gtypeCommonVariant
     FolderNameTemp As String    '文件夹名称：Temp的全路径
     FolderNameData As String    '文件夹名称：Data的全路径
     FolderNameBin As String     '文件夹名称：Bin的全路径
+    FolderNameBackup As String  '文件夹名称：Backup的全路径
+    FolderNameStore As String   '文件夹名称：Store的全路径
     FolderBin As String     '文件夹名称：Bin
     FolderData As String    '文件夹名称：Data
     FolderTemp As String    '文件夹名称：Temp
+    
     
     FileNameErrLog As String    '错误记录日志文件的全路径
     FileNameSkin As String      '主题资源文件名
@@ -417,6 +421,8 @@ Public Type gtypeCommonVariant
     ParaBlnRememberUserList As Boolean  '记住用户名
     ParaBlnRememberUserPassword As Boolean  '记住密码
     ParaBlnUserAutoLogin As Boolean '自动登陆
+    
+    ParaBackupStore As String   '备份路径
     
 End Type
 
