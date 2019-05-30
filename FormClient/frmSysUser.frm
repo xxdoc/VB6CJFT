@@ -1,74 +1,144 @@
 VERSION 5.00
-Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.1#0"; "MSCOMCTL.OCX"
+Object = "{F9043C88-F6F2-101A-A3C9-08002B2F49FB}#1.2#0"; "ComDlg32.OCX"
+Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.2#0"; "mscomctl.ocx"
 Begin VB.Form frmSysUser 
    Caption         =   "用户管理"
    ClientHeight    =   7290
    ClientLeft      =   120
    ClientTop       =   450
-   ClientWidth     =   15870
+   ClientWidth     =   16185
    LinkTopic       =   "Form1"
    MDIChild        =   -1  'True
    ScaleHeight     =   7290
-   ScaleWidth      =   15870
+   ScaleWidth      =   16185
    Begin VB.HScrollBar Hsb 
       Height          =   255
       Left            =   14520
-      TabIndex        =   26
+      TabIndex        =   23
       Top             =   6720
       Width           =   1455
    End
    Begin VB.VScrollBar Vsb 
       Height          =   1935
       Left            =   15600
-      TabIndex        =   25
+      TabIndex        =   22
       Top             =   4680
       Width           =   255
    End
    Begin VB.Frame ctlMove 
       BorderStyle     =   0  'None
       Caption         =   "Frame2"
-      Height          =   6135
+      Height          =   6855
       Left            =   120
-      TabIndex        =   12
+      TabIndex        =   10
       Top             =   240
       Width           =   15615
       Begin VB.Frame Frame1 
          Caption         =   "用户角色指定"
          ForeColor       =   &H00FF0000&
-         Height          =   5895
+         Height          =   6375
          Index           =   1
          Left            =   7680
-         TabIndex        =   23
+         TabIndex        =   21
          Top             =   0
-         Width           =   7695
-         Begin VB.CommandButton Command3 
-            Caption         =   "用户角色指定结果保存"
-            Height          =   495
-            Left            =   4680
-            TabIndex        =   11
-            Top             =   1920
-            Width           =   2415
-         End
-         Begin VB.TextBox Text1 
-            BackColor       =   &H80000003&
-            BeginProperty Font 
-               Name            =   "宋体"
-               Size            =   10.5
-               Charset         =   134
-               Weight          =   400
-               Underline       =   0   'False
-               Italic          =   0   'False
-               Strikethrough   =   0   'False
-            EndProperty
-            ForeColor       =   &H000000FF&
-            Height          =   330
+         Width           =   7815
+         Begin VB.Frame Frame1 
+            Height          =   2895
             Index           =   5
-            Left            =   5040
-            Locked          =   -1  'True
-            TabIndex        =   10
-            Text            =   "Text1"
-            Top             =   720
-            Width           =   2500
+            Left            =   4000
+            TabIndex        =   32
+            Top             =   2880
+            Width           =   3720
+            Begin MSComDlg.CommonDialog CommonDialog1 
+               Left            =   120
+               Top             =   2160
+               _ExtentX        =   847
+               _ExtentY        =   847
+               _Version        =   393216
+            End
+            Begin VB.CommandButton Command4 
+               Caption         =   "选择照片"
+               Height          =   495
+               Left            =   720
+               TabIndex        =   36
+               Top             =   2160
+               Width           =   1095
+            End
+            Begin VB.Label Label1 
+               Caption         =   "*只接受jpg、png格式 *文件小于5Mb"
+               ForeColor       =   &H000000FF&
+               Height          =   420
+               Index           =   32
+               Left            =   1845
+               TabIndex        =   37
+               Top             =   2200
+               Width           =   1710
+            End
+            Begin VB.Image Image1 
+               Appearance      =   0  'Flat
+               BorderStyle     =   1  'Fixed Single
+               Height          =   1815
+               Left            =   600
+               Top             =   240
+               Width           =   1305
+            End
+         End
+         Begin VB.Frame Frame1 
+            Height          =   2415
+            Index           =   4
+            Left            =   4000
+            TabIndex        =   31
+            Top             =   150
+            Width           =   3720
+            Begin VB.TextBox Text1 
+               BackColor       =   &H80000003&
+               BeginProperty Font 
+                  Name            =   "宋体"
+                  Size            =   10.5
+                  Charset         =   134
+                  Weight          =   400
+                  Underline       =   0   'False
+                  Italic          =   0   'False
+                  Strikethrough   =   0   'False
+               EndProperty
+               ForeColor       =   &H000000FF&
+               Height          =   330
+               Index           =   5
+               Left            =   1080
+               Locked          =   -1  'True
+               TabIndex        =   34
+               Text            =   "Text1"
+               Top             =   360
+               Width           =   2500
+            End
+            Begin VB.CommandButton Command3 
+               Caption         =   "用户角色指定结果保存"
+               Height          =   495
+               Left            =   720
+               TabIndex        =   33
+               Top             =   1560
+               Width           =   2415
+            End
+            Begin VB.Label Label1 
+               AutoSize        =   -1  'True
+               Caption         =   "已选用户"
+               BeginProperty Font 
+                  Name            =   "宋体"
+                  Size            =   10.5
+                  Charset         =   134
+                  Weight          =   700
+                  Underline       =   0   'False
+                  Italic          =   0   'False
+                  Strikethrough   =   0   'False
+               EndProperty
+               ForeColor       =   &H00FF0000&
+               Height          =   210
+               Index           =   31
+               Left            =   120
+               TabIndex        =   35
+               Top             =   390
+               Width           =   900
+            End
          End
          Begin MSComctlLib.TreeView TreeView2 
             Height          =   4095
@@ -95,41 +165,21 @@ Begin VB.Form frmSysUser
                Strikethrough   =   0   'False
             EndProperty
          End
-         Begin VB.Label Label1 
-            AutoSize        =   -1  'True
-            Caption         =   "已选用户"
-            BeginProperty Font 
-               Name            =   "宋体"
-               Size            =   10.5
-               Charset         =   134
-               Weight          =   700
-               Underline       =   0   'False
-               Italic          =   0   'False
-               Strikethrough   =   0   'False
-            EndProperty
-            ForeColor       =   &H00FF0000&
-            Height          =   210
-            Index           =   31
-            Left            =   4080
-            TabIndex        =   24
-            Top             =   750
-            Width           =   900
-         End
       End
       Begin VB.Frame Frame1 
          Caption         =   "用户"
          ForeColor       =   &H00FF0000&
-         Height          =   5895
+         Height          =   6375
          Index           =   0
          Left            =   0
-         TabIndex        =   13
+         TabIndex        =   11
          Top             =   0
          Width           =   7455
          Begin VB.Frame Frame1 
             Height          =   405
             Index           =   3
             Left            =   675
-            TabIndex        =   30
+            TabIndex        =   27
             Top             =   4080
             Width           =   2500
             Begin VB.OptionButton Option1 
@@ -147,7 +197,7 @@ Begin VB.Form frmSysUser
                Height          =   210
                Index           =   2
                Left            =   120
-               TabIndex        =   32
+               TabIndex        =   29
                Top             =   150
                Width           =   855
             End
@@ -166,7 +216,7 @@ Begin VB.Form frmSysUser
                Height          =   210
                Index           =   3
                Left            =   1200
-               TabIndex        =   31
+               TabIndex        =   28
                Top             =   150
                Width           =   855
             End
@@ -175,7 +225,7 @@ Begin VB.Form frmSysUser
             Height          =   405
             Index           =   2
             Left            =   720
-            TabIndex        =   27
+            TabIndex        =   24
             Top             =   2100
             Width           =   2500
             Begin VB.OptionButton Option1 
@@ -193,7 +243,7 @@ Begin VB.Form frmSysUser
                Height          =   210
                Index           =   1
                Left            =   1200
-               TabIndex        =   29
+               TabIndex        =   26
                Top             =   150
                Width           =   855
             End
@@ -212,7 +262,7 @@ Begin VB.Form frmSysUser
                Height          =   210
                Index           =   0
                Left            =   120
-               TabIndex        =   28
+               TabIndex        =   25
                Top             =   150
                Width           =   855
             End
@@ -255,7 +305,7 @@ Begin VB.Form frmSysUser
             Height          =   300
             Index           =   1
             Left            =   1320
-            TabIndex        =   14
+            TabIndex        =   12
             Text            =   "Combo2"
             Top             =   3240
             Visible         =   0   'False
@@ -396,7 +446,7 @@ Begin VB.Form frmSysUser
             Height          =   210
             Index           =   7
             Left            =   120
-            TabIndex        =   33
+            TabIndex        =   30
             Top             =   4200
             Width           =   450
          End
@@ -415,7 +465,7 @@ Begin VB.Form frmSysUser
             Height          =   210
             Index           =   2
             Left            =   165
-            TabIndex        =   22
+            TabIndex        =   20
             Top             =   1260
             Width           =   450
          End
@@ -434,7 +484,7 @@ Begin VB.Form frmSysUser
             Height          =   210
             Index           =   1
             Left            =   165
-            TabIndex        =   21
+            TabIndex        =   19
             Top             =   780
             Width           =   450
          End
@@ -453,7 +503,7 @@ Begin VB.Form frmSysUser
             Height          =   210
             Index           =   0
             Left            =   165
-            TabIndex        =   20
+            TabIndex        =   18
             Top             =   300
             Width           =   450
          End
@@ -472,7 +522,7 @@ Begin VB.Form frmSysUser
             Height          =   210
             Index           =   3
             Left            =   165
-            TabIndex        =   19
+            TabIndex        =   17
             Top             =   1740
             Width           =   450
          End
@@ -491,7 +541,7 @@ Begin VB.Form frmSysUser
             Height          =   210
             Index           =   4
             Left            =   165
-            TabIndex        =   18
+            TabIndex        =   16
             Top             =   2220
             Width           =   450
          End
@@ -510,7 +560,7 @@ Begin VB.Form frmSysUser
             Height          =   210
             Index           =   5
             Left            =   165
-            TabIndex        =   17
+            TabIndex        =   15
             Top             =   2700
             Width           =   450
          End
@@ -529,7 +579,7 @@ Begin VB.Form frmSysUser
             Height          =   210
             Index           =   6
             Left            =   165
-            TabIndex        =   16
+            TabIndex        =   14
             Top             =   3180
             Width           =   450
          End
@@ -539,7 +589,7 @@ Begin VB.Form frmSysUser
             Height          =   420
             Index           =   21
             Left            =   240
-            TabIndex        =   15
+            TabIndex        =   13
             Top             =   5640
             Width           =   3060
          End
@@ -1185,6 +1235,23 @@ LineErr:
     Else
         MsgBox strMsg, vbExclamation
     End If
+    
+End Sub
+
+Private Sub Command4_Click()
+    '选择照片
+    Dim strPhoto As String
+    
+    Image1.Stretch = True
+    With CommonDialog1
+        .DialogTitle = "照片选择"
+        .Filter = "图片|*.jpg;*.png;*.bmp"
+        .Flags = cdlOFNCreatePrompt
+        .ShowOpen
+        strPhoto = .FileName
+    End With
+    
+    If gfFileRepair(strPhoto) Then Image1.Picture = LoadPicture(strPhoto)
     
 End Sub
 
