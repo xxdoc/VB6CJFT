@@ -43,6 +43,8 @@ Begin VB.Form frmSysUser
          Top             =   0
          Width           =   7815
          Begin VB.Frame Frame1 
+            Caption         =   "用户头像"
+            ForeColor       =   &H00FF00FF&
             Height          =   2895
             Index           =   5
             Left            =   4000
@@ -65,7 +67,7 @@ Begin VB.Form frmSysUser
                Width           =   1095
             End
             Begin VB.Label Label1 
-               Caption         =   "*只接受jpg、png格式 *文件小于5Mb"
+               Caption         =   "*格式为jpg|png|bmp *文件小于5MB"
                ForeColor       =   &H000000FF&
                Height          =   420
                Index           =   32
@@ -613,7 +615,27 @@ Private Const mKeyRole As String = "r"
 Private Const mOtherKeyRole As String = "kOtherRole"
 Private Const mOtherTextRole As String = "其他角色"
 Private Const mTwoBar As String = "--"
+Private Const mConIntVal As Integer = -1000 '头像保存失败判断用的默认值
 
+Private Function mfSavePhoto(Optional ByVal blnNew As Boolean = True, Optional ByVal strUID As String = "") As String
+    '保存个人头像照片。参数表示是否为新建
+    '保存成功返回库中的文件ID值，失败返回mConIntVal(-1000)，不保存则返回空字符串
+    Dim strPath As String, strOldName As String, strNewName As String, strExtension As String
+    
+    strPath = Trim(CommonDialog1.Tag) '获取App目录下的文件路径
+    If Not gfFileExist(strPath) Then    '不存在则使用原文件路径
+        strPath = Trim(CommonDialog1.FileName) '原路径文件
+        If Not gfFileExist(strPath) Then    '原文件也不存在了
+            MsgBox "头像照片的原文件已丢失，不进行保存！", vbCritical, "照片警报"
+            Exit Function
+        End If
+    End If
+    
+    strOldName = Mid(strPath, InStrRev(strPath, "\") + 1)   '获取旧文件名
+    strExtension = Mid(strOldName, InStrRev(strOldName, ".") + 1)   '获取文件的扩展名
+    
+    
+End Function
 
 Private Sub msLoadDept(ByRef tvwDept As MSComctlLib.TreeView)
     '加载部门至TreeView控件中
@@ -865,7 +887,7 @@ Private Sub Command1_Click()
     
     Dim strLoginName As String, strPWD As String, strFullName As String
     Dim strSex As String, strMemo As String, strState As String
-    Dim strDept As Variant
+    Dim strDept As Variant, strPhotoID As String
     Dim strSQL As String, strMsg As String
     Dim rsUser As ADODB.Recordset
     
@@ -945,8 +967,9 @@ Private Sub Command1_Click()
     
     If MsgBox("是否添加用户【" & strLoginName & "】【" & strFullName & "】？", vbQuestion + vbYesNo) = vbNo Then Exit Sub
     
+    strPhotoID = mfSavePhoto(True)
     strSQL = "SELECT UserAutoID ,UserLoginName ,UserPassword ," & _
-             "UserFullName ,UserSex ,UserState ,DeptID ,UserMemo " & _
+             "UserFullName ,UserSex ,UserState ,DeptID ,UserMemo ,FileID " & _
              "From tb_FT_Sys_User " & _
              "WHERE UserLoginName = '" & strLoginName & "'"
     Set rsUser = gfBackRecordset(strSQL, adOpenStatic, adLockOptimistic)
@@ -965,6 +988,7 @@ Private Sub Command1_Click()
         rsUser.Fields("UserState") = strState
         rsUser.Fields("DeptID") = strDept
         rsUser.Fields("UserMemo") = strMemo
+        rsUser.Fields("FileID") = strPhotoID
         rsUser.Update
         strMsg = rsUser.Fields("UserAutoID").Value
         Text1.Item(0).Text = strMsg
@@ -1240,19 +1264,40 @@ End Sub
 
 Private Sub Command4_Click()
     '选择照片
-    Dim strPhoto As String
+    Dim strPhoto As String, strCopy As String
+    Dim lngFiveMB As Long
+    
+    On Error GoTo LineErr
     
     Image1.Stretch = True
     With CommonDialog1
         .DialogTitle = "照片选择"
-        .Filter = "图片|*.jpg;*.png;*.bmp"
-        .Flags = cdlOFNCreatePrompt
-        .ShowOpen
-        strPhoto = .FileName
+        .Filter = "图片(*.jpg;*.png;*.bmp)|*.jpg;*.png;*.bmp;*.gif"
+        .Flags = cdlOFNCreatePrompt '当文件不存在时对话框要提示创建文件
+        .ShowOpen   '弹出打开窗口
+        strPhoto = .FileName    '将所选图片路径放到变量中
     End With
     
-    If gfFileRepair(strPhoto) Then Image1.Picture = LoadPicture(strPhoto)
-    
+    If gfFileRepair(strPhoto) Then  '判断路径是否有效
+        lngFiveMB = 5242880 ' 5 * 1024 * 1024
+        If FileLen(strPhoto) > lngFiveMB Then   '文件不能大于5MB
+            MsgBox "您选择的图片大于5MB了！", vbExclamation, "文件警告"
+            CommonDialog1.FileName = ""
+            Exit Sub
+        End If
+        Image1.Picture = LoadPicture(strPhoto)  '加载图片
+        strCopy = gVar.FolderNameData & Mid(strPhoto, InStrRev(strPhoto, "\") + 1)  '图片复制一份的路径
+        If gfFileRepair(strCopy) Then   '判断路径是否有效
+            FileCopy strPhoto, strCopy  '将图片复制一份
+            CommonDialog1.Tag = strCopy '路径保存备用
+        End If
+    End If
+LineErr:
+    If Err.Number > 0 Then  '有异常发生
+        MsgBox Err.Number & vbCrLf & Err.Description, vbCritical, "图片加载异常"
+        CommonDialog1.FileName = "" '清空无效图片的路径
+        CommonDialog1.Tag = ""
+    End If
 End Sub
 
 Private Sub Form_Load()
@@ -1260,6 +1305,7 @@ Private Sub Form_Load()
     Set Me.Icon = gWind.ImageList1.ListImages("SysUser").Picture
     Me.Caption = gWind.CommandBars1.Actions(gID.SysAuthUser).Caption
     Frame1.Item(0).Caption = Me.Caption
+    Command4.ToolTipText = "照片请通过【" & Command1.Caption & "】【" & Command2.Caption & "】按钮进行保存"
     
     For mlngID = Text1.LBound To Text1.UBound
         Text1.Item(mlngID).Text = ""
