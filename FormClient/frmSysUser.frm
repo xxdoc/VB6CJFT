@@ -606,7 +606,7 @@ Attribute VB_Exposed = False
 Option Explicit
 
 Dim mlngID As Long
-
+Dim mstrNewPhotoName As String
 Private Const mKeyDept As String = "k"
 Private Const mKeyUser As String = "u"
 Private Const mOtherKey As String = "kOther"
@@ -615,11 +615,10 @@ Private Const mKeyRole As String = "r"
 Private Const mOtherKeyRole As String = "kOtherRole"
 Private Const mOtherTextRole As String = "其他角色"
 Private Const mTwoBar As String = "--"
-Private Const mConIntVal As Integer = -1000 '头像保存失败判断用的默认值
 
-Private Function mfSavePhoto(Optional ByVal blnNew As Boolean = True, Optional ByVal strUID As String = "") As String
-    '保存个人头像照片。参数表示是否为新建
-    '保存成功返回库中的文件ID值，失败返回mConIntVal(-1000)，不保存则返回空字符串
+
+Private Function mfSavePhoto(Optional ByVal blnNew As Boolean = True) As Boolean
+    '上传个人头像照片至服务器。成功返回新文件名
     Dim strPath As String, strOldName As String, strNewName As String, strExtension As String
     Dim strSaveFolder As String, strClassify As String, strSQL As String
     Dim lngFileLen As Long, K As Long
@@ -652,18 +651,24 @@ Private Function mfSavePhoto(Optional ByVal blnNew As Boolean = True, Optional B
         strNewName = strNewName & gfBackOneChar(udUpperCase)    '获取新文件名（30个随机大写字母）
     Next
     strNewName = strNewName & "." & strExtension    '新文件名加上扩展名
-    strSaveFolder = gVar.FolderNameStore     '服务端存储位置
+    strSaveFolder = gVar.FolderStore    '服务端存储位置。注意不含路径，仅文件夹名称
     strClassify = "头像照片"            '文件存储类别
     
     With gArr(gWind.Winsock1.Item(1).Index)
-        .FilePath = strPath
-        .FileSizeTotal = lngFileLen
-        .FileFolder = strSaveFolder
-        .FileName = strNewName
+        .FilePath = strPath         '本机欲发送的文件路径
+        .FileSizeTotal = lngFileLen '本机欲发送的文件大小或服务端接收的文件大小
+        .FileFolder = strSaveFolder '本机发送过去的文件在服务端保存的文件夹名称
+        .FileName = strNewName      '本机发送过去的文件在服务端保存的文件名
+        gVar.FTIsOver = False
     End With
-    If gWind.Winsock1.Item(1).State = 7 Then
+    If gWind.Winsock1.Item(1).State = 7 Then    '使用MDI窗体上的Winsock控件发送文件信息
         If gfSendInfo(gfFileInfoJoin(gWind.Winsock1.Item(1).Index, ftSend), gWind.Winsock1.Item(1)) Then
-            Debug.Print "客户端：已发送文件信息给服务端," & Now
+            Call gsFileProgress(gWind.CommandBars1.StatusBar.FindPane(gID.StatusBarPaneProgress), _
+                                gWind.CommandBars1.StatusBar.FindPane(gID.StatusBarPaneProgressText), _
+                                ftZero, 0, lngFileLen, 0) '初始化进度条
+            Debug.Print "Client：已发送[头像照片]的文件信息给服务端," & Now
+            mfSavePhoto = True
+            mstrNewPhotoName = strNewName
         End If
     End If
     
@@ -679,8 +684,7 @@ Private Sub msLoadDept(ByRef tvwDept As MSComctlLib.TreeView)
     Dim arrDept() As String '注意下标要从0开始
     Dim I As Long, lngCount As Long, lngOneCompany As Long
     Dim blnLoop As Boolean
-    
-    
+        
     strSQL = "SELECT t1.DeptID ,t1.DeptName ,t1.ParentID ,t2.DeptName AS [ParentName] " & _
              "FROM tb_FT_Sys_Department AS [t1] " & _
              "LEFT JOIN tb_FT_Sys_Department AS [t2] " & _
@@ -996,10 +1000,10 @@ Private Sub Command1_Click()
     End If
     
     If Len(strDept) = 0 Then strDept = Null
-    strPhotoID = mfSavePhoto(True)
+    
     If MsgBox("是否添加用户【" & strLoginName & "】【" & strFullName & "】？", vbQuestion + vbYesNo) = vbNo Then Exit Sub
     
-    strPhotoID = mfSavePhoto(True)
+    
     strSQL = "SELECT UserAutoID ,UserLoginName ,UserPassword ," & _
              "UserFullName ,UserSex ,UserState ,DeptID ,UserMemo ,FileID " & _
              "From tb_FT_Sys_User " & _
@@ -1324,6 +1328,8 @@ Private Sub Command4_Click()
             CommonDialog1.Tag = strCopy '路径保存备用
         End If
     End If
+    Call mfSavePhoto(True)
+    
 LineErr:
     If Err.Number > 0 Then  '有异常发生
         MsgBox Err.Number & vbCrLf & Err.Description, vbCritical, "图片加载异常"

@@ -445,6 +445,7 @@ Attribute mTabWorkspace.VB_VarHelpID = -1
 
 
 
+
 Private Sub msAddAction(ByRef cbsBars As XtremeCommandBars.CommandBars)
     '创建CommandBars的Action
     
@@ -1950,6 +1951,10 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
                 If blnTimer Then Me.Timer1.Item(Index).Enabled = True
                 
             ElseIf InStr(strGet, gVar.PTFileStart) > 0 Then '可以发送文件给服务端了的状态
+                Call gsFileProgress(Me.CommandBars1.StatusBar.FindPane(gID.StatusBarPaneProgress), _
+                                    Me.CommandBars1.StatusBar.FindPane(gID.StatusBarPaneProgressText), _
+                                    ftZero, 0, .FileSizeTotal, 0) '初始化进度条
+                gVar.FTIsOver = False
                 Call gfSendFile(.FilePath, Me.Winsock1.Item(Index)) '发送文件给服务端
                 Call gsFormEnable(Me, False)    '禁止客户端再操作
                 
@@ -1962,9 +1967,11 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
                     If IsNumeric(strSize) Then
                         .FileSizeTotal = Val(strSize)
                         Call gfSendInfo(gVar.PTFileSend, Me.Winsock1.Item(Index)) '通知服务端可以发送过来了
-                        '初始化进度条
-                        
-                        .FileTransmitState = True
+                        Call gsFileProgress(Me.CommandBars1.StatusBar.FindPane(gID.StatusBarPaneProgress), _
+                                            Me.CommandBars1.StatusBar.FindPane(gID.StatusBarPaneProgressText), _
+                                            ftZero, 0, .FileSizeTotal, 0) '初始化进度条
+                        gVar.FTIsOver = False
+                        .FileTransmitState = True   '变更Winsock控件的接收状态
                         Call gsFormEnable(Me, False)    '禁止客户端再操作
                     End If
                 End If
@@ -1989,12 +1996,15 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
             Me.Winsock1.Item(Index).GetData byteGet, vbArray + vbByte   '接收文件信息并放入数组
             Put #.FileNumber, , byteGet '保存进文件中
             .FileSizeCompleted = .FileSizeCompleted + bytesTotal    '记录已传输大小
-            '更新进度条
+            Call gsFileProgress(Me.CommandBars1.StatusBar.FindPane(gID.StatusBarPaneProgress), _
+                                Me.CommandBars1.StatusBar.FindPane(gID.StatusBarPaneProgressText), _
+                                ftRate, .FileSizeCompleted, .FileSizeTotal, 0)  '更新进度条
             
             If .FileSizeCompleted >= .FileSizeTotal Then    '传输完成后的一些处理
                 Close #.FileNumber
                 Call gsFormEnable(Me, True) '解除客户端的限制
                 gArr(Index) = gArr(0)
+                gVar.FTIsOver = True
                 Call gfSendInfo(gVar.PTFileEnd, Me.Winsock1.Item(Index)) '发送结束标志
                 Debug.Print "Client Received Over"
             End If
@@ -2025,11 +2035,15 @@ Private Sub Winsock1_SendComplete(Index As Integer)
     If Index = 0 Then Exit Sub
     With gArr(Index)
         If .FileTransmitState Then
-            If .FileSizeCompleted < .FileSizeTotal Then
+            If .FileSizeCompleted < .FileSizeTotal Then '继续发送文件
                 Call gfSendFile(.FilePath, Me.Winsock1.Item(Index))
-            Else
+                Call gsFileProgress(Me.CommandBars1.StatusBar.FindPane(gID.StatusBarPaneProgress), _
+                                    Me.CommandBars1.StatusBar.FindPane(gID.StatusBarPaneProgressText), _
+                                    ftRate, .FileSizeCompleted) '更新进度条的显示
+            Else    '文件发送完成，恢复相关信息
                 gArr(Index) = gArr(0)
                 Call gsFormEnable(Me, True)
+                gVar.FTIsOver = True
                 Debug.Print "Client Send File Over"
             End If
         End If

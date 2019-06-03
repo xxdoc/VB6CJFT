@@ -358,6 +358,33 @@ Public Sub gsDeleteSetting(ByVal AppName As String, ByVal Section As String, ByV
     End If
 End Sub
 
+Public Sub gsFileProgress(ByRef ProgressBar As XtremeCommandBars.StatusBarProgressPane, _
+                          ByRef ProgressTxt As XtremeCommandBars.StatusBarPane, _
+                          Optional ByVal pType As genumFileProgressValue = ftZero, _
+                          Optional ByVal pValue As Long = 0, _
+                          Optional ByVal pMax As Long = 100, Optional ByVal pMin As Long = 0)
+    '主窗口状态栏上的文件传输进度条与比率设置
+    ''调用模式:Call gsFileProgress(gWind.CommandBars1.StatusBar.FindPane(gID.StatusBarPaneProgress), _
+    '                            gWind.CommandBars1.StatusBar.FindPane(gID.StatusBarPaneProgressText), _
+    '                            ftZero, 0, lngFileLen, 0)
+    With ProgressBar
+        If pType = ftZero Then
+            .Max = pMax  '设置最大值
+            .Min = pMin  '设置最小值
+            .Value = pMin   '当前值为最小值
+        ElseIf pType = ftOver Then
+            .Value = pMax
+        Else
+            If pValue > .Max Then
+                .Value = .Max   '当前值不能大于进度条的最大值
+            Else
+                .Value = pValue '正常进度值
+            End If
+        End If
+        ProgressTxt.Text = CStr(Int(.Value / (.Max - .Min) * 100)) & "%"   '数值百分比
+    End With
+End Sub
+
 Public Sub gsFileWrite(ByVal strFile As String, ByVal strContent As String, _
     Optional ByVal OpenMode As genumFileOpenType = udAppend, _
     Optional ByVal WriteMode As genumFileWriteType = udPrint)

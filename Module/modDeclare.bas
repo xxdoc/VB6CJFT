@@ -202,6 +202,12 @@ Public Enum genumFileTransimitType    '文件传输类型枚举
     ftReceive = 2   '接收
 End Enum
 
+Public Enum genumFileProgressValue  '文件传输进度设置枚举
+    ftZero  '将进度设置为0
+    ftOver  '将进度设置为100(满了，100%)
+    ftRate  '将进度设置为当前传入的进度值
+End Enum
+
 Public Enum genumSkinResChoose  '窗体风格资源文件选择
     sNone = 0   '无
     sMSVst = 1  'MicrosoftVista风格
@@ -232,6 +238,7 @@ Public Type gtypeCommonVariant
     
     FTChunkSize As Long   '文件传输时的分块大小
     FTWaitTime As Long    '每段文件传输时的等待时间，单位秒
+    FTIsOver As Boolean     '文件传输状态：False没传输完,True传输完毕.
     
     EncryptKey As String    '加密解密的密钥
         
