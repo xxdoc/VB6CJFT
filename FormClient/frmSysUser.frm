@@ -621,6 +621,8 @@ Private Function mfSavePhoto(Optional ByVal blnNew As Boolean = True, Optional B
     '保存个人头像照片。参数表示是否为新建
     '保存成功返回库中的文件ID值，失败返回mConIntVal(-1000)，不保存则返回空字符串
     Dim strPath As String, strOldName As String, strNewName As String, strExtension As String
+    Dim strSaveFolder As String, strClassify As String, strSQL As String
+    Dim lngFileLen As Long, K As Long
     
     strPath = Trim(CommonDialog1.Tag) '获取App目录下的文件路径
     If Not gfFileExist(strPath) Then    '不存在则使用原文件路径
@@ -632,8 +634,38 @@ Private Function mfSavePhoto(Optional ByVal blnNew As Boolean = True, Optional B
     End If
     
     strOldName = Mid(strPath, InStrRev(strPath, "\") + 1)   '获取旧文件名
-    strExtension = Mid(strOldName, InStrRev(strOldName, ".") + 1)   '获取文件的扩展名
+    If Len(strOldName) > 50 Then
+        MsgBox "照片文件名不能超过50个字符 ，请重命名！", vbExclamation, "旧文件名警告"
+        Exit Function
+    End If
+    strExtension = Mid(strOldName, InStrRev(strOldName, ".") + 1)   '获取旧文件的扩展名
+    If Len(strExtension) > 20 Then
+        MsgBox "照片文件的扩展名不能超过20个字符 ，请重命名！", vbExclamation, "扩展名警告"
+        Exit Function
+    End If
+    lngFileLen = FileLen(strOldName)    '获取文件大小
+    If lngFileLen > 5242880 Then
+        MsgBox "照片大小不能超过5MB！", vbExclamation, "文件大小警告"
+        Exit Function
+    End If
+    For K = 1 To 30
+        strNewName = strNewName & gfBackOneChar(udUpperCase)    '获取新文件名（30个随机大写字母）
+    Next
+    strNewName = strNewName & "." & strExtension    '新文件名加上扩展名
+    strSaveFolder = gVar.FolderNameStore     '服务端存储位置
+    strClassify = "头像照片"            '文件存储类别
     
+    With gArr(gWind.Winsock1.Item(1).Index)
+        .FilePath = strPath
+        .FileSizeTotal = lngFileLen
+        .FileFolder = strSaveFolder
+        .FileName = strNewName
+    End With
+    If gWind.Winsock1.Item(1).State = 7 Then
+        If gfSendInfo(gfFileInfoJoin(gWind.Winsock1.Item(1).Index, ftSend), gWind.Winsock1.Item(1)) Then
+            Debug.Print "客户端：已发送文件信息给服务端," & Now
+        End If
+    End If
     
 End Function
 
@@ -964,7 +996,7 @@ Private Sub Command1_Click()
     End If
     
     If Len(strDept) = 0 Then strDept = Null
-    
+    strPhotoID = mfSavePhoto(True)
     If MsgBox("是否添加用户【" & strLoginName & "】【" & strFullName & "】？", vbQuestion + vbYesNo) = vbNo Then Exit Sub
     
     strPhotoID = mfSavePhoto(True)

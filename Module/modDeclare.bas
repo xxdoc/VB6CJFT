@@ -361,6 +361,8 @@ Public Type gtypeCommonVariant
     FolderBin As String     '文件夹名称：Bin
     FolderData As String    '文件夹名称：Data
     FolderTemp As String    '文件夹名称：Temp
+    FolderStore As String   '文件夹名称：Store
+    FolderBackup As String  '文件夹名称：Backup
     
     
     FileNameErrLog As String    '错误记录日志文件的全路径
