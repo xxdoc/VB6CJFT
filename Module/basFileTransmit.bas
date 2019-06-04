@@ -233,7 +233,7 @@ End Function
 '字节与十六进制字符串的转换
 '================================================
 Public Function BytesToHex(bits() As Byte) As String
-    Dim i As Long
+    Dim I As Long
     Dim b
     Dim s As String
     For Each b In bits
@@ -249,32 +249,32 @@ End Function
 Public Function HexToBytes(sHex As String) As Byte()
     Dim b() As Byte
     Dim rst() As Byte
-    Dim i As Long
+    Dim I As Long
     Dim n As Long
     Dim m1 As Byte
     Dim m2 As Byte
     If HexMatrix(15, 15) = 0 Then Call MatrixInitialize
     b = StrConv(sHex, vbFromUnicode)
-    i = (UBound(b) + 1) / 2 - 1
-    ReDim rst(i)
-    For i = 0 To UBound(b) Step 2
-        If b(i) > 96 Then
-            m1 = b(i) - 87
-        ElseIf b(i) > 64 Then
-            m1 = b(i) - 55
-        ElseIf b(i) > 47 Then
-            m1 = b(i) - 48
+    I = (UBound(b) + 1) / 2 - 1
+    ReDim rst(I)
+    For I = 0 To UBound(b) Step 2
+        If b(I) > 96 Then
+            m1 = b(I) - 87
+        ElseIf b(I) > 64 Then
+            m1 = b(I) - 55
+        ElseIf b(I) > 47 Then
+            m1 = b(I) - 48
         End If
-        If b(i + 1) > 96 Then
-            m2 = b(i + 1) - 87
-        ElseIf b(i + 1) > 64 Then
-            m2 = b(i + 1) - 55
-        ElseIf b(i + 1) > 47 Then
-            m2 = b(i + 1) - 48
+        If b(I + 1) > 96 Then
+            m2 = b(I + 1) - 87
+        ElseIf b(I + 1) > 64 Then
+            m2 = b(I + 1) - 55
+        ElseIf b(I + 1) > 47 Then
+            m2 = b(I + 1) - 48
         End If
         rst(n) = HexMatrix(m1, m2)
         n = n + 1
-    Next i
+    Next I
     HexToBytes = rst
 End Function
 
@@ -687,7 +687,6 @@ Public Function gfSendInfo(ByVal strInfo As String, sckSend As MSWinsockLib.Wins
     If sckSend.State = 7 Then
         sckSend.SendData strInfo
         DoEvents
-'''        Call Sleep(200)
         gfSendInfo = True
     End If
 End Function

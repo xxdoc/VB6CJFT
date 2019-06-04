@@ -1954,11 +1954,11 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
                 Call gsFileProgress(Me.CommandBars1.StatusBar.FindPane(gID.StatusBarPaneProgress), _
                                     Me.CommandBars1.StatusBar.FindPane(gID.StatusBarPaneProgressText), _
                                     ftZero, 0, .FileSizeTotal, 0) '初始化进度条
-                gVar.FTIsOver = False
+                gVar.FTIsOver = False   '设置传输结束标识为假
                 Call gfSendFile(.FilePath, Me.Winsock1.Item(Index)) '发送文件给服务端
                 Call gsFormEnable(Me, False)    '禁止客户端再操作
                 
-            ElseIf InStr(strGet, gVar.PTFileExist) > 0 Then '服务端发来客户端想要的文件存在
+            ElseIf InStr(strGet, gVar.PTFileExist) > 0 Then '服务端发来客户端想要的文件存在的信号
                 Dim strSize As String, lngInstrSize As Long
                 
                 lngInstrSize = InStr(strGet, gVar.PTFileSize) '获取客户端想要的存在于服务端的文件的大小
@@ -1966,18 +1966,20 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
                     strSize = Mid(strGet, lngInstrSize + Len(gVar.PTFileSize))
                     If IsNumeric(strSize) Then
                         .FileSizeTotal = Val(strSize)
-                        Call gfSendInfo(gVar.PTFileSend, Me.Winsock1.Item(Index)) '通知服务端可以发送过来了
                         Call gsFileProgress(Me.CommandBars1.StatusBar.FindPane(gID.StatusBarPaneProgress), _
                                             Me.CommandBars1.StatusBar.FindPane(gID.StatusBarPaneProgressText), _
                                             ftZero, 0, .FileSizeTotal, 0) '初始化进度条
-                        gVar.FTIsOver = False
-                        .FileTransmitState = True   '变更Winsock控件的接收状态
+                        gVar.FTIsOver = False   '设置传输结束标识为假
                         Call gsFormEnable(Me, False)    '禁止客户端再操作
+                        Debug.Print "Client:开始接受服务端发来的文件," & Now
+                        Call gfSendInfo(gVar.PTFileStart, Me.Winsock1.Item(Index))  '通知服务端可以发送过来了
+                        .FileTransmitState = True   '变更Winsock控件的接收状态
+                        DoEvents
                     End If
                 End If
                 
             ElseIf InStr(strGet, gVar.PTFileNoExist) > 0 Then   '
-                MsgBox "需要文件<" & .FileName & ">在服务端不存在！", vbExclamation, "文件警告"
+                MsgBox "需要的文件<" & .FileName & ">在服务端不存在！", vbExclamation, "文件警告"
                 gArr(Index) = gArr(0)
                 
             End If
@@ -2004,7 +2006,7 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
                 Close #.FileNumber
                 Call gsFormEnable(Me, True) '解除客户端的限制
                 gArr(Index) = gArr(0)
-                gVar.FTIsOver = True
+                gVar.FTIsOver = True    '设置传输结束标识为真
                 Call gfSendInfo(gVar.PTFileEnd, Me.Winsock1.Item(Index)) '发送结束标志
                 Debug.Print "Client Received Over"
             End If
@@ -2023,6 +2025,7 @@ Private Sub Winsock1_Error(Index As Integer, ByVal Number As Integer, Descriptio
             Debug.Print "ClientWinsockError:" & Index & "--" & Err.Number & "  " & Err.Description
             Close
             gArr(Index) = gArr(0)
+            gVar.FTIsOver = False '设置传输结束标识为假
             Call gsFormEnable(Me, True)
         End If
         Call gsAlarmAndLogEx("与服务器连接发生异常！", "连接警报", True, vbCritical)
@@ -2042,8 +2045,8 @@ Private Sub Winsock1_SendComplete(Index As Integer)
                                     ftRate, .FileSizeCompleted) '更新进度条的显示
             Else    '文件发送完成，恢复相关信息
                 gArr(Index) = gArr(0)
-                Call gsFormEnable(Me, True)
-                gVar.FTIsOver = True
+                Call gsFormEnable(Me, True) '解锁窗口限制
+                gVar.FTIsOver = True    '设置传输结束标识为真
                 Debug.Print "Client Send File Over"
             End If
         End If

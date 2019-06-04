@@ -238,7 +238,7 @@ Public Type gtypeCommonVariant
     
     FTChunkSize As Long   '文件传输时的分块大小
     FTWaitTime As Long    '每段文件传输时的等待时间，单位秒
-    FTIsOver As Boolean     '文件传输状态：False没传输完,True传输完毕.
+    FTIsOver As Boolean     '文件传输结束状态：False没传输完,True传输完毕.
     
     EncryptKey As String    '加密解密的密钥
         

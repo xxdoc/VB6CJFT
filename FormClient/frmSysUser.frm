@@ -606,7 +606,7 @@ Attribute VB_Exposed = False
 Option Explicit
 
 Dim mlngID As Long
-Dim mstrNewPhotoName As String
+Dim mstrNewPhotoName As String  '头像照片上传到服务器后的新文件名
 Private Const mKeyDept As String = "k"
 Private Const mKeyUser As String = "u"
 Private Const mOtherKey As String = "kOther"
@@ -659,7 +659,7 @@ Private Function mfSavePhoto(Optional ByVal blnNew As Boolean = True) As Boolean
         .FileSizeTotal = lngFileLen '本机欲发送的文件大小或服务端接收的文件大小
         .FileFolder = strSaveFolder '本机发送过去的文件在服务端保存的文件夹名称
         .FileName = strNewName      '本机发送过去的文件在服务端保存的文件名
-        gVar.FTIsOver = False
+        gVar.FTIsOver = False       '文件传输结束标志清空
     End With
     If gWind.Winsock1.Item(1).State = 7 Then    '使用MDI窗体上的Winsock控件发送文件信息
         If gfSendInfo(gfFileInfoJoin(gWind.Winsock1.Item(1).Index, ftSend), gWind.Winsock1.Item(1)) Then
@@ -667,8 +667,8 @@ Private Function mfSavePhoto(Optional ByVal blnNew As Boolean = True) As Boolean
                                 gWind.CommandBars1.StatusBar.FindPane(gID.StatusBarPaneProgressText), _
                                 ftZero, 0, lngFileLen, 0) '初始化进度条
             Debug.Print "Client：已发送[头像照片]的文件信息给服务端," & Now
-            mfSavePhoto = True
-            mstrNewPhotoName = strNewName
+            mfSavePhoto = True  '函数返回真值,无意义
+            mstrNewPhotoName = strNewName   '设置公共变量内容
         End If
     End If
     
@@ -924,8 +924,10 @@ Private Sub Command1_Click()
     Dim strLoginName As String, strPWD As String, strFullName As String
     Dim strSex As String, strMemo As String, strState As String
     Dim strDept As Variant, strPhotoID As String
+    Dim strOldName As String, strExtension As String, strClassify As String, strFolder As String
+    Dim lngFileSize As Long
     Dim strSQL As String, strMsg As String
-    Dim rsUser As ADODB.Recordset
+    Dim rsUser As ADODB.Recordset, rsPhoto As ADODB.Recordset
     
     strLoginName = Trim(Text1.Item(1).Text)
     strPWD = Trim(Text1.Item(2).Text)
@@ -1003,6 +1005,7 @@ Private Sub Command1_Click()
     
     If MsgBox("是否添加用户【" & strLoginName & "】【" & strFullName & "】？", vbQuestion + vbYesNo) = vbNo Then Exit Sub
     
+    On Error GoTo LineErr
     
     strSQL = "SELECT UserAutoID ,UserLoginName ,UserPassword ," & _
              "UserFullName ,UserSex ,UserState ,DeptID ,UserMemo ,FileID " & _
@@ -1014,8 +1017,40 @@ Private Sub Command1_Click()
         strMsg = "账号已存在，请更换！"
         GoTo LineBrk
     Else
-        On Error GoTo LineErr
+        '先获取头像信息ID
+        If Len(mstrNewPhotoName) > 0 Then   '如果有上传图像照片，则进行保存(获取图片ID)
+            strClassify = "个人头像"
+            strExtension = Mid(mstrNewPhotoName, InStrRev(mstrNewPhotoName, ".") + 1)
+            strOldName = Mid(CommonDialog1.Tag, InStrRev(CommonDialog1.Tag, "\") + 1)
+            lngFileSize = FileLen(CommonDialog1.Tag)
+            strFolder = gVar.FolderStore
+            strSQL = "SELECT FileID ,FileClassify ,FileExtension ,FileOldName ,FileSaveName ,FileSize ," & _
+                     "FileSaveLocation ,FileUploadMen ,FileUploadTime FROM tb_FT_Lib_File   " & _
+                     "WHERE FileSaveName ='" & mstrNewPhotoName & "' AND FileSaveLocation ='" & strFolder & "' "
+            Set rsPhoto = gfBackRecordset(strSQL, adOpenStatic, adLockOptimistic)
+            If rsPhoto.State = adStateClosed Then GoTo LineEnd
+            If rsPhoto.RecordCount > 0 Then
+                strMsg = "头像照片信息在库中已存在，请再次上传！"
+                GoTo LineBrk
+            Else
+                rsPhoto.AddNew
+                rsPhoto.Fields("FileClassify") = strClassify
+                rsPhoto.Fields("FileExtension") = strExtension
+                rsPhoto.Fields("FileOldName") = strOldName
+                rsPhoto.Fields("FileSaveName") = mstrNewPhotoName
+                rsPhoto.Fields("FileSize") = lngFileSize
+                rsPhoto.Fields("FileSaveLocation") = strFolder
+                rsPhoto.Fields("FileUploadMen") = gVar.UserFullName
+                rsPhoto.Fields("FileUploadTime") = Now
+                rsPhoto.Update
+                strPhotoID = rsPhoto.Fields("FileID")    '获取ID
+                rsPhoto.Close
+                strMsg = "为用户【" & strLoginName & "】【" & strFullName & "】插入头像照片[" & strPhotoID & "][" & mstrNewPhotoName & "]"
+                Call gsLogAdd(Me, udInsert, "tb_FT_Lib_File", strMsg)
+            End If
+        End If
         
+        '然后添加用户信息
         rsUser.AddNew
         rsUser.Fields("UserLoginName") = strLoginName
         rsUser.Fields("UserPassword") = EncryptString(strPWD, gVar.EncryptKey)
@@ -1039,13 +1074,16 @@ Private Sub Command1_Click()
     GoTo LineEnd
     
 LineBrk:
-    rsUser.Close
+    If Not rsPhoto Is Nothing Then If rsPhoto.State = adStateOpen Then rsPhoto.Close
+    If Not rsUser Is Nothing Then If rsUser.State = adStateOpen Then rsUser.Close
     MsgBox strMsg, vbExclamation
     GoTo LineEnd
 LineErr:
     Call gsAlarmAndLog("添加用户异常")
 LineEnd:
-    If rsUser.State = adStateOpen Then rsUser.Close
+    If Not rsPhoto Is Nothing Then If rsPhoto.State = adStateOpen Then rsPhoto.Close
+    If Not rsUser Is Nothing Then If rsUser.State = adStateOpen Then rsUser.Close
+    Set rsPhoto = Nothing
     Set rsUser = Nothing
 End Sub
 
@@ -1054,10 +1092,12 @@ Private Sub Command2_Click()
     
     Dim strUID As String, strLoginName As String, strPWD As String, strState As String
     Dim strFullName As String, strSex As String, strDept As String, strMemo As String
-    Dim blnLoginName As Boolean, blnPwd As Boolean, blnFullName As Boolean
+    Dim blnLoginName As Boolean, blnPwd As Boolean, blnFullName As Boolean, blnPhoto As Boolean, blnNewPho As Boolean
     Dim blnSex As Boolean, blnDept As Boolean, blnMemo As Boolean, blnState As Boolean
-    Dim strSQL As String, strMsg As String
-    Dim rsUser As ADODB.Recordset
+    Dim strSQL As String, strMsg As String, strPhotoID As String, strWhrPho As String
+    Dim rsUser As ADODB.Recordset, rsPhoto As ADODB.Recordset
+    Dim strOldName As String, strExtension As String, strClassify As String, strFolder As String
+    Dim lngFileSize As Long
     
     strUID = Trim(Text1.Item(0).Text)
     strLoginName = Trim(Text1.Item(1).Text)
@@ -1139,7 +1179,7 @@ Private Sub Command2_Click()
     End If
     
     strSQL = "SELECT UserAutoID ,UserLoginName ,UserPassword ," & _
-             "UserFullName ,UserSex ,UserState ,DeptID ,UserMemo " & _
+             "UserFullName ,UserSex ,UserState ,DeptID ,UserMemo ,FileID " & _
              "From tb_FT_Sys_User " & _
              "WHERE UserAutoID = '" & strUID & "'"
     Set rsUser = gfBackRecordset(strSQL, adOpenStatic, adLockOptimistic)
@@ -1158,8 +1198,8 @@ Private Sub Command2_Click()
         If IsNull(rsUser.Fields("DeptID")) Or strDept <> rsUser.Fields("DeptID") Then blnDept = True
         If IsNull(rsUser.Fields("UserMemo")) Or strMemo <> rsUser.Fields("UserMemo") Then blnMemo = True
         If IsNull(rsUser.Fields("UserState")) Or strState <> rsUser.Fields("UserState") Then blnState = True
-        
-        If Not (blnLoginName Or blnPwd Or blnFullName Or blnSex Or blnState Or blnDept Or blnMemo) Then
+        If Len(mstrNewPhotoName) > 0 Then blnPhoto = True
+        If Not (blnLoginName Or blnPwd Or blnFullName Or blnSex Or blnState Or blnDept Or blnMemo Or blnPhoto) Then
             strMsg = "没有实质性的改动，不进行修改！"
             GoTo LineBrk
         End If
@@ -1177,6 +1217,42 @@ Private Sub Command2_Click()
         If blnMemo Then rsUser.Fields("UserMemo") = strMemo
         If blnState Then rsUser.Fields("UserState") = strState
         
+        If blnPhoto Then   '如果有上传图像照片，则进行保存(获取图片ID)
+            strClassify = "个人头像"
+            strExtension = Mid(mstrNewPhotoName, InStrRev(mstrNewPhotoName, ".") + 1)
+            strOldName = Mid(CommonDialog1.Tag, InStrRev(CommonDialog1.Tag, "\") + 1)
+            lngFileSize = FileLen(CommonDialog1.Tag)
+            strFolder = gVar.FolderStore
+            strPhotoID = "" & rsUser.Fields("FileID")
+            blnNewPho = IIf(Len(strPhotoID) > 0, False, True)
+            strWhrPho = IIf(blnNewPho, " FileSaveName ='" & mstrNewPhotoName & "' AND FileSaveLocation ='" & strFolder & "' ", " FileID='" & strPhotoID & "' ")
+            strSQL = "SELECT FileID ,FileClassify ,FileExtension ,FileOldName ,FileSaveName ,FileSize ," & _
+                     "FileSaveLocation ,FileUploadMen ,FileUploadTime FROM tb_FT_Lib_File   " & _
+                     "WHERE " & strWhrPho
+            Set rsPhoto = gfBackRecordset(strSQL, adOpenStatic, adLockOptimistic)
+            If rsPhoto.State = adStateClosed Then GoTo LineEnd
+            If rsPhoto.RecordCount > 0 Then
+                strMsg = "头像照片信息在库中已存在，请再次上传！"
+                GoTo LineBrk
+            Else
+                If blnNewPho Then rsPhoto.AddNew
+                If blnNewPho Then rsPhoto.Fields("FileClassify") = strClassify
+                rsPhoto.Fields("FileExtension") = strExtension
+                rsPhoto.Fields("FileOldName") = strOldName
+                rsPhoto.Fields("FileSaveName") = mstrNewPhotoName
+                rsPhoto.Fields("FileSize") = lngFileSize
+                If blnNewPho Then rsPhoto.Fields("FileSaveLocation") = strFolder
+                rsPhoto.Fields("FileUploadMen") = gVar.UserFullName
+                rsPhoto.Fields("FileUploadTime") = Now
+                rsPhoto.Update
+                strPhotoID = rsPhoto.Fields("FileID")    '获取ID
+                rsPhoto.Close
+                If blnNewPho Then rsUser.Fields("FileID") = strPhotoID  '如果新增图像则添加到用户信息中
+                strMsg = "为用户【" & strLoginName & "】【" & strFullName & "】" & IIf(blnNewPho, "插入", "修改") & "头像照片[" & strPhotoID & "][" & mstrNewPhotoName & "]"
+                Call gsLogAdd(Me, IIf(blnNewPho, udInsert, udUpdate), "tb_FT_Lib_File", strMsg)
+            End If
+        End If
+        
         rsUser.Update
         rsUser.Close
         
@@ -1188,6 +1264,7 @@ Private Sub Command2_Click()
         If blnDept Then strMsg = strMsg & "【" & Label1.Item(5).Caption & "】"
         If blnMemo Then strMsg = strMsg & "【" & Label1.Item(6).Caption & "】"
         If blnState Then strMsg = strMsg & "【" & Label1.Item(7).Caption & "】"
+        If blnPhoto Then strMsg = strMsg & "【头像照片】"
         Call gsLogAdd(Me, udUpdate, "tb_FT_Sys_User", strMsg)
         
         MsgBox "已成功" & strMsg & "。", vbInformation
@@ -1202,15 +1279,17 @@ Private Sub Command2_Click()
     GoTo LineEnd
     
 LineBrk:
-    rsUser.Close
+    If Not rsPhoto Is Nothing Then If rsPhoto.State = adStateOpen Then rsPhoto.Close
+    If Not rsUser Is Nothing Then If rsUser.State = adStateOpen Then rsUser.Close
     MsgBox strMsg, vbExclamation
     GoTo LineEnd
 LineErr:
     Call gsAlarmAndLog("用户信息修改异常")
 LineEnd:
-    If rsUser.State = adStateOpen Then rsUser.Close
+    If Not rsPhoto Is Nothing Then If rsPhoto.State = adStateOpen Then rsPhoto.Close
+    If Not rsUser Is Nothing Then If rsUser.State = adStateOpen Then rsUser.Close
+    Set rsPhoto = Nothing
     Set rsUser = Nothing
-    
 End Sub
 
 Private Sub Command3_Click()
@@ -1332,9 +1411,10 @@ Private Sub Command4_Click()
     
 LineErr:
     If Err.Number > 0 Then  '有异常发生
-        MsgBox Err.Number & vbCrLf & Err.Description, vbCritical, "图片加载异常"
         CommonDialog1.FileName = "" '清空无效图片的路径
-        CommonDialog1.Tag = ""
+        CommonDialog1.Tag = ""  '清空无效备份图片的路径
+        mstrNewPhotoName = "" '清空公共变量内容
+        MsgBox Err.Number & vbCrLf & Err.Description, vbCritical, "图片加载异常"
     End If
 End Sub
 
@@ -1411,7 +1491,9 @@ Private Sub TreeView1_NodeClick(ByVal Node As MSComctlLib.Node)
     
     Dim lngLen As Long, I As Long
     Dim strKey As String, strUID As String, strSQL As String, strMsg As String
-    Dim rsUser As ADODB.Recordset
+    Dim rsUser As ADODB.Recordset, rsPhoto As ADODB.Recordset
+    Dim strSaveName As String, strFolder As String, strPhotoID As String
+    Dim lngFileSize As Long
     
     strKey = Node.Key
     lngLen = Len(strKey)
@@ -1426,6 +1508,8 @@ Private Sub TreeView1_NodeClick(ByVal Node As MSComctlLib.Node)
     End If
     If Left(strKey, Len(mKeyUser)) <> mKeyUser Then Exit Sub
     
+    mstrNewPhotoName = ""   '先清空头像图片信息
+    Image1.Picture = LoadPicture("") '先清空头像图片
     strUID = Right(Node.Key, lngLen - Len(mKeyUser))
     strSQL = "EXEC sp_FT_Sys_UserInfo '" & strUID & "'"
     Set rsUser = gfBackRecordset(strSQL)
@@ -1460,24 +1544,67 @@ Private Sub TreeView1_NodeClick(ByVal Node As MSComctlLib.Node)
             Next
             If I = Combo1.Item(1).ListCount Then Combo1.Item(0).ListIndex = -1
         End If
-
+        strPhotoID = rsUser.Fields("FileID") & ""   '取得照片ID
+        
         Node.SelectedImage = "SelectedMen"
-        
         rsUser.Close
+        Call msLoadUserRole(strUID) '加载角色列表
         
-        Call msLoadUserRole(strUID)
-        
+        '加载头像
+        If Len(strPhotoID) > 0 Then
+            strSQL = "SELECT FileID ,FileClassify ,FileExtension ,FileOldName ,FileSaveName ," & _
+                     "FileSize ,FileSaveLocation FROM tb_FT_Lib_File WHERE FileID ='" & strPhotoID & "' "
+            Set rsPhoto = gfBackRecordset(strSQL)
+            If rsPhoto.State = adStateClosed Then GoTo LineEnd
+            If rsPhoto.RecordCount = 0 Then
+                strMsg = "头像照片信息丢失，请联系管理员！"
+                GoTo LineBreak
+            ElseIf rsPhoto.RecordCount > 1 Then
+                strMsg = "头像照片信息异常，请联系管理员！"
+                GoTo LineBreak
+            Else
+                strSaveName = rsPhoto.Fields("FileSaveName")    '获取保存服务器中的图片文件名
+                strFolder = rsPhoto.Fields("FileSaveLocation")  '获取保存服务器中的文件夹名
+                lngFileSize = rsPhoto.Fields("FileSize")            '获取保存服务器中的文件大小
+            End If
+            rsPhoto.Close
+            If Len(strSaveName) > 0 And Len(strFolder) > 0 And lngFileSize > 0 Then
+                '文件的名称、保存位置、文件大小等信息完整时才能要求下载过来
+                With gArr(gWind.Winsock1.Item(1).Index)
+                    .FileFolder = gVar.FolderStore  '
+                    .FileName = strSaveName
+                    .FileSizeTotal = lngFileSize
+                    .FilePath = gVar.FolderNameStore & strSaveName  '本机保存位置的文件全路径
+                    gVar.FTIsOver = False
+                End With
+                If Not gfFolderRepair(gVar.FolderNameStore) Then GoTo LineEnd
+                If gWind.Winsock1.Item(1).State = 7 Then    '使用MDI窗体上的Winsock控件发送文件信息
+                    Call gsFileProgress(gWind.CommandBars1.StatusBar.FindPane(gID.StatusBarPaneProgress), _
+                                        gWind.CommandBars1.StatusBar.FindPane(gID.StatusBarPaneProgressText), _
+                                        ftZero, 0, lngFileSize, 0) '初始化进度条
+                    Debug.Print "Client：已发送需要[头像照片]的请求信息给服务端," & Now
+                    If gfSendInfo(gfFileInfoJoin(gWind.Winsock1.Item(1).Index, ftReceive), gWind.Winsock1.Item(1)) Then
+'                        Debug.Print "Client：已发送需要[头像照片]的请求信息给服务端," & Now
+                    End If
+                End If
+            Else
+                strMsg = "库中头像照片信息异常，请联系管理员！"
+                GoTo LineBreak
+            End If
+        End If
     End If
     
     GoTo LineEnd
     
 LineBreak:
-    rsUser.Close
+    If Not rsPhoto Is Nothing Then If rsPhoto.State = adStateOpen Then rsPhoto.Close
+    If Not rsUser Is Nothing Then If rsUser.State = adStateOpen Then rsUser.Close
     MsgBox strMsg, vbExclamation
 LineEnd:
-    If rsUser.State = adStateOpen Then rsUser.Close
+    If Not rsPhoto Is Nothing Then If rsPhoto.State = adStateOpen Then rsPhoto.Close
+    If Not rsUser Is Nothing Then If rsUser.State = adStateOpen Then rsUser.Close
     Set rsUser = Nothing
-    
+    Set rsPhoto = Nothing
 End Sub
 
 Private Sub TreeView2_NodeCheck(ByVal Node As MSComctlLib.Node)
