@@ -1972,7 +1972,7 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
                                             ftZero, 0, .FileSizeTotal, 0) '初始化进度条
                         gVar.FTIsOver = False   '设置传输结束标识为假
                         Call gsFormEnable(Me, False)    '禁止客户端再操作
-                        Debug.Print "Client:开始接受服务端发来的文件," & Now
+                        Debug.Print "Client: 开始接受服务端发来的文件," & Now
                         Rem 发送gVar.PTFileStart指令放在函数gfRestoreInfo中的【strType = gVar.PTFileReceive】判断中
                     End If
                 End If
@@ -1983,7 +1983,7 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
                 
             End If
             
-            Debug.Print "Client GetInfo:" & strGet, bytesTotal
+            Debug.Print "Client: GetInfo--" & strGet, bytesTotal
             '字符信息传输状态↑
         Else
             '文件传输状态↓
@@ -2007,7 +2007,7 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
                 gArr(Index) = gArr(0)
                 gVar.FTIsOver = True    '设置传输结束标识为真
                 Call gfSendInfo(gVar.PTFileEnd, Me.Winsock1.Item(Index)) '发送结束标志
-                Debug.Print "Client Received Over"
+                Debug.Print "Client: File Received Over," & Now
             End If
             
             '文件传输状态↑
@@ -2046,7 +2046,7 @@ Private Sub Winsock1_SendComplete(Index As Integer)
                 gArr(Index) = gArr(0)
                 Call gsFormEnable(Me, True) '解锁窗口限制
                 gVar.FTIsOver = True    '设置传输结束标识为真
-                Debug.Print "Client Send File Over"
+                Debug.Print "Client: Send File Over ," & Now
             End If
         End If
     End With

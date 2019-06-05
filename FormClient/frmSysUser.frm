@@ -177,6 +177,10 @@ Begin VB.Form frmSysUser
          TabIndex        =   11
          Top             =   0
          Width           =   7455
+         Begin VB.Timer Timer1 
+            Left            =   4800
+            Top             =   1920
+         End
          Begin VB.Frame Frame1 
             Height          =   405
             Index           =   3
@@ -607,6 +611,8 @@ Option Explicit
 
 Dim mlngID As Long
 Dim mstrNewPhotoName As String  '头像照片上传到服务器后的新文件名
+Dim mstrPhotoPath As String     '头像照片下载过来后的全路径
+Private Const mconTime As Long = 100 '计时器间隔
 Private Const mKeyDept As String = "k"
 Private Const mKeyUser As String = "u"
 Private Const mOtherKey As String = "kOther"
@@ -1231,8 +1237,8 @@ Private Sub Command2_Click()
                      "WHERE " & strWhrPho
             Set rsPhoto = gfBackRecordset(strSQL, adOpenStatic, adLockOptimistic)
             If rsPhoto.State = adStateClosed Then GoTo LineEnd
-            If rsPhoto.RecordCount > 0 Then
-                strMsg = "头像照片信息在库中已存在，请再次上传！"
+            If rsPhoto.RecordCount > 1 Then
+                strMsg = "头像照片信息在库中存在多个，请联系管理员！"
                 GoTo LineBrk
             Else
                 If blnNewPho Then rsPhoto.AddNew
@@ -1430,6 +1436,9 @@ Private Sub Form_Load()
     Me.Caption = gWind.CommandBars1.Actions(gID.SysAuthUser).Caption
     Frame1.Item(0).Caption = Me.Caption
     Command4.ToolTipText = "照片请通过【" & Command1.Caption & "】【" & Command2.Caption & "】按钮进行保存"
+    Timer1.Interval = mconTime
+    Timer1.Enabled = True
+    Me.Image1.Stretch = True
     
     For mlngID = Text1.LBound To Text1.UBound
         Text1.Item(mlngID).Text = ""
@@ -1485,6 +1494,35 @@ Private Sub Hsb_Scroll()
     Call Hsb_Change    '当滑动滚动条中的滑块时会同时更新对应内容，以下同。
 End Sub
 
+Private Sub Timer1_Timer()
+    '让下载完的照片显示出来
+    Const conTime As Long = 10 '最大等待秒数
+    Const conMax As Long = (1000 / mconTime) * conTime    'conTime时间内事件执行的次数
+    Static lngCount As Long '计次器
+    Static blnEnabled As Boolean '窗体Enabled状态
+    Static blnLoad As Boolean   '已加载状态
+    
+    blnEnabled = IIf(Me.Enabled, True, False)   '记录窗体的Enabled状态
+    If blnEnabled Then  '窗体恢复正常状态
+        lngCount = 0    '清零
+        If Not blnLoad Then '未加载照片则进行加载
+            If Len(mstrPhotoPath) > 0 Then
+                Me.Image1.Picture = LoadPicture(mstrPhotoPath)
+                blnLoad = True  '更改状态，以免重复加载
+                mstrPhotoPath = ""  '清空。应该是不用了的
+            End If
+        End If
+    Else    '窗体限制状态
+        blnLoad = False
+        lngCount = lngCount + 1 '累次
+        If lngCount > conMax Then
+            lngCount = 0  '清零
+            Rem Me.Enabled = True '自动解除限制
+        End If
+    End If
+    
+End Sub
+
 Private Sub Vsb_Change()
     ctlMove.Top = -Vsb.Value
 End Sub
@@ -1516,6 +1554,8 @@ Private Sub TreeView1_NodeClick(ByVal Node As MSComctlLib.Node)
     
     mstrNewPhotoName = ""   '先清空头像图片信息
     Image1.Picture = LoadPicture("") '先清空头像图片
+    mstrPhotoPath = ""  '清空下载照片路径信息
+    
     strUID = Right(Node.Key, lngLen - Len(mKeyUser))
     strSQL = "EXEC sp_FT_Sys_UserInfo '" & strUID & "'"
     Set rsUser = gfBackRecordset(strSQL)
@@ -1589,6 +1629,7 @@ Private Sub TreeView1_NodeClick(ByVal Node As MSComctlLib.Node)
                                         gWind.CommandBars1.StatusBar.FindPane(gID.StatusBarPaneProgressText), _
                                         ftZero, 0, lngFileSize, 0) '初始化进度条
                     If gfSendInfo(gfFileInfoJoin(gWind.Winsock1.Item(1).Index, ftReceive), gWind.Winsock1.Item(1)) Then
+                        mstrPhotoPath = gVar.FolderNameStore & strSaveName  '先暂时保存照片下载路径，等下载完了加载到Image控件中
                         Debug.Print "Client：已发送需要[头像照片]的请求信息给服务端," & Now
                     End If
                 End If
