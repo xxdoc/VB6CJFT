@@ -1919,6 +1919,7 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
             '字符信息传输状态↓
             
             Me.Winsock1.Item(Index).GetData strGet  '接收字符
+            Call gfRestoreInfo(strGet, Me.Winsock1.Item(Index)) '解析文件信息
             
             If InStr(strGet, gVar.PTClientConfirm) > 0 Then '收到要回复服务端确认连接的信息
                 Call gfSendInfo(gVar.PTClientIsTrue, Me.Winsock1.Item(Index))
@@ -1972,9 +1973,7 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
                         gVar.FTIsOver = False   '设置传输结束标识为假
                         Call gsFormEnable(Me, False)    '禁止客户端再操作
                         Debug.Print "Client:开始接受服务端发来的文件," & Now
-                        Call gfSendInfo(gVar.PTFileStart, Me.Winsock1.Item(Index))  '通知服务端可以发送过来了
-                        .FileTransmitState = True   '变更Winsock控件的接收状态
-                        DoEvents
+                        Rem 发送gVar.PTFileStart指令放在函数gfRestoreInfo中的【strType = gVar.PTFileReceive】判断中
                     End If
                 End If
                 

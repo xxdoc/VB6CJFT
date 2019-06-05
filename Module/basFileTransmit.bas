@@ -620,17 +620,18 @@ Public Function gfRestoreInfo(ByVal strInfo As String, sckGet As MSWinsockLib.Wi
                 
                 If strType <> Mid(strInfo, lngType) Then Exit Function
                 
-                If strType = gVar.PTFileSend Then   '此状态是相对于客户端的。客户端向服务器发送文件。
+                If strType = gVar.PTFileSend Then   '文件【接收端】向【发送端】传递开始发送指令。
                     .FileSizeTotal = CLng(strSize)
                     .FilePath = strFod & .FileName
                     Call gfSendInfo(gVar.PTFileStart, sckGet)
                     .FileTransmitState = True
                     
-                ElseIf strType = gVar.PTFileReceive Then    '客户端要求服务端传送指定文件给客户端。
+                ElseIf strType = gVar.PTFileReceive Then    '文件【发送端】接收到【接收端】传送来的需要指定文件的指令。
                     .FilePath = strFod & .FileName
                     If gfDirFile(.FilePath) Then
                         .FileSizeTotal = FileLen(.FilePath)
-                        Call gfSendInfo(gVar.PTFileExist & gVar.PTFileSize & .FileSizeTotal, sckGet)
+                        Call gfSendInfo(gVar.PTFileExist & gVar.PTFileSize & .FileSizeTotal, sckGet)    '通知接收端文件存在
+                        Call gfSendInfo(gfFileInfoJoin(sckGet.Index, ftSend), sckGet)   '再次重发给接收端需要的文件信息。权宜之计用法。
                     Else
                         gArr(sckGet.Index) = gArr(0)
                         Call gfSendInfo(gVar.PTFileNoExist, sckGet)
@@ -686,7 +687,7 @@ End Function
 Public Function gfSendInfo(ByVal strInfo As String, sckSend As MSWinsockLib.Winsock) As Boolean
     If sckSend.State = 7 Then
         sckSend.SendData strInfo
-        DoEvents
+        Rem DoEvents
         gfSendInfo = True
     End If
 End Function

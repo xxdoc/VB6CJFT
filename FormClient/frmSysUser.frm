@@ -1382,6 +1382,11 @@ Private Sub Command4_Click()
     Dim strPhoto As String, strCopy As String
     Dim lngFiveMB As Long
     
+    If Len(Text1.Item(0).Text) = 0 Then
+        MsgBox "请选择一个用户！", vbExclamation, "提示"
+        Exit Sub
+    End If
+    
     On Error GoTo LineErr
     
     Image1.Stretch = True
@@ -1406,8 +1411,9 @@ Private Sub Command4_Click()
             FileCopy strPhoto, strCopy  '将图片复制一份
             CommonDialog1.Tag = strCopy '路径保存备用
         End If
+        
+        Call mfSavePhoto(True)
     End If
-    Call mfSavePhoto(True)
     
 LineErr:
     If Err.Number > 0 Then  '有异常发生
@@ -1582,9 +1588,8 @@ Private Sub TreeView1_NodeClick(ByVal Node As MSComctlLib.Node)
                     Call gsFileProgress(gWind.CommandBars1.StatusBar.FindPane(gID.StatusBarPaneProgress), _
                                         gWind.CommandBars1.StatusBar.FindPane(gID.StatusBarPaneProgressText), _
                                         ftZero, 0, lngFileSize, 0) '初始化进度条
-                    Debug.Print "Client：已发送需要[头像照片]的请求信息给服务端," & Now
                     If gfSendInfo(gfFileInfoJoin(gWind.Winsock1.Item(1).Index, ftReceive), gWind.Winsock1.Item(1)) Then
-'                        Debug.Print "Client：已发送需要[头像照片]的请求信息给服务端," & Now
+                        Debug.Print "Client：已发送需要[头像照片]的请求信息给服务端," & Now
                     End If
                 End If
             Else
