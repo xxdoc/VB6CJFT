@@ -687,7 +687,7 @@ End Function
 Public Function gfSendInfo(ByVal strInfo As String, sckSend As MSWinsockLib.Winsock) As Boolean
     If sckSend.State = 7 Then
         sckSend.SendData strInfo
-        Rem DoEvents
+        DoEvents    '似乎必需用这个
         gfSendInfo = True
     End If
 End Function
