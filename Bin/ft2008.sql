@@ -205,6 +205,7 @@ CREATE TABLE [dbo].[tb_FT_Sys_User](
 	[UserState] [nvarchar](50) NULL,
 	[DeptID] [int] NULL,
 	[UserMemo] [nvarchar](500) NULL,
+	[FileID] [bigint] NULL,
  CONSTRAINT [PK_tb_FT_Sys_User] PRIMARY KEY CLUSTERED 
 (
 	[UserAutoID] ASC
@@ -404,6 +405,34 @@ GO
 CREATE TABLE [dbo].[tb_FT_Sys_UserRole](
 	[UserAutoID] [int] NOT NULL,
 	[RoleAutoID] [int] NOT NULL
+) ON [PRIMARY]
+
+GO
+
+
+--===========================================================================
+--¡ý¡ý¡ý´´½¨±í[tb_FT_Lib_File]
+--===========================================================================
+USE [db_FT]
+GO
+
+/****** Object:  Table [dbo].[tb_FT_Lib_File]    Script Date: 06/06/2019 08:39:43 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[tb_FT_Lib_File](
+	[FileID] [bigint] IDENTITY(1,1) NOT NULL,
+	[FileClassify] [nvarchar](20) NULL,
+	[FileExtension] [nvarchar](20) NULL,
+	[FileOldName] [nvarchar](50) NULL,
+	[FileSaveName] [nvarchar](50) NULL,
+	[FileSize] [bigint] NULL,
+	[FileSaveLocation] [nvarchar](50) NULL,
+	[FileUploadMen] [nvarchar](20) NULL,
+	[FileUploadTime] [datetime] NULL
 ) ON [PRIMARY]
 
 GO
