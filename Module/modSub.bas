@@ -268,7 +268,8 @@ Public Sub Main(Optional ByVal blnLoad As Boolean = True)
         
         .RegKeyParaWindowMinHide = "WindowMinHide"
         .RegKeyParaWindowCloseMin = "WindowCloseMin"
-        .RegKeyParaWindowStartMin = "WindowStartMin"
+        .RegKeyParaWindowStartMinS = "WindowStartMinS"
+        .RegKeyParaWindowStartMinC = "WindowStartMinC"
         .RegKeyParaAutoReStartServer = "AutoReStartServer"
         .RegKeyParaAutoStartupAtBoot = "AutoStartupAtBoot"
         .RegKeyParaLimitClientConnect = "LimitClientConnect"

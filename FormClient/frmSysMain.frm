@@ -1209,6 +1209,7 @@ Private Sub msLoadParameter(Optional ByVal blnLoad As Boolean = True)
     With gVar
         .ParaBlnWindowCloseMin = Val(GetSetting(.RegAppName, .RegSectionSettings, .RegKeyParaWindowCloseMin, 1))    '关闭时最小化
         .ParaBlnWindowMinHide = Val(GetSetting(.RegAppName, .RegSectionSettings, .RegKeyParaWindowMinHide, 1))  '最小化时隐藏
+        .ParaBlnWindowStartMinC = Val(GetSetting(.RegAppName, .RegSectionSettings, .RegKeyParaWindowStartMinC, 1)) '启动时最小化
         
         .TCPDefaultIP = Me.Winsock1.Item(1).LocalIP '本机IP地址
         .TCPSetIP = gfCheckIP(GetSetting(.RegAppName, .RegSectionTCP, .RegKeyTCPIP, .TCPDefaultIP)) '要连接的服务端IP地址
@@ -1858,6 +1859,9 @@ Private Sub Timer1_Timer(Index As Integer)
     If gVar.ClientLoginCheckOver And (Not gVar.ShowMainWindow) And gVar.TCPStateConnected Then
         mXtrStatusBar.FindPane(gID.StatusBarPaneUserInfo).Text = gVar.UserFullName '主窗体状态中显示用户全名
         Me.Show '显示主窗体
+        If gVar.ParaBlnWindowStartMinC Then
+            Me.WindowState = vbMinimized '启动时最小化
+        End If
         Call gfSendClientInfo(gVar.UserComputerName, gVar.UserLoginName, gVar.UserFullName, Me.Winsock1.Item(1)) '把用户登陆信息发送给服务端
         gVar.ShowMainWindow = True '显示主窗体标志。区别关闭程序时的主窗体状态
         Call msLoadUserAuthority(gVar.UserAutoID) '加载权限

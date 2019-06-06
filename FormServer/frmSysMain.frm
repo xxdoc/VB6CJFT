@@ -969,7 +969,7 @@ Private Sub msLoadParameter(Optional ByVal blnLoad As Boolean = True)
     With gVar
         .ParaBlnWindowCloseMin = Val(GetSetting(.RegAppName, .RegSectionSettings, .RegKeyParaWindowCloseMin, 1))    '关闭时最小化
         .ParaBlnWindowMinHide = Val(GetSetting(.RegAppName, .RegSectionSettings, .RegKeyParaWindowMinHide, 1))  '最小化时隐藏
-        .ParaBlnWindowStartMin = Val(GetSetting(.RegAppName, .RegSectionSettings, .RegKeyParaWindowStartMin, 1)) '启动时最小化
+        .ParaBlnWindowStartMinS = Val(GetSetting(.RegAppName, .RegSectionSettings, .RegKeyParaWindowStartMinS, 1)) '启动时最小化
         
         .TCPDefaultIP = Me.Winsock1.Item(0).LocalIP '本机IP地址
         .TCPSetIP = gVar.TCPDefaultIP   '服务端使用本机IP地址
@@ -1229,7 +1229,7 @@ Private Sub Form_Load()
     
     Call msGridSet(Grid1)  '表格设置
     Call gfNotifyIconAdd(Me)    '添加托盘图标
-    If gVar.ParaBlnWindowStartMin Then
+    If gVar.ParaBlnWindowStartMinS Then
         Me.WindowState = vbMinimized '启动时最小化
     End If
     

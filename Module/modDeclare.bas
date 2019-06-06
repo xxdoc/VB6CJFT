@@ -349,7 +349,8 @@ Public Type gtypeCommonVariant
     
     RegKeyParaWindowMinHide As String   '参数Key-窗口最小化隐藏
     RegKeyParaWindowCloseMin As String  '参数Key-窗口点击关闭时默认最小化
-    RegKeyParaWindowStartMin As String  '软件启动时自动最小化
+    RegKeyParaWindowStartMinS As String  '软件启动时自动最小化
+    RegKeyParaWindowStartMinC As String  '软件启动时自动最小化
     RegKeyParaAutoReStartServer As String   '服务端是否自动重启服务
     RegKeyParaAutoStartupAtBoot As String   '开机自动启动
     RegKeyParaLimitClientConnect As String  '限制客户端连接
@@ -423,7 +424,8 @@ Public Type gtypeCommonVariant
     ParaBlnWindowStateMaxServer As Boolean
     ParaBlnWindowMinHide As Boolean '主窗口最小化时是否隐藏
     ParaBlnWindowCloseMin As Boolean    '主窗口点击关闭按钮时最小化
-    ParaBlnWindowStartMin As Boolean    '窗口启动时自动最小化
+    ParaBlnWindowStartMinS As Boolean    '窗口启动时自动最小化
+    ParaBlnWindowStartMinC As Boolean    '窗口启动时自动最小化
     ParaBlnAutoReStartServer As Boolean '服务端程序断开服务时自动重新开启服务
     ParaBlnAutoStartupAtBoot As Boolean '开机自动启动
     ParaBlnLimitClientConnect As Boolean '限制客户端连接时间

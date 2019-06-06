@@ -88,7 +88,7 @@ Private Sub msLoadParameter(Optional ByVal blnLoad As Boolean = True)
         lngRow = 2
         .Cell(lngRow, 1).Text = gVar.ParaBlnWindowCloseMin   '关闭时最小化
         .Cell(lngRow, 5).Text = gVar.ParaBlnWindowMinHide    '最小化时隐藏
-        .Cell(lngRow + 1, 1).Text = gVar.ParaBlnWindowStartMin '启动时最小化
+        .Cell(lngRow + 1, 1).Text = gVar.ParaBlnWindowStartMinS '启动时最小化
         
         '服务端参数
         lngRow = lngRow + 4
@@ -128,7 +128,7 @@ Private Sub msSaveParameter(Optional ByVal blnSave As Boolean = True)
         lngRow = 2
         gVar.ParaBlnWindowCloseMin = .Cell(lngRow, 1).Text   '关闭时最小化
         gVar.ParaBlnWindowMinHide = .Cell(lngRow, 5).Text    '最小化时隐藏
-        gVar.ParaBlnWindowStartMin = .Cell(lngRow + 1, 1).Text  '启动时最小化
+        gVar.ParaBlnWindowStartMinS = .Cell(lngRow + 1, 1).Text  '启动时最小化
         
         '服务端参数
         lngRow = lngRow + 4
@@ -161,7 +161,7 @@ Private Sub msSaveParameter(Optional ByVal blnSave As Boolean = True)
         '窗口控制参数
         Call SaveSetting(.RegAppName, .RegSectionSettings, .RegKeyParaWindowCloseMin, IIf(.ParaBlnWindowCloseMin, 1, 0))    '关闭时最小化
         Call SaveSetting(.RegAppName, .RegSectionSettings, .RegKeyParaWindowMinHide, IIf(.ParaBlnWindowMinHide, 1, 0))  '最小化时隐藏
-        Call SaveSetting(.RegAppName, .RegSectionSettings, .RegKeyParaWindowStartMin, IIf(.ParaBlnWindowStartMin, 1, 0)) '启动时最小化
+        Call SaveSetting(.RegAppName, .RegSectionSettings, .RegKeyParaWindowStartMinS, IIf(.ParaBlnWindowStartMinS, 1, 0)) '启动时最小化
         
         '服务端参数
         Call SaveSetting(.RegAppName, .RegSectionTCP, .RegKeyTCPPort, .TCPSetPort)  '侦听端口

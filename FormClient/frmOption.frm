@@ -47,26 +47,36 @@ Option Explicit
 
 
 Private Sub msLoadParameter(Optional ByVal blnLoad As Boolean = True)
+    Dim lngRow As Long  '表格行号记录
     
     If Not blnLoad Then Exit Sub
     
     '从公共变量或注册表中加载配置信息
     With Me.Grid1
-        .Cell(2, 1).Text = gVar.ParaBlnWindowCloseMin   '关闭时最小化
-        .Cell(2, 5).Text = gVar.ParaBlnWindowMinHide    '最小化时隐藏
+        '窗口控制参数
+        lngRow = 2
+        .Cell(lngRow, 1).Text = gVar.ParaBlnWindowCloseMin   '关闭时最小化
+        .Cell(lngRow, 5).Text = gVar.ParaBlnWindowMinHide    '最小化时隐藏
+        .Cell(lngRow + 1, 1).Text = gVar.ParaBlnWindowStartMinC '启动时最小化
         
-        .Cell(5, 3).Text = gVar.TCPSetIP   '要连接服务端IP地址
-        .Cell(5, 7).Text = gVar.TCPSetPort  '要连接的服务器端口
+        '服务端参数
+        lngRow = lngRow + 4
+        .Cell(lngRow, 3).Text = gVar.TCPSetIP   '要连接服务端IP地址
+        .Cell(lngRow, 7).Text = gVar.TCPSetPort  '要连接的服务器端口
         
-        .Cell(8, 3).Text = gVar.ConSource   '服务器名称/IP
-        .Cell(8, 7).Text = gVar.ConDatabase '数据库名
-        .Cell(10, 3).Text = gVar.ConUserID  '登陆名
-        .Cell(10, 7).Text = String(Len(gVar.ConPassword), "*") '登陆密码*号显示
+        '数据库服务器参数
+        lngRow = lngRow + 3
+        .Cell(lngRow, 3).Text = gVar.ConSource   '服务器名称/IP
+        .Cell(lngRow, 7).Text = gVar.ConDatabase '数据库名
+        .Cell(lngRow + 2, 3).Text = gVar.ConUserID '登陆名
+        .Cell(lngRow + 2, 7).Text = String(Len(gVar.ConPassword), "*") '登陆密码*号显示
         
-        .Cell(13, 1).Text = gVar.ParaBlnAutoStartupAtBoot   '开机自动启动
-        .Cell(13, 5).Text = gVar.ParaBlnRememberUserList '记住用户名
-        .Cell(14, 1).Text = gVar.ParaBlnRememberUserPassword '记住密码
-        .Cell(14, 5).Text = gVar.ParaBlnUserAutoLogin '自动登陆
+        '客户端参数
+        lngRow = lngRow + 5
+        .Cell(lngRow, 1).Text = gVar.ParaBlnAutoStartupAtBoot   '开机自动启动
+        .Cell(lngRow, 5).Text = gVar.ParaBlnRememberUserList '记住用户名
+        .Cell(lngRow + 1, 1).Text = gVar.ParaBlnRememberUserPassword '记住密码
+        .Cell(lngRow + 1, 5).Text = gVar.ParaBlnUserAutoLogin '自动登陆
         
     End With
     
@@ -74,24 +84,35 @@ End Sub
 
 Private Sub msSaveParameter(Optional ByVal blnSave As Boolean = True)
     Dim tempVal
+    Dim lngRow As Long  '表格行号记录
     
     If Not blnSave Then Exit Sub
     
     '参数值更新至公共变量
     With Grid1
-        gVar.ParaBlnWindowCloseMin = .Cell(2, 1).Text   '关闭时最小化
-        gVar.ParaBlnWindowMinHide = .Cell(2, 5).Text    '最小化时隐藏
+        '窗口控制参数
+        lngRow = 2
+        gVar.ParaBlnWindowCloseMin = .Cell(lngRow, 1).Text   '关闭时最小化
+        gVar.ParaBlnWindowMinHide = .Cell(lngRow, 5).Text    '最小化时隐藏
+        gVar.ParaBlnWindowStartMinC = .Cell(lngRow + 1, 1).Text '启动时最小化
         
-        gVar.TCPSetIP = gfCheckIP(.Cell(5, 3).Text) '要连接的服务端IP地址
-        tempVal = Val(.Cell(5, 7).Text)                 '要连接的服务器端口
+        '服务端参数
+        lngRow = lngRow + 4
+        gVar.TCPSetIP = gfCheckIP(.Cell(lngRow, 3).Text) '要连接的服务端IP地址
+        tempVal = Val(.Cell(lngRow, 7).Text)                 '要连接的服务器端口
         gVar.TCPSetPort = IIf(tempVal < 10000, gVar.TCPDefaultPort, tempVal)
         
+        '数据库服务器参数
+        lngRow = lngRow + 3
         '数据库服务器参数只显示，不可修改
-                
-        gVar.ParaBlnAutoStartupAtBoot = .Cell(13, 1).Text    '开机自动启动
-        gVar.ParaBlnRememberUserList = .Cell(13, 5).Text    '记住用户名
-        gVar.ParaBlnRememberUserPassword = .Cell(14, 1).Text    '记住密码
-        gVar.ParaBlnUserAutoLogin = .Cell(14, 5).Text   '自动登陆
+        
+        
+        '客户端参数
+        lngRow = lngRow + 5
+        gVar.ParaBlnAutoStartupAtBoot = .Cell(lngRow, 1).Text    '开机自动启动
+        gVar.ParaBlnRememberUserList = .Cell(lngRow, 5).Text    '记住用户名
+        gVar.ParaBlnRememberUserPassword = .Cell(lngRow + 1, 1).Text  '记住密码
+        gVar.ParaBlnUserAutoLogin = .Cell(lngRow + 1, 5).Text '自动登陆
         If gVar.ParaBlnRememberUserPassword Then '同时勾选记住用户名
             gVar.ParaBlnRememberUserList = True
         End If
@@ -104,14 +125,19 @@ Private Sub msSaveParameter(Optional ByVal blnSave As Boolean = True)
     
     '参数值通过公用变量保存进注册表中
     With gVar
+        '窗口控制参数
         Call SaveSetting(.RegAppName, .RegSectionSettings, .RegKeyParaWindowCloseMin, IIf(.ParaBlnWindowCloseMin, 1, 0))    '关闭时最小化
         Call SaveSetting(.RegAppName, .RegSectionSettings, .RegKeyParaWindowMinHide, IIf(.ParaBlnWindowMinHide, 1, 0))  '最小化时隐藏
+        Call SaveSetting(.RegAppName, .RegSectionSettings, .RegKeyParaWindowStartMinC, IIf(.ParaBlnWindowStartMinC, 1, 0))  '启动时最小化
         
+        '服务端参数
         Call SaveSetting(.RegAppName, .RegSectionTCP, .RegKeyTCPPort, .TCPSetPort)  '要连接的服务器端口
         Call SaveSetting(.RegAppName, .RegSectionTCP, .RegKeyTCPIP, .TCPSetIP) '要连接的服务端IP地址
         
+        '数据库服务器参数
         '数据库连接信息只显示不处理
         
+        '客户端参数
         If .ParaBlnAutoStartupAtBoot Then   '注册表中添加 开机自动启动 启动项
             .ParaBlnAutoStartupAtBoot = gfStartUpSet(True, RegWrite)
         Else    '注册表中删除启动项
@@ -132,6 +158,7 @@ End Sub
 
 Private Sub Form_Load()
     Dim strFile As String
+    Dim K As Long, lngSum As Long
     
     Me.Icon = LoadPicture("")
     strFile = gVar.FolderNameBin & "OptionWindowClient.cel"
@@ -145,7 +172,7 @@ Private Sub Form_Load()
         
         .Appearance = Flat
         .Column(0).Width = 0
-        .RowHeight(0) = 0
+        .rowHeight(0) = 0
         .ExtendLastCol = True   '扩展最后一列
         .GridColor = vbWhite    '网格线的颜色
         .BorderColor = Me.BackColor '边框的颜色
@@ -154,7 +181,13 @@ Private Sub Form_Load()
         .DisplayFocusRect = False   '活动单元格是否显示一个虚框
         .SelectionMode = cellSelectionNone  '表格的选择模式
         
-        Call msLoadParameter(True)
+        Call msLoadParameter(True) '加载参数值
+        
+        For K = 0 To .Rows - 1  '计算表格的实际高度
+            lngSum = lngSum + .rowHeight(K) * 15    'FC此属性值单位为像素，转成VB的缇要*15.
+        Next
+        .Height = lngSum    '设置表格高度
+        Me.Height = .Top + lngSum + 220 '设置窗口高度
         
         .AutoRedraw = True
         .Refresh
@@ -162,24 +195,28 @@ Private Sub Form_Load()
 End Sub
 
 Private Sub Form_Resize()
+    On Error Resume Next
     Grid1.Move 120, 120, Me.ScaleWidth - 240, Me.ScaleHeight - 240
 End Sub
 
 Private Sub Grid1_CellChange(ByVal Row As Long, ByVal Col As Long)
+    Dim lngRow As Long, lngCol As Long
+    
     If Not Me.Visible Then Exit Sub
     
     '响应记住密码选择的设置：同时勾选记住用户名
-    If Row = 14 And Col = 1 Then
+    lngRow = 15 '记住密码参数的行号
+    If Row = lngRow And Col = 1 Then
         If Me.Grid1.Cell(Row, Col).Text Then
-            Me.Grid1.Cell(13, 5).Text = 1
+            Me.Grid1.Cell(lngRow - 1, 5).Text = 1
         End If
     End If
     
     '响应自动登陆选项的设置：同时勾选记住密码与用户名
-    If Row = 14 And Col = 5 Then
+    If Row = lngRow And Col = 5 Then
         If Me.Grid1.Cell(Row, Col).Text Then
-            Me.Grid1.Cell(13, 5).Text = 1
-            Me.Grid1.Cell(14, 1).Text = 1
+            Me.Grid1.Cell(lngRow - 1, 5).Text = 1
+            Me.Grid1.Cell(lngRow, 1).Text = 1
         End If
     End If
     
@@ -209,6 +246,6 @@ Private Sub Text1_KeyPress(KeyAscii As Integer)
 End Sub
 
 Private Sub Text1_LostFocus()
-    Grid1.Cell(10, 7).Text = String(Len(Text1.Text), "*")   '表格只显示等数量的*号
+    Grid1.Cell(11, 7).Text = String(Len(Text1.Text), "*")   '表格只显示等数量的*号
     Text1.Visible = False
 End Sub
