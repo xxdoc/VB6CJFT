@@ -466,6 +466,8 @@ Private Sub msAddAction(ByRef cbsBars As XtremeCommandBars.CommandBars)
         .Add gID.SysAuthFunc, "权限管理", "", "", "frmSysFunc"
         .Add gID.SysAuthLog, "日志管理", "", "", "frmSysLog"
         
+        .Add gID.SysFileManage, "文件管理", "", "", "frmSysFile"
+        
         .Add gID.SysLoginOut, "退出", "", "", ""
         .Add gID.SysLoginAgain, "重启", "", "", ""
         
@@ -704,13 +706,17 @@ Private Sub msAddMenu(ByRef cbsBars As XtremeCommandBars.CommandBars)
     Set cbsMenuMain = cbsMenuBar.Controls.Add(xtpControlPopup, gID.Sys, "")
     With cbsMenuMain.CommandBar.Controls
         .Add xtpControlButton, gID.SysAuthChangePassword, ""
+                        
+        Set cbsMenuCtrlTemp = .Add(xtpControlButton, gID.SysFileManage, "")
+        cbsMenuCtrlTemp.BeginGroup = True
+          
         Set cbsMenuCtrl = .Add(xtpControlButton, gID.SysAuthDepartment, "")
         cbsMenuCtrl.BeginGroup = True
         .Add xtpControlButton, gID.SysAuthRole, ""
         .Add xtpControlButton, gID.SysAuthUser, ""
         .Add xtpControlButton, gID.SysAuthFunc, ""
         .Add xtpControlButton, gID.SysAuthLog, ""
-                
+                      
         Set cbsMenuCtrlTemp = .Add(xtpControlButtonPopup, gID.SysExportMain, "导出")
         cbsMenuCtrlTemp.BeginGroup = True
         With cbsMenuCtrlTemp.CommandBar.Controls
@@ -849,6 +855,7 @@ Private Sub msAddTaskPanelItem(ByRef tskPanel As XtremeTaskPanel.TaskPanel)
         Set taskItem = .Add(gID.SysAuthChangePassword, cbsActions(gID.SysAuthChangePassword).Caption, xtpTaskItemTypeLink)
         taskItem.GetRect L, T, R, b '为了排列好看，每一级子菜单使用同样的缩进距离,主要是为了获取L值(左边距)
         lngLeftMargins = L
+        .Add gID.SysFileManage, cbsActions(gID.SysFileManage).Caption, xtpTaskItemTypeLink
         .Add gID.SysAuthDepartment, cbsActions(gID.SysAuthDepartment).Caption, xtpTaskItemTypeLink
         .Add gID.SysAuthRole, cbsActions(gID.SysAuthRole).Caption, xtpTaskItemTypeLink
         .Add gID.SysAuthUser, cbsActions(gID.SysAuthUser).Caption, xtpTaskItemTypeLink

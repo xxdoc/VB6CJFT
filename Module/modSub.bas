@@ -18,6 +18,7 @@ Public Sub Main(Optional ByVal blnLoad As Boolean = True)
         .SysAuthRole = 1106
         .SysAuthFunc = 1107
         .SysAuthLog = 1108
+        .SysFileManage = 1121
         
         .SysExportMain = 1200
         .SysExportToCSV = 1201
@@ -685,7 +686,7 @@ Public Sub gsGridToExcel(ByRef gridControl As Control, Optional ByVal TimeCol As
         .Range(.Cells(1, 1), .Cells(R, C)).HorizontalAlignment = -4108  'xlCenter= -4108(&HFFFFEFF4)   '居中显示
         .Range(.Cells(1, 1), .Cells(R, C)).Borders.Weight = 2   'xlThin=2  '单元格显示黑色线宽
         .Columns.EntireColumn.AutoFit   '自动列宽
-        .Rows(1).RowHeight = 23 '第一行行高
+        .Rows(1).rowHeight = 23 '第一行行高
     End With
     
     xlsOut.Visible = True   '显示Excel文档

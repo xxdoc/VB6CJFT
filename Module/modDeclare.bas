@@ -467,6 +467,8 @@ Public Type gtypeCommandBarID
     SysAuthRole As Long     '角色管理
     SysAuthFunc As Long     '功能管理
     
+    SysFileManage As Long   '文件管理
+    
     SysPrintMain As Long
     SysPrint As Long        '打印
     SysPrintPageSet As Long '打印页面设置

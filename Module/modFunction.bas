@@ -585,14 +585,14 @@ End Function
 Public Function gfIsTreeViewChild(ByRef nodeDad As MSComctlLib.Node, ByVal strKey As String) As Boolean
     '判断传入Key值是不是自己的子结点
     
-    Dim i As Long, C As Long
+    Dim I As Long, C As Long
     Dim nodeSon As MSComctlLib.Node
     
     C = nodeDad.Children
     If C = 0 Then Exit Function
 
-    For i = 1 To C
-        If i = 1 Then
+    For I = 1 To C
+        If I = 1 Then
             Set nodeSon = nodeDad.Child
         Else
             Set nodeSon = nodeSon.Next
@@ -619,14 +619,14 @@ Public Function gfStringCheck(ByVal strIn As String) As String
     '''敏感字符检测
     
     Dim arrStr As Variant
-    Dim i As Long
+    Dim I As Long
     
     arrStr = Array(";", "--", "'", "//", "/*", "*/", "select", "update", _
                    "delete", "insert", "alter", "drop", "create")
     strIn = LCase(strIn)
-    For i = LBound(arrStr) To UBound(arrStr)
-        If InStr(strIn, arrStr(i)) > 0 Then
-            gfStringCheck = arrStr(i)
+    For I = LBound(arrStr) To UBound(arrStr)
+        If InStr(strIn, arrStr(I)) > 0 Then
+            gfStringCheck = arrStr(I)
             Exit Function
         End If
     Next
