@@ -1,6 +1,6 @@
 VERSION 5.00
 Object = "{E08BA07E-6463-4EAB-8437-99F08000BAD9}#1.9#0"; "FlexCell.ocx"
-Object = "{F9043C88-F6F2-101A-A3C9-08002B2F49FB}#1.2#0"; "ComDlg32.OCX"
+Object = "{F9043C88-F6F2-101A-A3C9-08002B2F49FB}#1.2#0"; "COMDLG32.OCX"
 Begin VB.Form frmSysFile 
    Caption         =   "文件管理"
    ClientHeight    =   5250
@@ -133,7 +133,7 @@ Private Sub Command2_Click()
     '上传
     Const conLngSize As Long = 524288000 '500MB=500*1024*1024=524288000(B)
     Dim strFilePath As String, strFileName As String, strExtension As String
-    Dim strSaveName As String, strSaveLaction As String, strSQL As String
+    Dim strSaveName As String, strSaveLocation As String, strSQL As String
     Dim lngSize As Long, K As Long
     Dim rsFile As ADODB.Recordset
 
@@ -161,7 +161,7 @@ Private Sub Command2_Click()
     For K = 1 To 30
         strSaveName = strSaveName & gfBackOneChar(udUpperCase) '设置文件在服务端保存用的文件名，30个随便字母
     Next
-    strsavelocation = gVar.FolderStore  '设置文件在服务端的存储位置。注意不带路径
+    strSaveLocation = gVar.FolderStore  '设置文件在服务端的存储位置。注意不带路径
     
     
 End Sub
