@@ -339,6 +339,17 @@ LineErr:
     Set objWMIService = Nothing
 End Function
 
+Public Function gfBackFileName(Optional ByVal enumType As genumCharType = udUpperCase, Optional ByVal lngLen As Long = 30) As String
+    '返回lngLen个随机字符组成的文件名
+    Dim K As Long
+    Dim strName As String
+    
+    For K = 1 To lngLen
+        strName = strName & gfBackOneChar(enumType)
+    Next
+    gfBackFileName = strName
+End Function
+
 Public Function gfBackVersion(ByVal strFile As String) As String
     '返回文件的版本号
     Dim objFile As Scripting.FileSystemObject
@@ -646,6 +657,46 @@ Public Function gfRestoreInfo(ByVal strInfo As String, sckGet As MSWinsockLib.Wi
 
 End Function
 
+Public Function gfSaveFile(ByRef frmSave As Form) As String
+    '保存文件信息至数据库中
+    Dim rsFile As ADODB.Recordset
+    Dim strSQL As String, strFileID As String, strMsg As String
+    
+    strSQL = "SELECT FileID ,FileClassify ,FileExtension ,FileOldName ,FileSaveName ,FileSize ," & _
+             "FileSaveLocation ,FileUploadMen ,FileUploadTime FROM tb_FT_Lib_File   " & _
+             "WHERE FileSaveName ='" & gVar.FTUploadFileNameNew & "' AND FileSaveLocation ='" & gVar.FTUploadFileFolder & "' "
+    Set rsFile = gfBackRecordset(strSQL, adOpenStatic, adLockOptimistic)
+    If rsFile.State = adStateOpen Then
+        If rsFile.RecordCount > 0 Then
+            rsFile.Close
+            MsgBox "文件信息在库中已存在，请重新上传！", vbCritical, "警告"
+        Else
+            On Error GoTo LineErr
+            rsFile.AddNew
+            rsFile.Fields("FileClassify") = gVar.FTUploadFileClassify
+            rsFile.Fields("FileExtension") = gVar.FTUploadFileExtension
+            rsFile.Fields("FileOldName") = gVar.FTUploadFileNameOld
+            rsFile.Fields("FileSaveName") = gVar.FTUploadFileNameNew
+            rsFile.Fields("FileSize") = gVar.FTUploadFileSize
+            rsFile.Fields("FileSaveLocation") = gVar.FTUploadFileFolder
+            rsFile.Fields("FileUploadMen") = gVar.UserFullName
+            rsFile.Fields("FileUploadTime") = Now
+            rsFile.Update
+            strFileID = CStr(rsFile.Fields("FileID"))    '获取ID
+            rsFile.Close
+            strMsg = "上传文件【" & strFileID & "】【" & gVar.FTUploadFileNameNew & "】"
+            Call gsLogAdd(frmSave, udInsert, "tb_FT_Lib_File", strMsg)
+            gfSaveFile = strFileID  '将生成的文件ID值设置给函数的返回值
+        End If
+    End If
+LineErr:
+    If Not rsFile Is Nothing Then If rsFile.State = adStateOpen Then rsFile.Close
+    Set rsFile = Nothing
+    If Err.Number > 0 Then
+        Call gsAlarmAndLog("上传文件异常")
+    End If
+End Function
+
 Public Function gfSendClientInfo(ByVal strPC As String, ByVal strLogin As String, _
         ByVal FullName As String, ByRef sckInfo As MSWinsockLib.Winsock) As Boolean
     '发送客户端信息给服务端。服务端接收后显示的连接列表中
@@ -836,4 +887,25 @@ Public Sub gsFormEnable(frmCur As Form, Optional ByVal blnState As Boolean = Fal
     End With
 End Sub
 
+Public Sub gsLoadFileInfo(Optional ByVal arrIndex As Long = 1, Optional ByVal blnUpload As Boolean = True)
+    '加载上传或下载文件信息
+    
+    With gArr(arrIndex)
+        If blnUpload Then   '上传文件信息
+            .FilePath = gVar.FTUploadFilePath
+            .FileName = gVar.FTUploadFileNameNew
+            .FileFolder = gVar.FTUploadFileFolder
+            .FileSizeTotal = gVar.FTUploadFileSize
+            .FileTransmitNotOver = True     '传输未结束标识
+            gVar.FTUploadOrDownload = True  '上传状态
+        Else    '下载文件信息
+            .FilePath = gVar.FTDownloadFilePath
+            .FileName = gVar.FTDownloadFileNameNew
+            .FileFolder = gVar.FTDownloadFileFolder
+            .FileSizeTotal = gVar.FTDownloadFileSize
+            .FileTransmitNotOver = True
+            gVar.FTUploadOrDownload = False '下载状态
+        End If
+    End With
+End Sub
 

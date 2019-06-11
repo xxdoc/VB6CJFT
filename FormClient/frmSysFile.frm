@@ -1,6 +1,6 @@
 VERSION 5.00
 Object = "{E08BA07E-6463-4EAB-8437-99F08000BAD9}#1.9#0"; "FlexCell.ocx"
-Object = "{F9043C88-F6F2-101A-A3C9-08002B2F49FB}#1.2#0"; "COMDLG32.OCX"
+Object = "{F9043C88-F6F2-101A-A3C9-08002B2F49FB}#1.2#0"; "ComDlg32.OCX"
 Begin VB.Form frmSysFile 
    Caption         =   "文件管理"
    ClientHeight    =   5250
@@ -94,6 +94,7 @@ Private Sub msLoadFileList(Optional ByVal blnLD As Boolean = True)
                 If C < 20 Then .Rows = 21
                 While Not rsFile.EOF
                     K = K + 1
+                    Grid1.Cell(K, 0).Text = K
                     Grid1.Cell(K, 1).Text = rsFile.Fields("FileID") & ""
                     Grid1.Cell(K, 2).Text = rsFile.Fields("FileSaveName") & ""
                     Grid1.Cell(K, 3).Text = rsFile.Fields("FileSaveLocation") & ""
@@ -122,7 +123,7 @@ Private Sub Command1_Click()
     '浏览
     
     With CommonDialog1
-        .DialogTitle = "选择一个文件"
+        .DialogTitle = "选择一个要上传的文件"
         .Flags = cdlOFNFileMustExist
         .ShowOpen
         Text1.Text = .FileName
@@ -132,43 +133,52 @@ End Sub
 Private Sub Command2_Click()
     '上传
     Const conLngSize As Long = 524288000 '500MB=500*1024*1024=524288000(B)
-    Dim strFilePath As String, strFileName As String, strExtension As String
-    Dim strSaveName As String, strSaveLocation As String, strSQL As String
-    Dim lngSize As Long, K As Long
-    Dim rsFile As ADODB.Recordset
-
-    strFilePath = Trim(Text1.Text)
-    If Len(strFilePath) = 0 Then
+    Dim sckFile As MSWinsockLib.Winsock
+    
+    gVar.FTUploadFileNameNew = ""
+    gVar.FTUploadFilePath = Trim(Text1.Text)
+    If Len(gVar.FTUploadFilePath) = 0 Then
         MsgBox "请先选择一个文件！", vbExclamation, "提示"
         Exit Sub
     End If
     
     If MsgBox("确定要上传所选文件吗？", vbQuestion + vbOKCancel, "提醒") = vbCancel Then Exit Sub
     
-    If Not gfFileExist(strFilePath) Then
+    If Not gfFileExist(gVar.FTUploadFilePath) Then
         MsgBox "文件不存在，请确认或重新选择！", vbCritical, "警告"
         Exit Sub
     End If
     
-    lngSize = FileLen(strFilePath)  '获取文件大小，单位字节
-    If lngSize > conLngSize Then
+    gVar.FTUploadFileSize = FileLen(gVar.FTUploadFilePath)   '获取文件大小，单位字节
+    If gVar.FTUploadFileSize > conLngSize Then
         MsgBox "所选文件大小不能超过500MB！", vbCritical, "警告"
         Exit Sub
     End If
     
-    strFileName = Mid(strFilePath, InStrRev(strFilePath, "\") + 1)  '获取不带路径的文件名
-    strExtension = Mid(strFilePath, InStrRev(strFilePath, ".") + 1) '获取文件的扩展名
-    For K = 1 To 30
-        strSaveName = strSaveName & gfBackOneChar(udUpperCase) '设置文件在服务端保存用的文件名，30个随便字母
-    Next
-    strSaveLocation = gVar.FolderStore  '设置文件在服务端的存储位置。注意不带路径
+    gVar.FTUploadFileNameOld = Mid(gVar.FTUploadFilePath, InStrRev(gVar.FTUploadFilePath, "\") + 1)   '获取不带路径的文件名
+    gVar.FTUploadFileExtension = Mid(gVar.FTUploadFilePath, InStrRev(gVar.FTUploadFilePath, ".") + 1)  '获取文件的扩展名
+    gVar.FTUploadFileNameNew = gfBackFileName(udUpperCase, 30) '设置文件在服务端保存用的文件名，30个随机大写字母
+    gVar.FTUploadFileFolder = gVar.FolderStore   '设置文件在服务端的存储位置。注意不带路径
+    gVar.FTUploadFileClassify = "资料文件"
     
-    
+    Set sckFile = gWind.Winsock1.Item(1)
+    Call gsLoadFileInfo(sckFile.Index, True)      '设置文件传输信息
+    If sckFile.State = 7 Then    '与服务器处于连接状态
+        If gfSendInfo(gfFileInfoJoin(sckFile.Index, ftSend), sckFile) Then  '给服务器发送文件信息
+            Debug.Print "Client: 上传文件[" & gVar.FTUploadFileNameNew & "]的信息发送OK," & Now
+            Timer1.Enabled = True
+        End If
+    Else
+        MsgBox "与服务器的连接被断开，无法上传！", vbCritical, "警告"
+    End If
+    Set sckFile = Nothing
 End Sub
 
 Private Sub Form_Load()
     '窗口加载，表格设置
     
+    Timer1.Interval = 100   '100ms
+    Timer1.Enabled = False
     Text1.Text = ""
     Text1.Locked = True
     Text1.Font.Size = 11
@@ -197,7 +207,7 @@ Private Sub Form_Load()
         .Column(5).Width = 100
         .Column(6).Width = 50
         .Column(7).Width = 70
-        .Column(8).Width = 50
+        .Column(8).Width = 70
         .Column(9).Width = 120
         .Column(10).Width = 50
         .ExtendLastCol = True
@@ -249,10 +259,67 @@ End Sub
 
 Private Sub Grid1_HyperLinkClick(ByVal Row As Long, ByVal Col As Long, URL As String, Changed As Boolean)
     '查看文件
+    Dim sckFile As MSWinsockLib.Winsock
     
     URL = ""
     Changed = True
+    gVar.FTDownloadFilePath = ""
     If Row > 0 And Col = 10 Then
-        Debug.Print Grid1.Cell(Row, 11).Text, Grid1.Cell(Row, 4).Text
+        Rem Debug.Print Grid1.Cell(Row, 11).Text, Grid1.Cell(Row, 4).Text
+        gVar.FTDownloadFilePath = Trim(Grid1.Cell(Row, 4).Text)
+        If gfFileExist(gVar.FTDownloadFilePath) Then    '文件存在
+            If FileLen(gVar.FTDownloadFilePath) = Grid1.Cell(Row, 7).Text Then '大小相等
+                Call gfFileOpen(gVar.FTDownloadFilePath)    '直接打开文件该文件，不下载了
+                Exit Sub    '退出过程
+            End If
+        End If
+        
+        '下载文件
+        gVar.FTDownloadFileClassify = Trim(Grid1.Cell(Row, 5).Text)
+        gVar.FTDownloadFileExtension = Trim(Grid1.Cell(Row, 6).Text)
+        gVar.FTDownloadFileFolder = Trim(Grid1.Cell(Row, 3).Text)
+        gVar.FTDownloadFileNameNew = Trim(Grid1.Cell(Row, 2).Text)
+        gVar.FTDownloadFileNameOld = Trim(Grid1.Cell(Row, 11).Text)
+        gVar.FTDownloadFileSize = Trim(Grid1.Cell(Row, 7).Text)
+        gVar.FTDownloadFilePath = gVar.AppPath & gVar.FTDownloadFileFolder & "\" & gVar.FTDownloadFileNameNew
+        Set sckFile = gWind.Winsock1.Item(1)
+        Call gsLoadFileInfo(sckFile.Index, False) '加载文件信息
+        If sckFile.State = 7 Then
+            If gfSendInfo(gfFileInfoJoin(sckFile.Index, ftReceive), sckFile) Then
+                Debug.Print "Client：要下载的文件[" & Grid1.Cell(Row, 2).Text & "]的信息已发，" & Now
+                Timer1.Enabled = True
+            End If
+        Else
+            MsgBox "与服务器的连接被断开，无法下载文件！", vbCritical, "警告"
+        End If
     End If
+    Set sckFile = Nothing
+End Sub
+
+Private Sub Timer1_Timer()
+    '判断上传或下载是否完成
+    Dim strNewName As String
+    
+    If Not gArr(1).FileTransmitNotOver Then '传输结束
+        If Not Me.Enabled Then Exit Sub     '窗口未解禁不动作
+        If Not gArr(1).FileTransmitError Then   '正常传输完成，没有异常
+            If gVar.FTUploadOrDownload Then     '上传结束处理
+                If Len(gfSaveFile(Me)) > 0 Then '成功保存文件信息至数据库
+                    Call msLoadFileList(True)   '刷新表格
+                End If
+            Else    '下载结束处理
+                If gfFileExist(gVar.FTDownloadFilePath) Then
+                    Rem strNewName = gVar.FTDownloadFilePath & "." & gVar.FTDownloadFileExtension   '把扩展名加上
+                    strNewName = Left(gVar.FTDownloadFilePath, InStrRev(gVar.FTDownloadFilePath, "\")) & gVar.FTDownloadFileNameOld
+                    If gfFileRename(gVar.FTDownloadFilePath, strNewName) Then
+                        gVar.FTDownloadFilePath = strNewName
+                        Call gfFileOpen(gVar.FTDownloadFilePath)
+                        Grid1.Cell(Grid1.ActiveCell.Row, 4).Text = gVar.FTDownloadFilePath
+                    End If
+                End If
+            End If
+        End If
+        Timer1.Enabled = False  '停止判断
+    End If
+    
 End Sub

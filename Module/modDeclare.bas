@@ -437,6 +437,23 @@ Public Type gtypeCommonVariant
     
     ParaBackupStore As String   '备份路径
     
+    FTUploadOrDownload As Boolean   '上传(True)还是下载(False)状态
+    FTUploadFilePath As String      '上传文件的各项信息
+    FTUploadFileNameOld As String
+    FTUploadFileNameNew As String
+    FTUploadFileSize As Long
+    FTUploadFileFolder As String
+    FTUploadFileClassify As String
+    FTUploadFileExtension As String
+    
+    FTDownloadFilePath As String      '下载文件的各项信息
+    FTDownloadFileNameOld As String
+    FTDownloadFileNameNew As String
+    FTDownloadFileSize As Long
+    FTDownloadFileFolder As String
+    FTDownloadFileClassify As String
+    FTDownloadFileExtension As String
+    
 End Type
 
 Public Type gtypeFileTransmitVariant    '自定义文件传输变量
@@ -448,6 +465,11 @@ Public Type gtypeFileTransmitVariant    '自定义文件传输变量
     FileSizeTotal As Long       '文件总大小
     FileSizeCompleted As Long   '文件已传输大小
     FileTransmitState As Boolean    '是否在传输文件
+    FileClassify As String      '传送文件的存放类别
+    FileOldName As String       '原文件名
+    FileExtension As String     '原文件名的扩展名
+    FileTransmitNotOver As Boolean  '文件传输结束标识
+    FileTransmitError As Boolean    '传输是否异常结束
 End Type
 
 Public gVar As gtypeCommonVariant

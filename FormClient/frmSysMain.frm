@@ -2036,6 +2036,7 @@ Private Sub Winsock1_Error(Index As Integer, ByVal Number As Integer, Descriptio
             Close
             gArr(Index) = gArr(0)
             gVar.FTIsOver = False '设置传输结束标识为假
+            gArr(Index).FileTransmitError = True    '异常结束
             Call gsFormEnable(Me, True)
         End If
         Call gsAlarmAndLogEx("与服务器连接发生异常！", "连接警报", True, vbCritical)
