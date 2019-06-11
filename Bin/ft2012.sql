@@ -212,6 +212,7 @@ CREATE TABLE [dbo].[tb_FT_Sys_User](
 	[UserState] [nvarchar](50) NULL,
 	[DeptID] [int] NULL,
 	[UserMemo] [nvarchar](500) NULL,
+	[FileID] [bigint] NULL,
  CONSTRAINT [PK_tb_FT_Sys_User] PRIMARY KEY CLUSTERED 
 (
 	[UserAutoID] ASC
