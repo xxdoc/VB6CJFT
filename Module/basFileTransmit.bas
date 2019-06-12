@@ -109,12 +109,12 @@ Public Function EncryptString(ByVal str As String, password As String) As String
     Dim byt() As Byte
     Dim HASHALGORITHM As HASHALGORITHM
     Dim ENCALGORITHM As ENCALGORITHM
-On Error GoTo LineErr
+On Error GoTo LineERR
     byt = str
     HASHALGORITHM = MD5
     ENCALGORITHM = RC4
     EncryptString = BytesToHex(Encrypt(byt, password, HASHALGORITHM, ENCALGORITHM))
-LineErr:
+LineERR:
     If Err.Number <> 0 Then
         Call gsAlarmAndLog("加密异常", False)
     End If
@@ -176,12 +176,12 @@ Public Function DecryptString(ByVal str As String, password As String) As String
     Dim byt() As Byte
     Dim HASHALGORITHM As HASHALGORITHM
     Dim ENCALGORITHM As ENCALGORITHM
-On Error GoTo LineErr
+On Error GoTo LineERR
     byt = HexToBytes(str)
     HASHALGORITHM = MD5
     ENCALGORITHM = RC4
     DecryptString = Decrypt(byt, password, HASHALGORITHM, ENCALGORITHM)
-LineErr:
+LineERR:
     If Err.Number <> 0 Then
         Call gsAlarmAndLog("解密异常", False)
     End If
@@ -325,7 +325,7 @@ Public Function gfAppExist(ByVal strName As String) As Boolean
     Dim colProcessList As Object
     Dim objProcess As Object
     
-    On Error GoTo LineErr
+    On Error GoTo LineERR
     
     Set objWMIService = GetObject("winmgmts:\\.\root\cimv2")
     Set colProcessList = objWMIService.ExecQuery("select * from Win32_Process where Name='" & strName & "' ")
@@ -333,7 +333,7 @@ Public Function gfAppExist(ByVal strName As String) As Boolean
         gfAppExist = True   '存在该进程名时
     Next
     
-LineErr:
+LineERR:
     Set objProcess = Nothing
     Set colProcessList = Nothing
     Set objWMIService = Nothing
@@ -389,7 +389,7 @@ Public Function gfCloseApp(ByVal strName As String) As Boolean
     Dim colProcessList As Object
     Dim objProcess As Object
     
-    On Error GoTo LineErr
+    On Error GoTo LineERR
     
 ''    winHwnd = FindWindow(vbNullString, strName) '查找窗口，strName内容即任务栏上看到的窗口标题
 ''    If winHwnd <> 0 Then    '不为0表示找到窗口
@@ -405,7 +405,7 @@ Public Function gfCloseApp(ByVal strName As String) As Boolean
     
     gfCloseApp = True   '全部关闭成功或不存在该进程名时
     
-LineErr:
+LineERR:
     Set objWMIService = Nothing
     Set colProcessList = Nothing
     Set objProcess = Nothing
@@ -418,7 +418,7 @@ Public Function gfDirFile(ByVal strFile As String) As Boolean
     strFile = Trim(strFile)
     If Len(strFile) = 0 Then Exit Function
     
-    On Error GoTo LineErr
+    On Error GoTo LineERR
     
     strDir = Dir(strFile, vbHidden + vbReadOnly + vbSystem)
     If Len(strDir) > 0 Then
@@ -427,7 +427,7 @@ Public Function gfDirFile(ByVal strFile As String) As Boolean
     End If
     
     Exit Function
-LineErr:
+LineERR:
     Debug.Print "Error:gfDirFile--" & Err.Number & "  " & Err.Description & ";" & strFile
     Call gsAlarmAndLog("文件路径识别异常", False)
 End Function
@@ -438,7 +438,7 @@ Public Function gfDirFolder(ByVal strFolder As String) As Boolean
     strFolder = Trim(strFolder)
     If Len(strFolder) = 0 Then Exit Function
     
-    On Error GoTo LineErr
+    On Error GoTo LineERR
     
     strDir = Dir(strFolder, vbHidden + vbReadOnly + vbSystem + vbDirectory)
     If Len(strDir) = 0 Then
@@ -449,7 +449,7 @@ Public Function gfDirFolder(ByVal strFolder As String) As Boolean
     gfDirFolder = True
     
     Exit Function
-LineErr:
+LineERR:
     Debug.Print "Error:gfDirFolder--" & Err.Number & "  " & Err.Description & ";" & strFolder
     Call gsAlarmAndLog("文件夹路径识别异常", False)
 End Function
@@ -476,6 +476,19 @@ Public Function gfFileInfoJoin(ByVal intIndex As Integer, Optional ByVal enmType
         gfFileInfoJoin = gVar.PTFileFolder & .FileFolder & gVar.PTFileName & .FileName & gVar.PTFileSize & .FileSizeTotal & strType
     End With
     
+End Function
+
+Public Function gfLoadPicture(ByRef ImageLoad As VB.Image, ByVal strPath As String) As Boolean
+    '加载图片
+    
+    On Error GoTo LineERR
+    
+    ImageLoad.Picture = LoadPicture(strPath)
+    gfLoadPicture = True
+    
+    Exit Function
+LineERR:
+    Call gsAlarmAndLog("加载图片异常")
 End Function
 
 Public Function gfNotifyIconAdd(ByRef frmCur As Form) As Boolean
@@ -670,7 +683,7 @@ Public Function gfSaveFile(ByRef frmSave As Form) As String
             rsFile.Close
             MsgBox "文件信息在库中已存在，请重新上传！", vbCritical, "警告"
         Else
-            On Error GoTo LineErr
+            On Error GoTo LineERR
             rsFile.AddNew
             rsFile.Fields("FileClassify") = gVar.FTUploadFileClassify
             rsFile.Fields("FileExtension") = gVar.FTUploadFileExtension
@@ -688,7 +701,7 @@ Public Function gfSaveFile(ByRef frmSave As Form) As String
             gfSaveFile = strFileID  '将生成的文件ID值设置给函数的返回值
         End If
     End If
-LineErr:
+LineERR:
     If Not rsFile Is Nothing Then If rsFile.State = adStateOpen Then rsFile.Close
     Set rsFile = Nothing
     If Err.Number > 0 Then
@@ -891,12 +904,12 @@ Public Sub gsLoadFileInfo(Optional ByVal arrIndex As Long = 1, Optional ByVal bl
     
     With gArr(arrIndex)
         If blnUpload Then   '上传文件信息
-            .FilePath = gVar.FTUploadFilePath
-            .FileName = gVar.FTUploadFileNameNew
-            .FileFolder = gVar.FTUploadFileFolder
-            .FileSizeTotal = gVar.FTUploadFileSize
-            .FileTransmitNotOver = True     '传输未结束标识
-            gVar.FTUploadOrDownload = True  '上传状态
+            .FilePath = gVar.FTUploadFilePath       '【发送端】欲发送的文件路径
+            .FileName = gVar.FTUploadFileNameNew    '【发送端】发送过去的文件在【接收端】保存的文件名
+            .FileFolder = gVar.FTUploadFileFolder   '【发送端】发送过去的文件在【接收端】保存的文件夹名称
+            .FileSizeTotal = gVar.FTUploadFileSize  '【发送端】欲发送的文件大小或【接收端】接收的文件大小
+            .FileTransmitNotOver = True     '【发送端】传输未结束标识
+            gVar.FTUploadOrDownload = True  '【发送端】上传状态
         Else    '下载文件信息
             .FilePath = gVar.FTDownloadFilePath
             .FileName = gVar.FTDownloadFileNameNew

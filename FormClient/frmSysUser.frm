@@ -609,10 +609,7 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Option Explicit
 
-Dim mlngID As Long
-Dim mstrNewPhotoName As String  '头像照片上传到服务器后的新文件名
-Dim mstrPhotoPath As String     '头像照片下载过来后的全路径
-Private Const mconTime As Long = 100 '计时器间隔
+Dim mlngID As Long  '循环变量
 Private Const mKeyDept As String = "k"
 Private Const mKeyUser As String = "u"
 Private Const mOtherKey As String = "kOther"
@@ -623,61 +620,57 @@ Private Const mOtherTextRole As String = "其他角色"
 Private Const mTwoBar As String = "--"
 
 
-Private Function mfSavePhoto(Optional ByVal blnNew As Boolean = True) As Boolean
-    '上传个人头像照片至服务器。成功返回新文件名
-    Dim strPath As String, strOldName As String, strNewName As String, strExtension As String
-    Dim strSaveFolder As String, strClassify As String, strSQL As String
-    Dim lngFileLen As Long, K As Long
+Private Function mfCheckPhoto(ByVal strPhoPath As String) As Boolean
+    '检查图片是否正常
     
-    strPath = Trim(CommonDialog1.Tag) '获取App目录下的文件路径
-    If Not gfFileExist(strPath) Then    '不存在则使用原文件路径
-        strPath = Trim(CommonDialog1.FileName) '原路径文件
-        If Not gfFileExist(strPath) Then    '原文件也不存在了
-            MsgBox "头像照片的原文件已丢失，不进行保存！", vbCritical, "照片警报"
-            Exit Function
-        End If
+    gVar.FTUploadFilePath = Trim(strPhoPath)    '获取照片路径
+    If Len(gVar.FTUploadFilePath) = 0 Then Exit Function
+    
+    If Not gfFileExist(gVar.FTUploadFilePath) Then    '原文件不存在
+        MsgBox "头像照片的原文件已丢失，不进行保存！", vbCritical, "照片警报"
+        Exit Function
     End If
     
-    strOldName = Mid(strPath, InStrRev(strPath, "\") + 1)   '获取旧文件名
-    If Len(strOldName) > 50 Then
+    gVar.FTUploadFileNameOld = Mid(gVar.FTUploadFilePath, InStrRev(gVar.FTUploadFilePath, "\") + 1)    '获取旧文件名
+    If Len(gVar.FTUploadFileNameOld) > 50 Then
         MsgBox "照片文件名不能超过50个字符 ，请重命名！", vbExclamation, "旧文件名警告"
         Exit Function
     End If
-    strExtension = Mid(strOldName, InStrRev(strOldName, ".") + 1)   '获取旧文件的扩展名
-    If Len(strExtension) > 20 Then
+    
+    gVar.FTUploadFileExtension = Mid(gVar.FTUploadFileNameOld, InStrRev(gVar.FTUploadFileNameOld, ".") + 1)      '获取旧文件的扩展名
+    If Len(gVar.FTUploadFileExtension) > 20 Then
         MsgBox "照片文件的扩展名不能超过20个字符 ，请重命名！", vbExclamation, "扩展名警告"
         Exit Function
     End If
-    lngFileLen = FileLen(strOldName)    '获取文件大小
-    If lngFileLen > 5242880 Then
+    
+    gVar.FTUploadFileSize = FileLen(gVar.FTUploadFilePath)     '获取文件大小
+    If gVar.FTUploadFileSize > 5242880 Then
         MsgBox "照片大小不能超过5MB！", vbExclamation, "文件大小警告"
         Exit Function
     End If
-    For K = 1 To 30
-        strNewName = strNewName & gfBackOneChar(udUpperCase)    '获取新文件名（30个随机大写字母）
-    Next
-    strNewName = strNewName & "." & strExtension    '新文件名加上扩展名
-    strSaveFolder = gVar.FolderStore    '服务端存储位置。注意不含路径，仅文件夹名称
-    strClassify = "头像照片"            '文件存储类别
     
-    With gArr(gWind.Winsock1.Item(1).Index)
-        .FilePath = strPath         '本机欲发送的文件路径
-        .FileSizeTotal = lngFileLen '本机欲发送的文件大小或服务端接收的文件大小
-        .FileFolder = strSaveFolder '本机发送过去的文件在服务端保存的文件夹名称
-        .FileName = strNewName      '本机发送过去的文件在服务端保存的文件名
-        gVar.FTIsOver = False       '文件传输结束标志清空
-    End With
-    If gWind.Winsock1.Item(1).State = 7 Then    '使用MDI窗体上的Winsock控件发送文件信息
-        If gfSendInfo(gfFileInfoJoin(gWind.Winsock1.Item(1).Index, ftSend), gWind.Winsock1.Item(1)) Then
-            Call gsFileProgress(gWind.CommandBars1.StatusBar.FindPane(gID.StatusBarPaneProgress), _
-                                gWind.CommandBars1.StatusBar.FindPane(gID.StatusBarPaneProgressText), _
-                                ftZero, 0, lngFileLen, 0) '初始化进度条
-            Debug.Print "Client：已发送[头像照片]的文件信息给服务端," & Now
-            mfSavePhoto = True  '函数返回真值,无意义
-            mstrNewPhotoName = strNewName   '设置公共变量内容
+    gVar.FTUploadFileNameNew = gfBackFileName(udUpperCase, 30)   '获取新文件名（30个随机大写字母）
+    gVar.FTUploadFileFolder = gVar.FolderStore  '服务端存储位置。注意不含路径，仅文件夹名称
+    gVar.FTUploadFileClassify = "个人头像"      '文件存储类别
+    
+    mfCheckPhoto = True '返回真值
+End Function
+
+Private Function mfSavePhoto(Optional ByVal blnPho As Boolean) As Boolean
+    '上传个人头像照片文件至服务器
+    Dim sckPho As MSWinsockLib.Winsock
+    
+    Set sckPho = gWind.Winsock1.Item(1)
+    If gfFileExist(gVar.FTUploadFilePath) Then
+        Call gsLoadFileInfo(sckPho.Index, True) '设置文件传输数组信息
+        If gWind.Winsock1.Item(1).State = 7 Then    '使用MDI窗体上的Winsock控件发送文件信息
+            If gfSendInfo(gfFileInfoJoin(gWind.Winsock1.Item(1).Index, ftSend), gWind.Winsock1.Item(1)) Then
+                Debug.Print "Client：已发送[头像照片]的文件信息给服务端," & Now
+                Timer1.Enabled = True
+            End If
         End If
     End If
-    
+    Set sckPho = Nothing
 End Function
 
 Private Sub msLoadDept(ByRef tvwDept As MSComctlLib.TreeView)
@@ -929,9 +922,7 @@ Private Sub Command1_Click()
     
     Dim strLoginName As String, strPWD As String, strFullName As String
     Dim strSex As String, strMemo As String, strState As String
-    Dim strDept As Variant, strPhotoID As String
-    Dim strOldName As String, strExtension As String, strClassify As String, strFolder As String
-    Dim lngFileSize As Long
+    Dim strDept As Variant, strPho As String, strPhotoID As String
     Dim strSQL As String, strMsg As String
     Dim rsUser As ADODB.Recordset, rsPhoto As ADODB.Recordset
     
@@ -1009,9 +1000,14 @@ Private Sub Command1_Click()
     
     If Len(strDept) = 0 Then strDept = Null
     
+    strPho = Trim(CommonDialog1.FileName)
+    If Len(strPho) > 0 Then
+        If Not mfCheckPhoto(strPho) Then Exit Sub
+    End If
+    
     If MsgBox("是否添加用户【" & strLoginName & "】【" & strFullName & "】？", vbQuestion + vbYesNo) = vbNo Then Exit Sub
     
-    On Error GoTo LineErr
+    On Error GoTo LineERR
     
     strSQL = "SELECT UserAutoID ,UserLoginName ,UserPassword ," & _
              "UserFullName ,UserSex ,UserState ,DeptID ,UserMemo ,FileID " & _
@@ -1024,15 +1020,10 @@ Private Sub Command1_Click()
         GoTo LineBrk
     Else
         '先获取头像信息ID
-        If Len(mstrNewPhotoName) > 0 Then   '如果有上传图像照片，则进行保存(获取图片ID)
-            strClassify = "个人头像"
-            strExtension = Mid(mstrNewPhotoName, InStrRev(mstrNewPhotoName, ".") + 1)
-            strOldName = Mid(CommonDialog1.Tag, InStrRev(CommonDialog1.Tag, "\") + 1)
-            lngFileSize = FileLen(CommonDialog1.Tag)
-            strFolder = gVar.FolderStore
+        If mfCheckPhoto(strPho) Then   '如果有上传图像照片，则进行保存(获取图片ID)
             strSQL = "SELECT FileID ,FileClassify ,FileExtension ,FileOldName ,FileSaveName ,FileSize ," & _
                      "FileSaveLocation ,FileUploadMen ,FileUploadTime FROM tb_FT_Lib_File   " & _
-                     "WHERE FileSaveName ='" & mstrNewPhotoName & "' AND FileSaveLocation ='" & strFolder & "' "
+                     "WHERE FileSaveName ='" & gVar.FTUploadFileNameNew & "' AND FileSaveLocation ='" & gVar.FTUploadFileFolder & "' "
             Set rsPhoto = gfBackRecordset(strSQL, adOpenStatic, adLockOptimistic)
             If rsPhoto.State = adStateClosed Then GoTo LineEnd
             If rsPhoto.RecordCount > 0 Then
@@ -1040,19 +1031,20 @@ Private Sub Command1_Click()
                 GoTo LineBrk
             Else
                 rsPhoto.AddNew
-                rsPhoto.Fields("FileClassify") = strClassify
-                rsPhoto.Fields("FileExtension") = strExtension
-                rsPhoto.Fields("FileOldName") = strOldName
-                rsPhoto.Fields("FileSaveName") = mstrNewPhotoName
-                rsPhoto.Fields("FileSize") = lngFileSize
-                rsPhoto.Fields("FileSaveLocation") = strFolder
+                rsPhoto.Fields("FileClassify") = gVar.FTUploadFileClassify
+                rsPhoto.Fields("FileExtension") = gVar.FTUploadFileExtension
+                rsPhoto.Fields("FileOldName") = gVar.FTUploadFileNameOld
+                rsPhoto.Fields("FileSaveName") = gVar.FTUploadFileNameNew
+                rsPhoto.Fields("FileSize") = gVar.FTUploadFileSize
+                rsPhoto.Fields("FileSaveLocation") = gVar.FTUploadFileFolder
                 rsPhoto.Fields("FileUploadMen") = gVar.UserFullName
                 rsPhoto.Fields("FileUploadTime") = Now
                 rsPhoto.Update
                 strPhotoID = rsPhoto.Fields("FileID")    '获取ID
                 rsPhoto.Close
-                strMsg = "为用户【" & strLoginName & "】【" & strFullName & "】插入头像照片[" & strPhotoID & "][" & mstrNewPhotoName & "]"
+                strMsg = "为用户【" & strLoginName & "】【" & strFullName & "】插入头像照片[" & strPhotoID & "][" & gVar.FTUploadFileNameNew & "]"
                 Call gsLogAdd(Me, udInsert, "tb_FT_Lib_File", strMsg)
+                Call mfSavePhoto(True)  '上传图片
             End If
         End If
         
@@ -1084,7 +1076,7 @@ LineBrk:
     If Not rsUser Is Nothing Then If rsUser.State = adStateOpen Then rsUser.Close
     MsgBox strMsg, vbExclamation
     GoTo LineEnd
-LineErr:
+LineERR:
     Call gsAlarmAndLog("添加用户异常")
 LineEnd:
     If Not rsPhoto Is Nothing Then If rsPhoto.State = adStateOpen Then rsPhoto.Close
@@ -1100,16 +1092,15 @@ Private Sub Command2_Click()
     Dim strFullName As String, strSex As String, strDept As String, strMemo As String
     Dim blnLoginName As Boolean, blnPwd As Boolean, blnFullName As Boolean, blnPhoto As Boolean, blnNewPho As Boolean
     Dim blnSex As Boolean, blnDept As Boolean, blnMemo As Boolean, blnState As Boolean
-    Dim strSQL As String, strMsg As String, strPhotoID As String, strWhrPho As String
+    Dim strSQL As String, strMsg As String, strPho As String, strPhotoID As String, strWhrPho As String
     Dim rsUser As ADODB.Recordset, rsPhoto As ADODB.Recordset
-    Dim strOldName As String, strExtension As String, strClassify As String, strFolder As String
-    Dim lngFileSize As Long
     
     strUID = Trim(Text1.Item(0).Text)
     strLoginName = Trim(Text1.Item(1).Text)
     strPWD = Trim(Text1.Item(2).Text)
     strFullName = Trim(Text1.Item(3).Text)
     strMemo = Trim(Text1.Item(4).Text)
+    strPho = Trim(CommonDialog1.FileName)
     
     strLoginName = Left(strLoginName, 50)
     strPWD = Left(strPWD, 20)
@@ -1175,6 +1166,8 @@ Private Sub Command2_Click()
         Exit Sub
     End If
     
+    If Not mfCheckPhoto(strPho) Then Exit Sub
+    
     If Len(strSex) = 0 Then
         Option1.Item(0).Value = True
         strSex = Option1.Item(0).Caption
@@ -1204,7 +1197,7 @@ Private Sub Command2_Click()
         If IsNull(rsUser.Fields("DeptID")) Or strDept <> rsUser.Fields("DeptID") Then blnDept = True
         If IsNull(rsUser.Fields("UserMemo")) Or strMemo <> rsUser.Fields("UserMemo") Then blnMemo = True
         If IsNull(rsUser.Fields("UserState")) Or strState <> rsUser.Fields("UserState") Then blnState = True
-        If Len(mstrNewPhotoName) > 0 Then blnPhoto = True
+        If Len(strPho) > 0 Then blnPhoto = True
         If Not (blnLoginName Or blnPwd Or blnFullName Or blnSex Or blnState Or blnDept Or blnMemo Or blnPhoto) Then
             strMsg = "没有实质性的改动，不进行修改！"
             GoTo LineBrk
@@ -1213,7 +1206,7 @@ Private Sub Command2_Click()
         strMsg = "确定要修改" & Label1.Item(0).Caption & "【" & strUID & "】的用户信息吗？"
         If MsgBox(strMsg, vbQuestion + vbYesNo) = vbNo Then GoTo LineEnd
         
-        On Error GoTo LineErr
+        On Error GoTo LineERR
         
         If blnLoginName Then rsUser.Fields("UserLoginName") = strLoginName
         If blnPwd Then rsUser.Fields("UserPassword") = EncryptString(strPWD, gVar.EncryptKey)
@@ -1223,15 +1216,12 @@ Private Sub Command2_Click()
         If blnMemo Then rsUser.Fields("UserMemo") = strMemo
         If blnState Then rsUser.Fields("UserState") = strState
         
-        If blnPhoto Then   '如果有上传图像照片，则进行保存(获取图片ID)
-            strClassify = "个人头像"
-            strExtension = Mid(mstrNewPhotoName, InStrRev(mstrNewPhotoName, ".") + 1)
-            strOldName = Mid(CommonDialog1.Tag, InStrRev(CommonDialog1.Tag, "\") + 1)
-            lngFileSize = FileLen(CommonDialog1.Tag)
-            strFolder = gVar.FolderStore
+        If blnPhoto And mfCheckPhoto(strPho) Then   '如果有上传图像照片，则进行保存(获取图片ID)
             strPhotoID = "" & rsUser.Fields("FileID")
             blnNewPho = IIf(Len(strPhotoID) > 0, False, True)
-            strWhrPho = IIf(blnNewPho, " FileSaveName ='" & mstrNewPhotoName & "' AND FileSaveLocation ='" & strFolder & "' ", " FileID='" & strPhotoID & "' ")
+            strWhrPho = IIf(blnNewPho, _
+                " FileSaveName ='" & gVar.FTUploadFileNameNew & "' AND FileSaveLocation ='" & gVar.FTUploadFileFolder & "' ", _
+                " FileID='" & strPhotoID & "' ")
             strSQL = "SELECT FileID ,FileClassify ,FileExtension ,FileOldName ,FileSaveName ,FileSize ," & _
                      "FileSaveLocation ,FileUploadMen ,FileUploadTime FROM tb_FT_Lib_File   " & _
                      "WHERE " & strWhrPho
@@ -1241,21 +1231,23 @@ Private Sub Command2_Click()
                 strMsg = "头像照片信息在库中存在多个，请联系管理员！"
                 GoTo LineBrk
             Else
+                If rsPhoto.RecordCount = 0 Then blnNewPho = True    '防清空了图片库而未清空用户信息中的图片
                 If blnNewPho Then rsPhoto.AddNew
-                If blnNewPho Then rsPhoto.Fields("FileClassify") = strClassify
-                rsPhoto.Fields("FileExtension") = strExtension
-                rsPhoto.Fields("FileOldName") = strOldName
-                rsPhoto.Fields("FileSaveName") = mstrNewPhotoName
-                rsPhoto.Fields("FileSize") = lngFileSize
-                If blnNewPho Then rsPhoto.Fields("FileSaveLocation") = strFolder
+                If blnNewPho Then rsPhoto.Fields("FileClassify") = gVar.FTUploadFileClassify
+                rsPhoto.Fields("FileExtension") = gVar.FTUploadFileExtension
+                rsPhoto.Fields("FileOldName") = gVar.FTUploadFileNameOld
+                rsPhoto.Fields("FileSaveName") = gVar.FTUploadFileNameNew
+                rsPhoto.Fields("FileSize") = gVar.FTUploadFileSize
+                If blnNewPho Then rsPhoto.Fields("FileSaveLocation") = gVar.FTUploadFileFolder
                 rsPhoto.Fields("FileUploadMen") = gVar.UserFullName
                 rsPhoto.Fields("FileUploadTime") = Now
                 rsPhoto.Update
                 strPhotoID = rsPhoto.Fields("FileID")    '获取ID
                 rsPhoto.Close
                 If blnNewPho Then rsUser.Fields("FileID") = strPhotoID  '如果新增图像则添加到用户信息中
-                strMsg = "为用户【" & strLoginName & "】【" & strFullName & "】" & IIf(blnNewPho, "插入", "修改") & "头像照片[" & strPhotoID & "][" & mstrNewPhotoName & "]"
+                strMsg = "为用户【" & strLoginName & "】【" & strFullName & "】" & IIf(blnNewPho, "插入", "修改") & "头像照片[" & strPhotoID & "][" & gVar.FTUploadFileNameNew & "]"
                 Call gsLogAdd(Me, IIf(blnNewPho, udInsert, udUpdate), "tb_FT_Lib_File", strMsg)
+                Call mfSavePhoto(True)  '上传图片
             End If
         End If
         
@@ -1289,7 +1281,7 @@ LineBrk:
     If Not rsUser Is Nothing Then If rsUser.State = adStateOpen Then rsUser.Close
     MsgBox strMsg, vbExclamation
     GoTo LineEnd
-LineErr:
+LineERR:
     Call gsAlarmAndLog("用户信息修改异常")
 LineEnd:
     If Not rsPhoto Is Nothing Then If rsPhoto.State = adStateOpen Then rsPhoto.Close
@@ -1329,7 +1321,7 @@ Private Sub Command3_Click()
     Set rsUser = New ADODB.Recordset
     cnUser.CursorLocation = adUseClient
     
-    On Error GoTo LineErr
+    On Error GoTo LineERR
     
     cnUser.Open gVar.ConString
     strSQL = "DELETE FROM tb_FT_Sys_UserRole WHERE UserAutoID =" & strUID
@@ -1341,7 +1333,7 @@ Private Sub Command3_Click()
     rsUser.Open strSQL, cnUser, adOpenStatic, adLockBatchOptimistic
     If rsUser.RecordCount > 0 Then
         strMsg = strTemp & " 的后台数据检测异常，请重试或联系管理员！"
-        GoTo LineErr
+        GoTo LineERR
     Else
         With TreeView2.Nodes
             For I = 2 To .Count
@@ -1369,7 +1361,7 @@ Private Sub Command3_Click()
     
     Exit Sub
     
-LineErr:
+LineERR:
     If blnTran Then cnUser.RollbackTrans
     If rsUser.State = adStateOpen Then rsUser.Close
     If cnUser.State = adStateOpen Then cnUser.Close
@@ -1385,7 +1377,7 @@ End Sub
 
 Private Sub Command4_Click()
     '选择照片
-    Dim strPhoto As String, strCopy As String
+    Dim strPhoto As String
     Dim lngFiveMB As Long
     
     If Len(Text1.Item(0).Text) = 0 Then
@@ -1393,39 +1385,28 @@ Private Sub Command4_Click()
         Exit Sub
     End If
     
-    On Error GoTo LineErr
+    On Error GoTo LineERR
     
-    Image1.Stretch = True
     With CommonDialog1
-        .DialogTitle = "照片选择"
-        .Filter = "图片(*.jpg;*.png;*.bmp)|*.jpg;*.png;*.bmp;*.gif"
-        .Flags = cdlOFNCreatePrompt '当文件不存在时对话框要提示创建文件
+        .DialogTitle = "选择一张照片"
+        .Filter = "图片(*.jpg;*.png;*.bmp)|*.jpg;*.png;*.bmp;*.gif;*.jpeg"
+        .Flags = cdlOFNFileMustExist '文件要存在
         .ShowOpen   '弹出打开窗口
         strPhoto = .FileName    '将所选图片路径放到变量中
     End With
-    
-    If gfFileRepair(strPhoto) Then  '判断路径是否有效
-        lngFiveMB = 5242880 ' 5 * 1024 * 1024
-        If FileLen(strPhoto) > lngFiveMB Then   '文件不能大于5MB
-            MsgBox "您选择的图片大于5MB了！", vbExclamation, "文件警告"
-            CommonDialog1.FileName = ""
-            Exit Sub
-        End If
-        Image1.Picture = LoadPicture(strPhoto)  '加载图片
-        strCopy = gVar.FolderNameData & Mid(strPhoto, InStrRev(strPhoto, "\") + 1)  '图片复制一份的路径
-        If gfFileRepair(strCopy) Then   '判断路径是否有效
-            FileCopy strPhoto, strCopy  '将图片复制一份
-            CommonDialog1.Tag = strCopy '路径保存备用
-        End If
-        
-        Call mfSavePhoto(True)
+
+    lngFiveMB = 5242880     ''' 5 * 1024 * 1024 B
+    If FileLen(strPhoto) > lngFiveMB Then   '文件不能大于5MB
+        MsgBox "您选择的图片大于5MB了！", vbExclamation, "文件警告"
+        CommonDialog1.FileName = ""
+        Exit Sub
     End If
+    Image1.Picture = LoadPicture(strPhoto)  '加载图片
     
-LineErr:
+LineERR:
     If Err.Number > 0 Then  '有异常发生
         CommonDialog1.FileName = "" '清空无效图片的路径
-        CommonDialog1.Tag = ""  '清空无效备份图片的路径
-        mstrNewPhotoName = "" '清空公共变量内容
+        Image1.Picture = LoadPicture("")
         MsgBox Err.Number & vbCrLf & Err.Description, vbCritical, "图片加载异常"
     End If
 End Sub
@@ -1436,8 +1417,8 @@ Private Sub Form_Load()
     Me.Caption = gWind.CommandBars1.Actions(gID.SysAuthUser).Caption
     Frame1.Item(0).Caption = Me.Caption
     Command4.ToolTipText = "照片请通过【" & Command1.Caption & "】【" & Command2.Caption & "】按钮进行保存"
-    Timer1.Interval = mconTime
-    Timer1.Enabled = True
+    Me.Timer1.Interval = 100   '100ms
+    Me.Timer1.Enabled = False
     Me.Image1.Stretch = True
     
     For mlngID = Text1.LBound To Text1.UBound
@@ -1495,32 +1476,24 @@ Private Sub Hsb_Scroll()
 End Sub
 
 Private Sub Timer1_Timer()
-    '让下载完的照片显示出来
-    Const conTime As Long = 10 '最大等待秒数
-    Const conMax As Long = (1000 / mconTime) * conTime    'conTime时间内事件执行的次数
-    Static lngCount As Long '计次器
-    Static blnEnabled As Boolean '窗体Enabled状态
-    Static blnLoad As Boolean   '已加载状态
+    '照片上传或下载完后的动作
+    Dim strNew As String
     
-    blnEnabled = IIf(Me.Enabled, True, False)   '记录窗体的Enabled状态
-    If blnEnabled Then  '窗体恢复正常状态
-        lngCount = 0    '清零
-        If Not blnLoad Then '未加载照片则进行加载
-            If Len(mstrPhotoPath) > 0 Then
-                Me.Image1.Picture = LoadPicture(mstrPhotoPath)
-                blnLoad = True  '更改状态，以免重复加载
-                mstrPhotoPath = ""  '清空。应该是不用了的
+    If Not Me.Enabled Then Exit Sub '窗口未解禁说明仍在传输状态
+    If Not (gArr(1).FileTransmitNotOver Or gArr(1).FileTransmitError) Then  '正常传输结束
+        If gVar.FTUploadOrDownload Then '上传状态
+            '此页面无需其它动作
+        Else    '下载状态
+            If gfFileExist(gVar.FTDownloadFilePath) Then  '确认文件存在
+                strNew = Left(gVar.FTDownloadFilePath, InStrRev(gVar.FTDownloadFilePath, "\")) & gVar.FTDownloadFileNameOld
+                If gfFileReNameEx(gVar.FTDownloadFilePath, strNew) Then
+                    gVar.FTDownloadFilePath = strNew
+                    Call gfLoadPicture(Me.Image1, gVar.FTDownloadFilePath)
+                End If
             End If
         End If
-    Else    '窗体限制状态
-        blnLoad = False
-        lngCount = lngCount + 1 '累次
-        If lngCount > conMax Then
-            lngCount = 0  '清零
-            Rem Me.Enabled = True '自动解除限制
-        End If
+        Timer1.Enabled = False  '不再检测上传下载状态
     End If
-    
 End Sub
 
 Private Sub Vsb_Change()
@@ -1536,8 +1509,8 @@ Private Sub TreeView1_NodeClick(ByVal Node As MSComctlLib.Node)
     Dim lngLen As Long, I As Long
     Dim strKey As String, strUID As String, strSQL As String, strMsg As String
     Dim rsUser As ADODB.Recordset, rsPhoto As ADODB.Recordset
-    Dim strSaveName As String, strFolder As String, strPhotoID As String
-    Dim lngFileSize As Long
+    Dim strPhotoID As String
+    Dim sckPho As MSWinsockLib.Winsock
     
     strKey = Node.Key
     lngLen = Len(strKey)
@@ -1552,9 +1525,8 @@ Private Sub TreeView1_NodeClick(ByVal Node As MSComctlLib.Node)
     End If
     If Left(strKey, Len(mKeyUser)) <> mKeyUser Then Exit Sub
     
-    mstrNewPhotoName = ""   '先清空头像图片信息
+    CommonDialog1.FileName = ""    '先清空头像图片信息
     Image1.Picture = LoadPicture("") '先清空头像图片
-    mstrPhotoPath = ""  '清空下载照片路径信息
     
     strUID = Right(Node.Key, lngLen - Len(mKeyUser))
     strSQL = "EXEC sp_FT_Sys_UserInfo '" & strUID & "'"
@@ -1609,28 +1581,24 @@ Private Sub TreeView1_NodeClick(ByVal Node As MSComctlLib.Node)
                 strMsg = "头像照片信息异常，请联系管理员！"
                 GoTo LineBreak
             Else
-                strSaveName = rsPhoto.Fields("FileSaveName")    '获取保存服务器中的图片文件名
-                strFolder = rsPhoto.Fields("FileSaveLocation")  '获取保存服务器中的文件夹名
-                lngFileSize = rsPhoto.Fields("FileSize")            '获取保存服务器中的文件大小
+                gVar.FTDownloadFileNameNew = rsPhoto.Fields("FileSaveName") & ""   '获取保存服务器中的图片文件名
+                gVar.FTDownloadFileFolder = rsPhoto.Fields("FileSaveLocation") & ""   '获取保存服务器中的文件夹名
+                gVar.FTDownloadFileSize = rsPhoto.Fields("FileSize") & ""             '获取保存服务器中的文件大小
+                gVar.FTDownloadFileNameOld = rsPhoto.Fields("FileOldName") & ""
+                gVar.FTDownloadFileExtension = rsPhoto.Fields("FileExtension") & ""
+                gVar.FTDownloadFileClassify = rsPhoto.Fields("FileClassify") & ""
+                gVar.FTDownloadFilePath = gVar.AppPath & gVar.FTDownloadFileFolder & "\" & gVar.FTDownloadFileNameNew
             End If
             rsPhoto.Close
-            If Len(strSaveName) > 0 And Len(strFolder) > 0 And lngFileSize > 0 Then
+            If Len(gVar.FTDownloadFileNameNew) > 0 And Len(gVar.FTDownloadFileFolder) > 0 And gVar.FTDownloadFileSize > 0 Then
                 '文件的名称、保存位置、文件大小等信息完整时才能要求下载过来
-                With gArr(gWind.Winsock1.Item(1).Index)
-                    .FileFolder = gVar.FolderStore  '
-                    .FileName = strSaveName
-                    .FileSizeTotal = lngFileSize
-                    .FilePath = gVar.FolderNameStore & strSaveName  '本机保存位置的文件全路径
-                    gVar.FTIsOver = False
-                End With
+                Set sckPho = gWind.Winsock1.Item(1)
+                Call gsLoadFileInfo(sckPho.Index, False)    '加载照片下载信息至gArr()数组中
                 If Not gfFolderRepair(gVar.FolderNameStore) Then GoTo LineEnd
-                If gWind.Winsock1.Item(1).State = 7 Then    '使用MDI窗体上的Winsock控件发送文件信息
-                    Call gsFileProgress(gWind.CommandBars1.StatusBar.FindPane(gID.StatusBarPaneProgress), _
-                                        gWind.CommandBars1.StatusBar.FindPane(gID.StatusBarPaneProgressText), _
-                                        ftZero, 0, lngFileSize, 0) '初始化进度条
-                    If gfSendInfo(gfFileInfoJoin(gWind.Winsock1.Item(1).Index, ftReceive), gWind.Winsock1.Item(1)) Then
-                        mstrPhotoPath = gVar.FolderNameStore & strSaveName  '先暂时保存照片下载路径，等下载完了加载到Image控件中
+                If sckPho.State = 7 Then    '使用MDI窗体上的Winsock控件发送文件信息
+                    If gfSendInfo(gfFileInfoJoin(sckPho.Index, ftReceive), sckPho) Then
                         Debug.Print "Client：已发送需要[头像照片]的请求信息给服务端," & Now
+                        Timer1.Enabled = True
                     End If
                 End If
             Else
@@ -1651,6 +1619,7 @@ LineEnd:
     If Not rsUser Is Nothing Then If rsUser.State = adStateOpen Then rsUser.Close
     Set rsUser = Nothing
     Set rsPhoto = Nothing
+    Set sckPho = Nothing
 End Sub
 
 Private Sub TreeView2_NodeCheck(ByVal Node As MSComctlLib.Node)
