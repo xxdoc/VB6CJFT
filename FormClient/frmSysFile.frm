@@ -81,7 +81,7 @@ Private Function mfDeleteFile(ByVal strFID As String) As Boolean
     Dim strSQL As String
     Dim rsDel As ADODB.Recordset
     
-    On Error GoTo LineErr
+    On Error GoTo LineERR
     
     strFID = Trim(strFID)
     If Len(strFID) = 0 Then Exit Function
@@ -94,7 +94,7 @@ Private Function mfDeleteFile(ByVal strFID As String) As Boolean
     End If
     mfDeleteFile = True
     
-LineErr:
+LineERR:
     If Not rsDel Is Nothing Then If rsDel.State = adStateOpen Then rsDel.Close
     Set rsDel = Nothing
     If Err.Number > 0 Then Call gsAlarmAndLog("文件删除异常")
@@ -307,7 +307,7 @@ Private Sub Grid1_HyperLinkClick(ByVal Row As Long, ByVal Col As Long, URL As St
             End If
         End If
     ElseIf Col = 10 Then    '查看
-        Rem Debug.Print Grid1.Cell(Row, 11).Text, Grid1.Cell(Row, 4).Text
+        Rem Debug.Print Grid1.Cell(Row, 12).Text, Grid1.Cell(Row, 4).Text
         gVar.FTDownloadFilePath = Trim(Grid1.Cell(Row, 4).Text)
         If gfFileExist(gVar.FTDownloadFilePath) Then    '文件存在
             If FileLen(gVar.FTDownloadFilePath) = Grid1.Cell(Row, 7).Text Then '大小相等
@@ -321,7 +321,7 @@ Private Sub Grid1_HyperLinkClick(ByVal Row As Long, ByVal Col As Long, URL As St
         gVar.FTDownloadFileExtension = Trim(Grid1.Cell(Row, 6).Text)
         gVar.FTDownloadFileFolder = Trim(Grid1.Cell(Row, 3).Text)
         gVar.FTDownloadFileNameNew = Trim(Grid1.Cell(Row, 2).Text)
-        gVar.FTDownloadFileNameOld = Trim(Grid1.Cell(Row, 11).Text)
+        gVar.FTDownloadFileNameOld = Trim(Grid1.Cell(Row, 12).Text)
         gVar.FTDownloadFileSize = Trim(Grid1.Cell(Row, 7).Text)
         gVar.FTDownloadFilePath = gVar.AppPath & gVar.FTDownloadFileFolder & "\" & gVar.FTDownloadFileNameNew
         Set sckFile = gWind.Winsock1.Item(1)
