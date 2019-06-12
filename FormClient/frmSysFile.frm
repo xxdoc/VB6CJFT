@@ -76,6 +76,31 @@ Attribute VB_Exposed = False
 Option Explicit
 
 
+Private Function mfDeleteFile(ByVal strFID As String) As Boolean
+    '删除一个文件
+    Dim strSQL As String
+    Dim rsDel As ADODB.Recordset
+    
+    On Error GoTo LineErr
+    
+    strFID = Trim(strFID)
+    If Len(strFID) = 0 Then Exit Function
+    strSQL = "SELECT * FROM tb_FT_Lib_File WHERE FileID ='" & strFID & "' "
+    Set rsDel = gfBackRecordset(strSQL, adOpenStatic, adLockOptimistic)
+    If rsDel.State = adStateOpen Then
+        If rsDel.RecordCount = 1 Then
+            rsDel.Delete
+        End If
+    End If
+    mfDeleteFile = True
+    
+LineErr:
+    If Not rsDel Is Nothing Then If rsDel.State = adStateOpen Then rsDel.Close
+    Set rsDel = Nothing
+    If Err.Number > 0 Then Call gsAlarmAndLog("文件删除异常")
+
+End Function
+
 Private Sub msLoadFileList(Optional ByVal blnLD As Boolean = True)
     '加载文件信息至表格
     Dim strSQL As String
@@ -105,10 +130,11 @@ Private Sub msLoadFileList(Optional ByVal blnLD As Boolean = True)
                     Grid1.Cell(K, 8).Text = rsFile.Fields("FileUploadMen") & ""
                     Grid1.Cell(K, 9).Text = rsFile.Fields("FileUploadTime") & ""
                     Grid1.Cell(K, 10).Text = "打开"
-                    Grid1.Cell(K, 11).Text = rsFile.Fields("FileOldName") & ""
+                    Grid1.Cell(K, 11).Text = "删除"
+                    Grid1.Cell(K, 12).Text = rsFile.Fields("FileOldName") & ""
                     rsFile.MoveNext
                 Wend
-                .Range(1, 10, K, 10).ForeColor = vbBlue
+                .Range(1, 10, K, 11).ForeColor = vbBlue
                 .ReadOnly = True
                 .AutoRedraw = True
                 .Refresh
@@ -185,7 +211,7 @@ Private Sub Form_Load()
     With Grid1
         .AutoRedraw = False
         .Rows = 16
-        .Cols = 12
+        .Cols = 13
         .Cell(0, 0).Text = "序号"
         .Cell(0, 1).Text = "文件ID"
         .Cell(0, 2).Text = "存储名称"
@@ -197,8 +223,10 @@ Private Sub Form_Load()
         .Cell(0, 8).Text = "上传人"
         .Cell(0, 9).Text = "上传日期"
         .Cell(0, 10).Text = "查看"
-        .Cell(0, 11).Text = "文件名"
+        .Cell(0, 11).Text = "删除"
+        .Cell(0, 12).Text = "文件名"
         .Cell(0, 7).Comment = "单位是字节(B)"
+        .Cell(0, 11).Comment = "文件删除之后不可恢复"
         .Column(0).Width = 40
         .Column(1).Width = 0
         .Column(2).Width = 0
@@ -210,6 +238,8 @@ Private Sub Form_Load()
         .Column(8).Width = 70
         .Column(9).Width = 120
         .Column(10).Width = 50
+        .Column(11).Width = 50
+        .Column(12).Width = 150
         .ExtendLastCol = True
         .rowHeight(0) = 30
         .Column(5).Alignment = cellCenterCenter
@@ -218,7 +248,9 @@ Private Sub Form_Load()
         .Column(8).Alignment = cellCenterCenter
         .Column(9).Alignment = cellCenterCenter
         .Column(10).Alignment = cellCenterCenter
+        .Column(11).Alignment = cellCenterCenter
         .Column(10).CellType = cellHyperLink
+        .Column(11).CellType = cellHyperLink
         .Column(9).FormatString = gVar.Formaty_M_dH_m_s
         .DisplayRowIndex = True
         .AllowUserSort = True
@@ -258,13 +290,23 @@ Private Sub Form_Resize()
 End Sub
 
 Private Sub Grid1_HyperLinkClick(ByVal Row As Long, ByVal Col As Long, URL As String, Changed As Boolean)
-    '查看文件
     Dim sckFile As MSWinsockLib.Winsock
     
     URL = ""
     Changed = True
     gVar.FTDownloadFilePath = ""
-    If Row > 0 And Col = 10 Then
+    If Row = 0 Then Exit Sub
+    If Col = 11 Then    '删除
+        If Len(Trim(Grid1.Cell(Row, 1).Text)) > 0 Then
+            If MsgBox("确定要删除所选文件【" & Grid1.Cell(Row, 12).Text & "】吗？", vbQuestion + vbOKCancel, "询问") = vbOK Then
+                If Trim(InputBox("请输入删除文件的提示数字：123", "文件删除验证")) = "123" Then
+                    Call mfDeleteFile(Grid1.Cell(Row, 1).Text)
+                    Call msLoadFileList(True)
+                    MsgBox "文件删除成功！", vbInformation, "提示"
+                End If
+            End If
+        End If
+    ElseIf Col = 10 Then    '查看
         Rem Debug.Print Grid1.Cell(Row, 11).Text, Grid1.Cell(Row, 4).Text
         gVar.FTDownloadFilePath = Trim(Grid1.Cell(Row, 4).Text)
         If gfFileExist(gVar.FTDownloadFilePath) Then    '文件存在
