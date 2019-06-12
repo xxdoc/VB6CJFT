@@ -15,7 +15,7 @@ Public Declare Function PostMessage Lib "user32" Alias "PostMessageA" (ByVal hwn
 
 '''使用 ShellExecute 打开文件或执行程序
 Public Declare Function GetDesktopWindow Lib "user32" () As Long
-Public Declare Function GetSystemDirectory Lib "kernel32" Alias "GetSystemDirectoryA" (ByVal lpBuffer As String, ByVal nSize As Long) As Long
+Public Declare Function GetSystemDirectory Lib "KERNEL32" Alias "GetSystemDirectoryA" (ByVal lpBuffer As String, ByVal nSize As Long) As Long
 Public Declare Function ShellExecute Lib "shell32.dll" Alias "ShellExecuteA" (ByVal hwnd As Long, ByVal lpOperation As String, ByVal lpFile As String, ByVal lpParameters As String, ByVal lpDirectory As String, ByVal nShowCmd As Long) As Long
 'hWnd：用于指定父窗口句柄。当函数调用过程出现错误时，它将作为Windows消息窗口的父窗口
 'Operation：用于指定要进行的操作。其中:
@@ -94,10 +94,10 @@ Public Enum genumRegOperateType '注册表操作类型
     RegDelete = 3
 End Enum
 
-Public Declare Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)  '程序暂停运行（毫秒）
+Public Declare Sub Sleep Lib "KERNEL32" (ByVal dwMilliseconds As Long)  '程序暂停运行（毫秒）
 
 '返回电脑信息API
-Public Declare Function GetComputerName Lib "kernel32" Alias "GetComputerNameA" (ByVal lpBuffer As String, nSize As Long) As Long
+Public Declare Function GetComputerName Lib "KERNEL32" Alias "GetComputerNameA" (ByVal lpBuffer As String, nSize As Long) As Long
 Public Declare Function GetUserName Lib "advapi32.dll" Alias "GetUserNameA" (ByVal lpBuffer As String, nSize As Long) As Long
 
 Public Enum genumComputerInfoType   '要返回的电脑上的信息类别
@@ -195,6 +195,18 @@ Public Enum genumNotifyIconMouseEvent  '鼠标事件
 End Enum
 
 Public gNotifyIconData As gtypeNOTIFYICONDATA
+
+'''判断文件是否被打开用的API函数与常量
+Public Declare Function CreateFile Lib "KERNEL32" Alias "CreateFileA" (ByVal lpFileName As String, _
+    ByVal dwDesiredAccess As Long, ByVal dwShareMode As Long, lpSecurityAttributes As String, _
+    ByVal dwCreationDisposition As Long, ByVal dwFlagsAndAttributes As Long, ByVal hTemplateFile As Long) As Long
+Public Declare Function CloseHandle Lib "KERNEL32" (ByVal hObject As Long) As Long
+Public Const GENERIC_READ = &H80000000
+Public Const GENERIC_WRITE = &H40000000
+Public Const OPEN_EXISTING = 3
+Public Const FILE_ATTRIBUTE_NORMAL = &H80
+Public Const INVALID_HANDLE_VALUE = -1
+
 
 
 Public Enum genumFileTransimitType    '文件传输类型枚举

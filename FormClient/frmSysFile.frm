@@ -309,11 +309,10 @@ Private Sub Timer1_Timer()
                 End If
             Else    '下载结束处理
                 If gfFileExist(gVar.FTDownloadFilePath) Then
-                    Rem strNewName = gVar.FTDownloadFilePath & "." & gVar.FTDownloadFileExtension   '把扩展名加上
                     strNewName = Left(gVar.FTDownloadFilePath, InStrRev(gVar.FTDownloadFilePath, "\")) & gVar.FTDownloadFileNameOld
-                    If gfFileRename(gVar.FTDownloadFilePath, strNewName) Then
+                    If gfFileReNameEx(gVar.FTDownloadFilePath, strNewName) Then '还原成上传时的文件名
                         gVar.FTDownloadFilePath = strNewName
-                        Call gfFileOpen(gVar.FTDownloadFilePath)
+                        Call gfFileOpen(gVar.FTDownloadFilePath)    '打开文件
                         Grid1.Cell(Grid1.ActiveCell.Row, 4).Text = gVar.FTDownloadFilePath
                     End If
                 End If

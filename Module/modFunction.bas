@@ -322,6 +322,21 @@ Public Function EncryptStringSimple(ByVal strIn As String) As String
     
 End Function
 
+Public Function gfFileCopy(ByVal strOld As String, ByVal strNew As String, Optional ByVal blnDelOld As Boolean = False) As Boolean
+    '复制文件
+    
+    On Error GoTo LineErr
+    
+    FileCopy strOld, strNew
+    gfFileCopy = True
+    If blnDelOld Then
+        Kill strOld
+    End If
+    Exit Function
+LineErr:
+    Call gsAlarmAndLog("文件复制异常")
+End Function
+
 
 Public Function gfFileExist(ByVal strPath As String) As Boolean
     '判断文件、文件目录 是否存在
@@ -366,6 +381,16 @@ LineErr:
     gfFileExistEx.ErrNum = Err.Number   '异常了，也当作不存在了
     Call gsAlarmAndLog("文件判断返回异常")
     
+End Function
+
+Public Function gfFileIsRun(ByVal pFile As String) As Boolean
+    '判断文件是否被打开(在运行)
+    Dim ret As Long
+    
+    ret = CreateFile(pFile, GENERIC_READ Or GENERIC_WRITE, 0&, vbNullString, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0&)
+    gfFileIsRun = (ret = INVALID_HANDLE_VALUE)
+    CloseHandle ret
+    '经小部分测试，似乎没用，只能判断可执行文件？
 End Function
 
 
@@ -414,6 +439,24 @@ Public Function gfFileRename(ByVal strOld As String, ByVal strNew As String) As 
     Exit Function
 LineErr:
     Close
+    Call gsAlarmAndLog("文件/文件夹重命名异常", False)
+End Function
+
+
+Public Function gfFileReNameEx(ByVal strOld As String, ByVal strNew As String) As Boolean
+    '重命名文件或文件名。先删除存在的新文件名的文件
+    
+    On Error GoTo LineErr
+    
+    If gfFileExist(strNew) Then
+        Kill strNew '新文件存在则先删除
+    End If
+    
+    Name strOld As strNew
+    gfFileReNameEx = True
+    
+    Exit Function
+LineErr:
     Call gsAlarmAndLog("文件/文件夹重命名异常", False)
 End Function
 

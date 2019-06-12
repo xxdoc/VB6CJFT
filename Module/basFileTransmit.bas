@@ -598,25 +598,24 @@ End Function
 
 Public Function gfRestoreInfo(ByVal strInfo As String, sckGet As MSWinsockLib.Winsock) As Boolean
     '还原接收到的文件信息
-    
+    Dim lngFod As Long, lngFile As Long, lngSize As Long
+    Dim lngSend As Long, lngReceive As Long, lngType As Long
+    Dim strFod As String, strSize As String, strType As String
+            
     With gArr(sckGet.Index)
-        If InStr(strInfo, gVar.PTFileFolder) > 0 Then
-            '此判断似乎仅适应于客户端向服务端上传文件时，其它情形有待确认
-            
-            Dim lngFod As Long, lngFile As Long, lngSize As Long
-            Dim lngSend As Long, lngReceive As Long, lngType As Long
-            Dim strFod As String, strSize As String, strType As String
-            
+        If InStr(strInfo, gVar.PTFileFolder) > 0 Then   '一、文件夹
             lngFod = InStr(strInfo, gVar.PTFileFolder)
             lngFile = InStr(strInfo, gVar.PTFileName)
             lngSize = InStr(strInfo, gVar.PTFileSize)
             lngSend = InStr(strInfo, gVar.PTFileSend)
             lngReceive = InStr(strInfo, gVar.PTFileReceive)
             
-            If lngFile > 0 Then
+            If lngFile > 0 Then '二、文件名
                 gArr(sckGet.Index) = gArr(0)    '先初始化文件传输变量为空信息
                 
-                If (lngSend > 0 And lngReceive > 0) Or (lngSend = 0 And lngReceive = 0) Then Exit Function
+                If (lngSend > 0 And lngReceive > 0) Or (lngSend = 0 And lngReceive = 0) Then
+                    Exit Function   '接收与发送协议有且仅有其中一个存在
+                End If
                 strType = IIf(lngSend > 0, gVar.PTFileSend, gVar.PTFileReceive)
                 lngType = IIf(lngSend > 0, lngSend, lngReceive)
                 
