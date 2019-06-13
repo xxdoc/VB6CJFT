@@ -115,7 +115,7 @@ Private Function mfCheckUpdate() As Boolean
     
     If Me.Winsock1.Item(1).State <> 7 Then Exit Function
     Call msSetText("正在联网验证版本中……", vbBlue)
-    Call gfSendInfo(gVar.PTVersionOfClient & strVerLoc, Winsock1.Item(1))
+    Call gfSendInfo(gVar.PTVersionOfClient & strVerLoc, Me.Winsock1.Item(1))
     
 End Function
 
@@ -154,6 +154,7 @@ Private Function mfShellSetup(ByVal strFile As String) As Boolean
         If gfCloseApp(gVar.EXENameOfClient) Then   '关闭客户端exe
             If gfShellExecute(strFile) Then     '运行安装包
                 Unload Me
+                Exit Function
             End If
         Else
             MsgBox "请确认已关闭客户端程序，并重新运行更新程序！", vbInformation, "警告"
@@ -192,8 +193,6 @@ Private Sub msSetText(ByVal strTxt As String, ByVal ForeColor As Long)
     Me.Text1.Text = strTxt
     Me.Text1.ForeColor = ForeColor
 End Sub
-
-
 
 Private Sub Command1_Click()
     Unload Me

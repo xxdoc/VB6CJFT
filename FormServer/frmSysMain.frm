@@ -1293,6 +1293,8 @@ Private Sub Form_Unload(Cancel As Integer)
     '卸载窗体时保存信息
     Dim resetNotifyIconData As gtypeNOTIFYICONDATA
     
+    On Error Resume Next
+    
     '保存注册表信息-CommandBars设置
     Call Me.CommandBars1.SaveCommandBars(gVar.RegKeyCommandBars, gVar.RegAppName, gVar.RegKeyCBSServerSetting)
     
@@ -1346,7 +1348,7 @@ Private Sub Timer1_Timer(Index As Integer)
 '    Static ConfirmOK() As Boolean
 '    Static CountTime() As Long
         
-'''    On Error Resume Next
+    On Error Resume Next
     If Index = 0 Then
         If Me.Winsock1.Item(Index).State = 2 Then  '侦听正常状态
             Call msSetServerState(vbGreen)
@@ -1462,7 +1464,7 @@ Private Sub Winsock1_Close(Index As Integer)
     Dim strIP As String, strRequestID As String
     Dim tmDel As VB.Timer
     
-'''    On Error Resume Next
+    On Error Resume Next
     If Index = 0 Then
         Call msCloseAllConnect(True, False)  '关闭侦听控件则关闭所有连接
     Else
@@ -1559,6 +1561,8 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
     '接收信息
     Dim strGet As String
     Dim byteGet() As Byte
+    
+    On Error Resume Next
     
     With gArr(Index)
         If Not .FileTransmitState Then
