@@ -136,7 +136,7 @@ Private Function mfConnect(Optional ByVal blnCon As Boolean = True) As Boolean
     
     With Me.Winsock1.Item(1)
         If Label1(1).Caption = gVar.ClientStateDisConnected Then
-            If .State <> 0 Then .Close
+            If .State <> 0 Then .Close  '先关闭
             .RemoteHost = gVar.TCPSetIP
             .RemotePort = gVar.TCPSetPort
             .Connect
@@ -214,7 +214,7 @@ Private Sub Form_Load()
     Call msLoadParameter(True)
     
     '检测是否传入命令行参数进来，没有则退出程序
-    strCmd = Command
+    strCmd = Command()
     If Len(strCmd) = 0 Then
         GoTo LineUnload '禁止直接启动更新程序，必须带命令参数
     Else
@@ -245,12 +245,15 @@ End Sub
 Private Sub Form_Unload(Cancel As Integer)
     '卸载窗体
     
+    On Error Resume Next
+    
     mblnHide = False
     mblnCheckStart = False
     mblnUpdateFinish = False
     
     Me.Winsock1.Item(1).Close
     gArr(1) = gArr(0)
+    
     Close
     
 End Sub
@@ -344,14 +347,14 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
                 If Not mblnHide Then
                     MsgBox "客户端与服务端连接数受限，请其他用户退出后再试！", vbCritical, "连接数已满警告"
                 End If
-                Call Unload(Me)
+                mblnUnload = True ' Call Unload(Me)
                 
             ElseIf InStr(strGet, gVar.PTConnectTimeOut) > 0 Then '服务端发来连接时间到
                 Me.Timer1.Enabled = False
                 If Not mblnHide Then
                     MsgBox "与服务器连续连接时间已到！", vbExclamation, "连接时间限制提示"
                 End If
-                Call Unload(Me)
+                mblnUnload = True 'Call Unload(Me)
                 
             ElseIf InStr(strGet, gVar.PTVersionNeedUpdate) > 0 Then '需要更新
                 Dim strVer As String
@@ -425,7 +428,7 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
     End With
     
     Exit Sub
-LineErr:
+LineERR:
     mblnFTErr = True
     mblnUnload = True
 End Sub
@@ -437,6 +440,6 @@ Private Sub Winsock1_Error(Index As Integer, ByVal Number As Integer, Descriptio
             Close #gArr(Index).FileNumber
             gArr(Index) = gArr(0)
         End If
-        If mblnHide Then Unload Me  '异常时卸载
+        If mblnHide Then mblnUnload = True  '异常时卸载
     End If
 End Sub
