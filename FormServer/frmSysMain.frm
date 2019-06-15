@@ -1009,6 +1009,14 @@ Private Sub msResetLayout(ByRef cbsBars As XtremeCommandBars.CommandBars)
     Set cBar = Nothing
 End Sub
 
+Private Sub msRestart()
+    '重启程序
+    Dim strCMD As String
+    
+    strCMD = gVar.AppPath & "FFSR.exe " & gVar.EXENameOfServer & gVar.CmdLineSeparator & "close"
+    Call gfShell(strCMD)
+End Sub
+
 Private Sub msSetServerState(ByVal colorSet As Long)
     '设置状态栏中服务端的状态
     
@@ -1456,6 +1464,10 @@ Private Sub Timer1_Timer(Index As Integer)
     Set sckClose = Nothing
     Set sckCheck = Nothing
     Set tmrUld = Nothing
+    
+    If Err.Number > 0 Then
+        Call msRestart
+    End If
 End Sub
 
 Private Sub Winsock1_Close(Index As Integer)
@@ -1505,6 +1517,9 @@ Private Sub Winsock1_Close(Index As Integer)
     
     Set tmDel = Nothing
     
+    If Err.Number > 0 Then
+        Call msRestart
+    End If
 End Sub
 
 Private Sub Winsock1_ConnectionRequest(Index As Integer, ByVal requestID As Long)
@@ -1513,6 +1528,8 @@ Private Sub Winsock1_ConnectionRequest(Index As Integer, ByVal requestID As Long
     Dim sckNew As MSWinsockLib.Winsock
     Dim K As Long
     Dim blnFull As Boolean
+    
+    On Error Resume Next
     
     If Index <> 0 Then Exit Sub '仅0元素的控件在侦听能接收连接申请
     
@@ -1553,8 +1570,10 @@ Private Sub Winsock1_ConnectionRequest(Index As Integer, ByVal requestID As Long
     
     Call gfSendInfo(gVar.PTClientConfirm, Me.Winsock1.Item(K)) '发送客户端确认信息，若规定时间内返回确认信息则连接正常，否则断开连接。
     Call msStartConfirm(K)  '激活 返回确认信息 计时器
-    
-    
+
+    If Err.Number > 0 Then
+        Call msRestart
+    End If
 End Sub
 
 Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
@@ -1612,6 +1631,9 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
         End If
     End With
     
+    If Err.Number > 0 Then
+        Call msRestart
+    End If
 End Sub
 
 Private Sub Winsock1_Error(Index As Integer, ByVal Number As Integer, Description As String, ByVal Scode As Long, ByVal Source As String, ByVal HelpFile As String, ByVal HelpContext As Long, CancelDisplay As Boolean)
