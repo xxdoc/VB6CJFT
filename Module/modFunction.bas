@@ -2,6 +2,96 @@ Attribute VB_Name = "modFunction"
 Option Explicit
 
 
+'浏览目录所使用的常量、API、Type、变量等。功能：定位到当前文件夹，而且选定它
+Private Const BIF_RETURNONLYFSDIRS = 1  '仅仅返回文件系统的目录
+Private Const BIF_DONTGOBELOWDOMAIN = 2 '在树形视窗中，不包含域名底下的网络目录结构
+Private Const BIF_STATUSTEXT = &H4&     '在对话框中包含一个状态区域
+Private Const BIF_RETURNFSANCESTORS = 8 '返回文件系统的一个节点
+Private Const BIF_EDITBOX = &H10& ' 16  '浏览对话框中包含一个编辑框
+Private Const BIF_VALIDATE = &H20& '32  '当没有BIF_EDITBOX标志位时，该标志位被忽略
+Private Const BIF_NEWDIALOGSTYLE = &H40& '64    '支持新建文件夹功能
+Private Const MAX_PATH = 260
+
+Private Const WM_USER = &H400
+Private Const BFFM_INITIALIZED = 1
+Private Const BFFM_SELCHANGED = 2
+Private Const BFFM_SETSTATUSTEXT = (WM_USER + 100)
+Private Const BFFM_SETSelectION = (WM_USER + 102)
+
+Private Type BrowseInfo
+    hWndOwner      As Long
+    pIDLRoot       As Long
+    pszDisplayName As Long
+    lpszTitle      As Long
+    ulFlags        As Long
+    lpfnCallback   As Long
+    lParam         As Long
+    iImage         As Long
+End Type
+
+Private m_CurrentDirectory As String   'The current directory
+
+Private Declare Function SendMessage Lib "user32" Alias "SendMessageA" (ByVal hWnd As Long, ByVal wMsg As Long, ByVal wParam As Long, ByVal lParam As String) As Long
+Private Declare Function SHBrowseForFolder Lib "shell32" (lpbi As BrowseInfo) As Long
+Private Declare Function SHGetPathFromIDList Lib "shell32" (ByVal pidList As Long, ByVal lpBuffer As String) As Long
+Private Declare Function lstrcat Lib "kernel32" Alias "lstrcatA" (ByVal lpString1 As String, ByVal lpString2 As String) As Long
+
+Public Function BrowseForFolder(ByRef Owner As Form, _
+                                Optional ByVal StartDir As String = "", _
+                                Optional ByVal Title As String = "请选择一个文件夹：") As String
+    '打开浏览目录窗口，并返回文件夹路径
+    Dim lpIDList As Long
+    Dim szTitle As String
+    Dim sBuffer As String
+    Dim tBrowseInfo As BrowseInfo
+    
+    m_CurrentDirectory = StartDir & vbNullChar
+
+    szTitle = Title
+    With tBrowseInfo
+        .hWndOwner = Owner.hWnd
+        .lpszTitle = lstrcat(szTitle, "")
+        .ulFlags = BIF_RETURNONLYFSDIRS + BIF_DONTGOBELOWDOMAIN + BIF_STATUSTEXT + BIF_RETURNFSANCESTORS _
+                 + BIF_EDITBOX + BIF_VALIDATE + BIF_NEWDIALOGSTYLE  '=1+2+4+8+16+32+64=112
+        .lpfnCallback = GetAddressofFunction(AddressOf BrowseCallbackProc)  'get address of function.
+    End With
+
+    lpIDList = SHBrowseForFolder(tBrowseInfo)
+    If (lpIDList) Then
+        sBuffer = Space(MAX_PATH)
+        SHGetPathFromIDList lpIDList, sBuffer
+        sBuffer = Left(sBuffer, InStr(sBuffer, vbNullChar) - 1)
+        BrowseForFolder = sBuffer
+    Else
+        BrowseForFolder = ""
+    End If
+  
+End Function
+
+Private Function BrowseCallbackProc(ByVal hWnd As Long, ByVal uMsg As Long, ByVal lp As Long, ByVal pData As Long) As Long
+    Dim lpIDList As Long
+    Dim ret As Long
+    Dim sBuffer As String
+    
+    On Error Resume Next
+    
+    Select Case uMsg
+        Case BFFM_INITIALIZED
+            Call SendMessage(hWnd, BFFM_SETSelectION, 1, m_CurrentDirectory)
+        Case BFFM_SELCHANGED
+            sBuffer = Space(MAX_PATH)
+            ret = SHGetPathFromIDList(lp, sBuffer)
+            If ret = 1 Then
+                Call SendMessage(hWnd, BFFM_SETSTATUSTEXT, 0, sBuffer)
+            End If
+        End Select
+    BrowseCallbackProc = 0
+End Function
+
+Private Function GetAddressofFunction(ByVal AddOf As Long) As Long
+    GetAddressofFunction = AddOf
+End Function
+
 Public Function gfAsciiAdd(ByVal strIn As String) As String
     '返回传入字符的Ascii码值加N后 对应的字符。
     '与gAsciiSub过程互逆
@@ -112,7 +202,7 @@ Public Function gfBackConnection(ByVal strCon As String, _
         Optional ByVal CursorLocation As CursorLocationEnum = adUseClient) As ADODB.Connection
     '返回数据库连接
        
-    On Error GoTo LineErr
+    On Error GoTo LineERR
     
     Set gfBackConnection = New ADODB.Connection
     gfBackConnection.CursorLocation = CursorLocation
@@ -122,7 +212,7 @@ Public Function gfBackConnection(ByVal strCon As String, _
     
     Exit Function
     
-LineErr:
+LineERR:
     Call gsAlarmAndLog("数据库连接异常")
     
 End Function
@@ -136,7 +226,7 @@ Public Function gfBackRecordset(ByVal cnSQL As String, _
     
     Dim cnBack As ADODB.Connection
     
-    On Error GoTo LineErr
+    On Error GoTo LineERR
 
     Set gfBackRecordset = New ADODB.Recordset
     Set cnBack = gfBackConnection(gVar.ConString, CursorLocation)
@@ -146,7 +236,7 @@ Public Function gfBackRecordset(ByVal cnSQL As String, _
     
     Exit Function
 
-LineErr:
+LineERR:
     Call gsAlarmAndLog("返回记录集异常")
 
 End Function
@@ -325,7 +415,7 @@ End Function
 Public Function gfFileCopy(ByVal strOld As String, ByVal strNew As String, Optional ByVal blnDelOld As Boolean = False) As Boolean
     '复制文件
     
-    On Error GoTo LineErr
+    On Error GoTo LineERR
     
     FileCopy strOld, strNew
     gfFileCopy = True
@@ -333,7 +423,7 @@ Public Function gfFileCopy(ByVal strOld As String, ByVal strNew As String, Optio
         Kill strOld
     End If
     Exit Function
-LineErr:
+LineERR:
     Call gsAlarmAndLog("文件复制异常")
 End Function
 
@@ -343,7 +433,7 @@ Public Function gfFileExist(ByVal strPath As String) As Boolean
 
     Dim strBack As String
         
-    On Error GoTo LineErr
+    On Error GoTo LineERR
     
     If Len(strPath) > 0 Then    '空字符串不算
         strBack = Dir(strPath, vbDirectory + vbHidden + vbReadOnly + vbSystem)
@@ -352,7 +442,7 @@ Public Function gfFileExist(ByVal strPath As String) As Boolean
   
     Exit Function
     
-LineErr:
+LineERR:
     Call gsAlarmAndLog("判断文件异常")
     
 End Function
@@ -364,7 +454,7 @@ Public Function gfFileExistEx(ByVal strPath As String) As gtypeValueAndErr
     
     Dim strBack As String
     
-    On Error GoTo LineErr
+    On Error GoTo LineERR
     
     If Len(strPath) > 0 Then    '空字符串不算
         strBack = Dir(strPath, vbDirectory + vbHidden + vbReadOnly + vbSystem)
@@ -377,7 +467,7 @@ Public Function gfFileExistEx(ByVal strPath As String) As gtypeValueAndErr
     
     Exit Function
     
-LineErr:
+LineERR:
     gfFileExistEx.ErrNum = Err.Number   '异常了，也当作不存在了
     Call gsAlarmAndLog("文件判断返回异常")
     
@@ -400,7 +490,7 @@ Public Function gfFileOpen(ByVal strFilePath As String) As gtypeValueAndErr
     Dim lngRet As Long
     Dim strDir As String
     
-    On Error GoTo LineErr
+    On Error GoTo LineERR
     
     If gfFileExist(strFilePath) Then
         
@@ -421,7 +511,7 @@ Public Function gfFileOpen(ByVal strFilePath As String) As gtypeValueAndErr
     
     Exit Function
     
-LineErr:
+LineERR:
     gfFileOpen.ErrNum = Err.Number
     Call gsAlarmAndLog("文件打开异常")
     
@@ -430,14 +520,14 @@ End Function
 Public Function gfFileRename(ByVal strOld As String, ByVal strNew As String) As Boolean
     '重命名文件或文件名
     
-    On Error GoTo LineErr
+    On Error GoTo LineERR
     
     Close
     Name strOld As strNew
     Close
     gfFileRename = True
     Exit Function
-LineErr:
+LineERR:
     Close
     Call gsAlarmAndLog("文件/文件夹重命名异常", False)
 End Function
@@ -446,7 +536,7 @@ End Function
 Public Function gfFileReNameEx(ByVal strOld As String, ByVal strNew As String) As Boolean
     '重命名文件或文件名。先删除存在的新文件名的文件
     
-    On Error GoTo LineErr
+    On Error GoTo LineERR
     
     If gfFileExist(strNew) Then
         Kill strNew '新文件存在则先删除
@@ -456,7 +546,7 @@ Public Function gfFileReNameEx(ByVal strOld As String, ByVal strNew As String) A
     gfFileReNameEx = True
     
     Exit Function
-LineErr:
+LineERR:
     Call gsAlarmAndLog("文件/文件夹重命名异常", False)
 End Function
 
@@ -476,7 +566,7 @@ Public Function gfFileRepair(ByVal strFile As String, Optional ByVal blnFolder A
     strTemp = strFile
     If Len(strTemp) = 0 Then Exit Function          '防止传入空字符串
     
-    On Error GoTo LineErr
+    On Error GoTo LineERR
 
     typBack = gfFileExistEx(strTemp)    '判断是否存在
     If Not typBack.Result Then          '文件不存在
@@ -504,7 +594,7 @@ Public Function gfFileRepair(ByVal strFile As String, Optional ByVal blnFolder A
         gfFileRepair = True '路径完整直接返回True
     End If
 
-LineErr:
+LineERR:
     Close
 End Function
 
@@ -516,10 +606,10 @@ Public Function gfFolderRepair(ByVal strFile As String) As Boolean
     Dim fsObject As Scripting.FileSystemObject
     Dim lngLoc As Long
     
-    On Error GoTo LineErr
+    On Error GoTo LineERR
     
     strTemp = Trim(strFile)
-    If Len(strTemp) = 0 Then GoTo LineErr   '防止传入空字符串
+    If Len(strTemp) = 0 Then GoTo LineERR   '防止传入空字符串
     
     Set fsObject = New Scripting.FileSystemObject   '实例化文件对象
     If fsObject.FolderExists(strTemp) Then    '判断文件夹是否存在
@@ -533,7 +623,7 @@ Public Function gfFolderRepair(ByVal strFile As String) As Boolean
         fsObject.CreateFolder (strTemp) '上层目录确保存在后则创建该文件夹
         gfFolderRepair = True           '创建成功同时返回True
     End If
-LineErr:
+LineERR:
     Set fsObject = Nothing
     If Err.Number > 0 Then
         Call gsAlarmAndLog("文件夹路径[" & strTemp & "]异常！", False)

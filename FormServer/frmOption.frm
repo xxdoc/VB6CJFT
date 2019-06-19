@@ -241,22 +241,30 @@ Private Sub Grid1_ButtonClick(ByVal Row As Long, ByVal Col As Long)
     Dim strPath As String
     Dim lngRow As Long, lngCol As Long
     
+    On Error Resume Next
+    
     lngRow = 19 '浏览按键所在行号
     lngCol = 3  '浏览按键所在列号
     
     If Row = lngRow And Col = lngCol Then    '选择文件保存路径
-        With CommonDialog1
-            .DialogTitle = "备份路径选择"
-            .Flags = cdlOFNPathMustExist  '路径必须存在且有效 cdlOFNCreatePrompt=cdlOFNFileMustExist + cdlOFNPathMustExist
-            .InitDir = IIf(Len(Grid1.Cell(lngRow, lngCol).Text) > 0, Grid1.Cell(lngRow, lngCol).Text, gVar.FolderNameBackup)
-            .FileName = mconstrTip
-            .ShowOpen
-            strPath = mfCheckFolder(.FileName)
-            If Len(strPath) > 0 Then
-                If Not Right(strPath, 1) = "\" Then strPath = strPath & "\"
-                Grid1.Cell(lngRow, lngCol).Text = strPath
-            End If
-        End With
+'''        With CommonDialog1   '权宜之计用法。舍弃了
+'''            .DialogTitle = "备份路径选择"
+'''            .Flags = cdlOFNPathMustExist  '路径必须存在且有效 cdlOFNCreatePrompt=cdlOFNFileMustExist + cdlOFNPathMustExist
+'''            .InitDir = IIf(Len(Grid1.Cell(lngRow, lngCol).Text) > 0, Grid1.Cell(lngRow, lngCol).Text, gVar.FolderNameBackup)
+'''            .FileName = mconstrTip
+'''            .ShowOpen
+'''            strPath = mfCheckFolder(.FileName)
+'''            If Len(strPath) > 0 Then
+'''                If Not Right(strPath, 1) = "\" Then strPath = strPath & "\"
+'''                Grid1.Cell(lngRow, lngCol).Text = strPath
+'''            End If
+'''        End With
+        
+        strPath = BrowseForFolder(Me, Grid1.Cell(lngRow, lngCol).Text)
+        If Len(strPath) > 0 Then
+            If Not Right(strPath, 1) = "\" Then strPath = strPath & "\"
+            Grid1.Cell(lngRow, lngCol).Text = strPath
+        End If
     End If
 End Sub
 
