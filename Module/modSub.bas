@@ -332,11 +332,12 @@ Public Sub gsAlarmAndLog(Optional ByVal strErr As String, Optional ByVal blnMsgB
         Optional ByVal MsgButton As VbMsgBoxStyle = vbCritical)
     '系统异常提示并写下异常日志
     
-    Dim strMsg As String
+    Dim strMsg As String, strWrt As String
     
     strMsg = "异常代号：" & Err.Number & vbCrLf & "异常描述：" & Err.Description
     If blnMsgBox Then MsgBox strMsg, MsgButton, strErr
-    Call gsFileWrite(gVar.FileNameErrLog, strErr & vbTab & Replace(strMsg, vbCrLf, vbTab))
+    strWrt = Err.Number & vbTab & vbTab & Err.Description
+    Call gsFileWrite(gVar.FileNameErrLog, strErr & vbTab & vbTab & strWrt)
     
 End Sub
 
@@ -419,7 +420,7 @@ Public Sub gsFileWrite(ByVal strFile As String, ByVal strContent As String, _
         Case udPut
             Put #intNum, , strTime & vbTab & strContent
         Case Else   '其余皆当作udPrint
-            Print #intNum, strTime, strContent
+            Print #intNum, strTime & vbTab & vbTab & strContent
     End Select
     
     Close #intNum

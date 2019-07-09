@@ -14,7 +14,7 @@ Begin VB.MDIForm frmSysMain
    ClientWidth     =   10155
    Icon            =   "frmSysMain.frx":0000
    LinkTopic       =   "MDIForm1"
-   StartUpPosition =   3  '窗口缺省
+   StartUpPosition =   1  '所有者中心
    Begin VB.PictureBox Picture0 
       Align           =   1  'Align Top
       Height          =   1455
