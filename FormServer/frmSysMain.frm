@@ -1127,7 +1127,7 @@ Private Sub msWriteLoginInfoLog(ByVal strIP As String, ByVal strPC As String, By
     '记录用户的登陆日志，文件名保存在gVar.FileNameLoginLog中
     
     Const conSize As Long = 1000000 '固定日志文件大小，超过则按日期存储
-    Dim strNewFile As String
+    Dim strNewFile As String, strSep As String
     Dim intNum As Integer
     
     If Not gfFileRepair(gVar.FolderData, True) Then Exit Sub    '判断日志目录是否存在
@@ -1142,11 +1142,12 @@ Private Sub msWriteLoginInfoLog(ByVal strIP As String, ByVal strPC As String, By
     End If
     
     intNum = FreeFile
+    strSep = vbTab & vbTab
     On Error Resume Next
     
     Open gVar.FileNameLoginLog For Append As intNum
-    Print #intNum, strIP & vbTab & strPC & vbTab & strAccount & _
-        vbTab & strUserName & vbTab & strTime & vbTab & strIndex & vbTab & strApplyID
+    Print #intNum, strIP & strSep & strPC & strSep & strAccount & _
+        strSep & strUserName & strSep & strTime & strSep & strIndex & strSep & strApplyID
     Close
     
 End Sub
