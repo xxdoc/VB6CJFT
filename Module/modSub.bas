@@ -520,22 +520,30 @@ Public Sub gsFormSizeLoad(ByRef frmLoad As Form, Optional blnServer As Boolean =
     Else
         If blnServer Then
             Left = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerWindowLeft, 0))
-            If Left < 0 Or Left > Screen.Width Then Left = 0
             Top = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerWindowTop, 0))
-            If Top < 0 Or Left > Screen.Height Then Top = 0
             Width = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerWindowWidth, gVar.WindowWidth))
-            If Width <= 0 Or Width > Screen.Width Then Width = gVar.WindowWidth
             Height = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerWindowHeight, gVar.WindowHeight))
-            If Height <= 0 Or Height > Screen.Height Then Height = gVar.WindowHeight
         Else
             Left = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientWindowLeft, 0))
-            If Left < 0 Or Left > Screen.Width Then Left = 0
             Top = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientWindowTop, 0))
-            If Top < 0 Or Left > Screen.Height Then Top = 0
             Width = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientWindowWidth, gVar.WindowWidth))
-            If Width <= 0 Or Width > Screen.Width Then Width = gVar.WindowWidth
             Height = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientWindowHeight, gVar.WindowHeight))
-            If Height <= 0 Or Height > Screen.Height Then Height = gVar.WindowHeight
+        End If
+        If Width <= 0 Or Width > Screen.Width Then Width = gVar.WindowWidth
+        If Height <= 0 Or Height > Screen.Height Then Height = gVar.WindowHeight
+        If Left <= 0 Or Left > Screen.Width Then
+            If Width < Screen.Width Then
+                Left = (Screen.Width - Width) / 2
+            Else
+                Left = 0
+            End If
+        End If
+        If Top <= 0 Or Left > Screen.Height Then
+            If Height < Screen.Height Then
+                Top = (Screen.Height - Height) / 2
+            Else
+                Top = 0
+            End If
         End If
         If frmLoad.WindowState = vbNormal Then frmLoad.Move Left, Top, Width, Height
     End If
@@ -687,7 +695,7 @@ Public Sub gsGridToExcel(ByRef gridControl As Control, Optional ByVal TimeCol As
         .Range(.Cells(1, 1), .Cells(R, C)).HorizontalAlignment = -4108  'xlCenter= -4108(&HFFFFEFF4)   '居中显示
         .Range(.Cells(1, 1), .Cells(R, C)).Borders.Weight = 2   'xlThin=2  '单元格显示黑色线宽
         .Columns.EntireColumn.AutoFit   '自动列宽
-        .Rows(1).rowHeight = 23 '第一行行高
+        .Rows(1).RowHeight = 23 '第一行行高
     End With
     
     xlsOut.Visible = True   '显示Excel文档
