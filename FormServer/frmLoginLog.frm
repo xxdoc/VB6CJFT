@@ -71,7 +71,8 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Option Explicit
 
-Dim mstrFile As String
+Dim mstrFile As String  '日志文件路径
+Private Const mconRows As Long = 50 '表格最小行数
 
 Private Sub mGridSet()
     With Me.Grid1
@@ -80,7 +81,7 @@ Private Sub mGridSet()
         .FixedCols = 1
         .FixedRows = 1
         .Cols = 8
-        .Rows = 50
+        .Rows = mconRows + 1
         .BackColorBkg = Me.BackColor
         .BackColorFixed = RGB(121, 151, 219)
         .BackColor2 = RGB(250, 235, 215)
@@ -130,6 +131,7 @@ Private Sub mOpenLog()
     intNum = FreeFile
     strSep = vbTab & vbTab
     sngTime = Timer
+    Me.MousePointer = 13
     
     Open mstrFile For Input As #intNum
     With Me.Grid1
@@ -147,8 +149,9 @@ Private Sub mOpenLog()
                 .Cell(Rs, K + 1).Text = arrStr(K)
             Next
         Wend
-        If Rs <= 50 Then
-            .Rows = 51
+        If Rs <= mconRows Then
+            .Rows = mconRows + 1
+            If Rs < mconRows Then .Range(Rs + 1, 1, mconRows, .Cols - 1).ClearText
         Else
             .Rows = Rs + 1
         End If
@@ -158,6 +161,8 @@ Private Sub mOpenLog()
     
     Close #intNum
     Me.Label2.Caption = "用时" & Format(Timer - sngTime, "0.000") & "秒"
+    Me.Text1.Text = mstrFile
+    Me.MousePointer = 0
     
     If Err.Number Then
         Call gsAlarmAndLog("日志文件读取异常")
@@ -165,13 +170,14 @@ Private Sub mOpenLog()
 End Sub
 
 Private Sub Command1_Click()
-    Dim strFile As String
+    Dim strFile As String, strPrefix As String, strExtension As String
     
     Me.Label2.Caption = "用时…"
-    
+    strPrefix = Mid(gVar.FileNameLoginLog, InStrRev(gVar.FileNameLoginLog, "\") + 1, InStrRev(gVar.FileNameLoginLog, ".") - InStrRev(gVar.FileNameLoginLog, "\") - 1)
+    strExtension = Mid(gVar.FileNameLoginLog, InStrRev(gVar.FileNameLoginLog, "."))
     With Me.CommonDialog1
         .DialogTitle = "选择日志文件"
-        .Filter = "日志(log)|LoginLog*.log"
+        .Filter = "日志(" & strExtension & ")|" & strPrefix & "*" & strExtension
         .Flags = cdlOFNFileMustExist
         .InitDir = gVar.FolderData
         .ShowOpen
@@ -180,7 +186,7 @@ Private Sub Command1_Click()
     
     If Len(strFile) > 0 Then
         If LCase(Right(strFile, 4)) = LCase(".log") Then
-            If gfFileExist(strFile) > 0 Then
+            If gfFileExist(strFile) Then
                 mstrFile = strFile
                 Call mOpenLog
             End If
@@ -192,7 +198,6 @@ Private Sub Form_Load()
     Set Me.Icon = gWind.Icon
     Call mGridSet
     mstrFile = gVar.FileNameLoginLog
-    Me.Text1.Text = mstrFile
     Call mOpenLog
 End Sub
 
@@ -201,3 +206,10 @@ Private Sub Form_Resize()
     Me.Grid1.Move 0, 550, Me.ScaleWidth, Me.ScaleHeight - Me.Grid1.Top
 End Sub
 
+Private Sub Grid1_KeyDown(KeyCode As Integer, ByVal Shift As Integer)
+    KeyCode = 0 '屏蔽按键
+End Sub
+
+Private Sub Grid1_KeyPress(KeyAscii As Integer)
+    If KeyAscii <> 3 Then KeyAscii = 0  '除了Ctrl+C，其余屏蔽
+End Sub
