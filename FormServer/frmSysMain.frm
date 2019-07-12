@@ -479,6 +479,8 @@ Private Sub msAddAction(ByRef cbsBars As XtremeCommandBars.CommandBars)
         .Add gID.IconPopupMenuShowWindow, "显示窗口", "", "", ""
         
         .Add gID.Tool, "工具", "", "", "工具"
+        .Add gID.toolErrorLog, "错误日志", "", "", "frmErrorLog"
+        .Add gID.toolLoginLog, "登陆日志", "", "", "frmLoginLog"
         .Add gID.toolOptions, "选项", "", "", "frmOption"
         
         
@@ -626,7 +628,12 @@ Private Sub msAddMenu(ByRef cbsBars As XtremeCommandBars.CommandBars)
     
     '工具菜单
     Set cbsMenuMain = cbsMenuBar.Controls.Add(xtpControlPopup, gID.Tool, "")
-    cbsMenuMain.CommandBar.Controls.Add xtpControlButton, gID.toolOptions, ""
+    Set cbsMenuCtrl = cbsMenuMain.CommandBar.Controls.Add(xtpControlButton, gID.toolErrorLog, "")
+    cbsMenuCtrl.BeginGroup = True
+    Set cbsMenuCtrl = cbsMenuMain.CommandBar.Controls.Add(xtpControlButton, gID.toolLoginLog, "")
+    cbsMenuCtrl.BeginGroup = True
+    Set cbsMenuCtrl = cbsMenuMain.CommandBar.Controls.Add(xtpControlButton, gID.toolOptions, "")
+    cbsMenuCtrl.BeginGroup = True
     
     '帮助主菜单
     Set cbsMenuMain = cbsMenuBar.Controls.Add(xtpControlPopup, gID.Help, "")

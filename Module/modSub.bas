@@ -114,7 +114,9 @@ Public Sub Main(Optional ByVal blnLoad As Boolean = True)
         
         
         .Tool = 4000
-        .toolOptions = 4101
+        .toolErrorLog = 4101
+        .toolLoginLog = 4102
+        .toolOptions = 4103
         
         
         '''***请将所有菜单栏中的【菜单】的CommandBrs的ID值设置在20000以下*******************
