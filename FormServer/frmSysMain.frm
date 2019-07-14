@@ -1,7 +1,7 @@
 VERSION 5.00
 Object = "{248DD890-BB45-11CF-9ABC-0080C7E7B78D}#1.0#0"; "MSWINSCK.OCX"
 Object = "{E08BA07E-6463-4EAB-8437-99F08000BAD9}#1.9#0"; "FlexCell.ocx"
-Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.2#0"; "MSCOMCTL.OCX"
+Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.2#0"; "mscomctl.ocx"
 Object = "{555E8FCC-830E-45CC-AF00-A012D5AE7451}#15.3#0"; "Codejock.CommandBars.v15.3.1.ocx"
 Object = "{BD0C1912-66C3-49CC-8B12-7B347BF6C846}#15.3#0"; "Codejock.SkinFramework.v15.3.1.ocx"
 Begin VB.Form frmSysMain 
@@ -445,6 +445,7 @@ Private Sub msAddAction(ByRef cbsBars As XtremeCommandBars.CommandBars)
         
         .Add gID.Wnd, "窗口", "", "", "窗口"
         
+        .Add gID.WndThemeSkinSet, "窗口主题设置", "", "", "frmSysThemeSet"
         .Add gID.WndResetLayout, "重置窗口布局", "", "", ""
         
         .Add gID.WndThemeCommandBars, "工具栏主题", "", "", ""
@@ -478,6 +479,8 @@ Private Sub msAddAction(ByRef cbsBars As XtremeCommandBars.CommandBars)
         .Add gID.IconPopupMenuShowWindow, "显示窗口", "", "", ""
         
         .Add gID.Tool, "工具", "", "", "工具"
+        .Add gID.toolErrorLog, "错误日志", "", "", "frmErrorLog"
+        .Add gID.toolLoginLog, "登陆日志", "", "", "frmLoginLog"
         .Add gID.toolOptions, "选项", "", "", "frmOption"
         
         
@@ -598,6 +601,10 @@ Private Sub msAddMenu(ByRef cbsBars As XtremeCommandBars.CommandBars)
     '窗口主菜单
     Set cbsMenuMain = cbsMenuBar.Controls.Add(xtpControlPopup, gID.Wnd, "")
     With cbsMenuMain.CommandBar.Controls
+        '窗口主题设置
+        Set cbsMenuCtrl = .Add(xtpControlButton, gID.WndThemeSkinSet, "")
+        cbsMenuCtrl.BeginGroup = True
+        
         '重置布局
         Set cbsMenuCtrl = .Add(xtpControlButton, gID.WndResetLayout, "")
         cbsMenuCtrl.BeginGroup = True
@@ -621,7 +628,12 @@ Private Sub msAddMenu(ByRef cbsBars As XtremeCommandBars.CommandBars)
     
     '工具菜单
     Set cbsMenuMain = cbsMenuBar.Controls.Add(xtpControlPopup, gID.Tool, "")
-    cbsMenuMain.CommandBar.Controls.Add xtpControlButton, gID.toolOptions, ""
+    Set cbsMenuCtrl = cbsMenuMain.CommandBar.Controls.Add(xtpControlButton, gID.toolErrorLog, "")
+    cbsMenuCtrl.BeginGroup = True
+    Set cbsMenuCtrl = cbsMenuMain.CommandBar.Controls.Add(xtpControlButton, gID.toolLoginLog, "")
+    cbsMenuCtrl.BeginGroup = True
+    Set cbsMenuCtrl = cbsMenuMain.CommandBar.Controls.Add(xtpControlButton, gID.toolOptions, "")
+    cbsMenuCtrl.BeginGroup = True
     
     '帮助主菜单
     Set cbsMenuMain = cbsMenuBar.Controls.Add(xtpControlPopup, gID.Help, "")
@@ -939,7 +951,7 @@ Private Sub msLeftClick(ByVal CID As Long, ByRef cbsBars As XtremeCommandBars.Co
 '''                                Call gsOpenTheWindow(strKey)
 '''                        End Select
                         Select Case CID
-                            Case .toolOptions
+                            Case .toolOptions, .WndThemeSkinSet
                                 Call gsOpenTheWindow(strKey, vbModal, vbNormal)
                             Case Else
                                 Call gsOpenTheWindow(strKey)
@@ -964,6 +976,7 @@ Private Sub msLoadParameter(Optional ByVal blnLoad As Boolean = True)
     With gVar
         .ParaBlnWindowCloseMin = Val(GetSetting(.RegAppName, .RegSectionSettings, .RegKeyParaWindowCloseMin, 1))    '关闭时最小化
         .ParaBlnWindowMinHide = Val(GetSetting(.RegAppName, .RegSectionSettings, .RegKeyParaWindowMinHide, 1))  '最小化时隐藏
+        .ParaBlnWindowStartMinS = Val(GetSetting(.RegAppName, .RegSectionSettings, .RegKeyParaWindowStartMinS, 1)) '启动时最小化
         
         .TCPDefaultIP = Me.Winsock1.Item(0).LocalIP '本机IP地址
         .TCPSetIP = gVar.TCPDefaultIP   '服务端使用本机IP地址
@@ -979,7 +992,7 @@ Private Sub msLoadParameter(Optional ByVal blnLoad As Boolean = True)
         .ParaBlnLimitClientConnect = Val(GetSetting(.RegAppName, .RegSectionTCP, .RegKeyParaLimitClientConnect, 0)) '限制客户端连接
         .ParaLimitClientConnectTime = gfGetRegNumericValue(.RegAppName, .RegSectionTCP, .RegKeyParaLimitClientConnectTime, True, 30, 1, 60) '限制客户端连接时长
         .TCPConnectMax = gfGetRegNumericValue(.RegAppName, .RegSectionTCP, .RegKeyParaLimitClientConnectNumber, True, 2, 1) '限制客户端连接数
-        
+        .ParaBackupStore = gfGetRegStringValue(.RegAppName, .RegSectionDBServer, .RegKeyServerBackStore, .FolderNameBackup)  '备份路径
     End With
 End Sub
 
@@ -1001,6 +1014,14 @@ Private Sub msResetLayout(ByRef cbsBars As XtremeCommandBars.CommandBars)
     Next
     
     Set cBar = Nothing
+End Sub
+
+Private Sub msRestart()
+    '重启程序
+    Dim strCMD As String
+    
+    strCMD = gVar.AppPath & "FFSR.exe " & gVar.EXENameOfServer & gVar.CmdLineSeparator & "close"
+    Call gfShell(strCMD)
 End Sub
 
 Private Sub msSetServerState(ByVal colorSet As Long)
@@ -1113,7 +1134,7 @@ Private Sub msWriteLoginInfoLog(ByVal strIP As String, ByVal strPC As String, By
     '记录用户的登陆日志，文件名保存在gVar.FileNameLoginLog中
     
     Const conSize As Long = 1000000 '固定日志文件大小，超过则按日期存储
-    Dim strNewFile As String
+    Dim strNewFile As String, strSep As String
     Dim intNum As Integer
     
     If Not gfFileRepair(gVar.FolderData, True) Then Exit Sub    '判断日志目录是否存在
@@ -1128,11 +1149,12 @@ Private Sub msWriteLoginInfoLog(ByVal strIP As String, ByVal strPC As String, By
     End If
     
     intNum = FreeFile
+    strSep = vbTab & vbTab
     On Error Resume Next
     
     Open gVar.FileNameLoginLog For Append As intNum
-    Print #intNum, strIP & vbTab & strPC & vbTab & strAccount & _
-        vbTab & strUserName & vbTab & strTime & vbTab & strIndex & vbTab & strApplyID
+    Print #intNum, strIP & strSep & strPC & strSep & strAccount & _
+        strSep & strUserName & strSep & strTime & strSep & strIndex & strSep & strApplyID
     Close
     
 End Sub
@@ -1205,7 +1227,7 @@ Private Sub Form_Load()
     cbsBars.EnableCustomization True        '允许CommandBars自定义，此属性最好放在所有CommandBars设定之后
     cbsBars.Options.UpdatePeriod = 250      '更改CommandBars的Update事件的执行周期，默认100ms
     
-    Call gsLoadSkin(Me, Me.SkinFramework1, sMSO7, True)  '加载窗口主题
+    Call gsLoadSkin(Me, Me.SkinFramework1, sMSO7, True, , , True) '加载窗口主题
     
     '加载工具栏主题
     Call gsThemeCommandBar(Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerCommandbarsTheme, gID.WndThemeCommandBarsRibbon)), cbsBars)
@@ -1223,6 +1245,9 @@ Private Sub Form_Load()
     
     Call msGridSet(Grid1)  '表格设置
     Call gfNotifyIconAdd(Me)    '添加托盘图标
+    If gVar.ParaBlnWindowStartMinS Then
+        Me.WindowState = vbMinimized '启动时最小化
+    End If
     
     Set cbsBars = Nothing   '销毁使用完的对象
 End Sub
@@ -1284,6 +1309,8 @@ Private Sub Form_Unload(Cancel As Integer)
     '卸载窗体时保存信息
     Dim resetNotifyIconData As gtypeNOTIFYICONDATA
     
+    On Error Resume Next
+    
     '保存注册表信息-CommandBars设置
     Call Me.CommandBars1.SaveCommandBars(gVar.RegKeyCommandBars, gVar.RegAppName, gVar.RegKeyCBSServerSetting)
     
@@ -1337,7 +1364,7 @@ Private Sub Timer1_Timer(Index As Integer)
 '    Static ConfirmOK() As Boolean
 '    Static CountTime() As Long
         
-'''    On Error Resume Next
+    On Error Resume Next
     If Index = 0 Then
         If Me.Winsock1.Item(Index).State = 2 Then  '侦听正常状态
             Call msSetServerState(vbGreen)
@@ -1445,6 +1472,10 @@ Private Sub Timer1_Timer(Index As Integer)
     Set sckClose = Nothing
     Set sckCheck = Nothing
     Set tmrUld = Nothing
+    
+    If Err.Number > 0 Then
+        Call msRestart
+    End If
 End Sub
 
 Private Sub Winsock1_Close(Index As Integer)
@@ -1453,7 +1484,7 @@ Private Sub Winsock1_Close(Index As Integer)
     Dim strIP As String, strRequestID As String
     Dim tmDel As VB.Timer
     
-'''    On Error Resume Next
+    On Error Resume Next
     If Index = 0 Then
         Call msCloseAllConnect(True, False)  '关闭侦听控件则关闭所有连接
     Else
@@ -1494,6 +1525,9 @@ Private Sub Winsock1_Close(Index As Integer)
     
     Set tmDel = Nothing
     
+    If Err.Number > 0 Then
+        Call msRestart
+    End If
 End Sub
 
 Private Sub Winsock1_ConnectionRequest(Index As Integer, ByVal requestID As Long)
@@ -1502,6 +1536,8 @@ Private Sub Winsock1_ConnectionRequest(Index As Integer, ByVal requestID As Long
     Dim sckNew As MSWinsockLib.Winsock
     Dim K As Long
     Dim blnFull As Boolean
+    
+    On Error Resume Next
     
     If Index <> 0 Then Exit Sub '仅0元素的控件在侦听能接收连接申请
     
@@ -1542,14 +1578,18 @@ Private Sub Winsock1_ConnectionRequest(Index As Integer, ByVal requestID As Long
     
     Call gfSendInfo(gVar.PTClientConfirm, Me.Winsock1.Item(K)) '发送客户端确认信息，若规定时间内返回确认信息则连接正常，否则断开连接。
     Call msStartConfirm(K)  '激活 返回确认信息 计时器
-    
-    
+
+    If Err.Number > 0 Then
+        Call msRestart
+    End If
 End Sub
 
 Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
     '接收信息
     Dim strGet As String
     Dim byteGet() As Byte
+    
+    On Error Resume Next
     
     With gArr(Index)
         If Not .FileTransmitState Then
@@ -1599,6 +1639,9 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
         End If
     End With
     
+    If Err.Number > 0 Then
+        Call msRestart
+    End If
 End Sub
 
 Private Sub Winsock1_Error(Index As Integer, ByVal Number As Integer, Description As String, ByVal Scode As Long, ByVal Source As String, ByVal HelpFile As String, ByVal HelpContext As Long, CancelDisplay As Boolean)

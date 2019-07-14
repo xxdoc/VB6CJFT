@@ -115,7 +115,7 @@ Private Function mfCheckUpdate() As Boolean
     
     If Me.Winsock1.Item(1).State <> 7 Then Exit Function
     Call msSetText("正在联网验证版本中……", vbBlue)
-    Call gfSendInfo(gVar.PTVersionOfClient & strVerLoc, Winsock1.Item(1))
+    Call gfSendInfo(gVar.PTVersionOfClient & strVerLoc, Me.Winsock1.Item(1))
     
 End Function
 
@@ -136,7 +136,7 @@ Private Function mfConnect(Optional ByVal blnCon As Boolean = True) As Boolean
     
     With Me.Winsock1.Item(1)
         If Label1(1).Caption = gVar.ClientStateDisConnected Then
-            If .State <> 0 Then .Close
+            If .State <> 0 Then .Close  '先关闭
             .RemoteHost = gVar.TCPSetIP
             .RemotePort = gVar.TCPSetPort
             .Connect
@@ -154,6 +154,7 @@ Private Function mfShellSetup(ByVal strFile As String) As Boolean
         If gfCloseApp(gVar.EXENameOfClient) Then   '关闭客户端exe
             If gfShellExecute(strFile) Then     '运行安装包
                 Unload Me
+                Exit Function
             End If
         Else
             MsgBox "请确认已关闭客户端程序，并重新运行更新程序！", vbInformation, "警告"
@@ -193,8 +194,6 @@ Private Sub msSetText(ByVal strTxt As String, ByVal ForeColor As Long)
     Me.Text1.ForeColor = ForeColor
 End Sub
 
-
-
 Private Sub Command1_Click()
     Unload Me
 End Sub
@@ -214,7 +213,7 @@ Private Sub Form_Load()
     Call msLoadParameter(True)
     
     '检测是否传入命令行参数进来，没有则退出程序
-    strCmd = Command
+    strCmd = Command()
     If Len(strCmd) = 0 Then
         GoTo LineUnload '禁止直接启动更新程序，必须带命令参数
     Else
@@ -233,7 +232,7 @@ Private Sub Form_Load()
     End If
     
     Call msSetLabel(gVar.ClientStateDisConnected, vbRed)
-    Call gsLoadSkin(Me, Me.SkinFramework1, sMSVst, False)
+    Call gsLoadSkin(Me, Me.SkinFramework1, sMSVst, True)
     Call mfConnect(True)
     
     Exit Sub
@@ -245,12 +244,15 @@ End Sub
 Private Sub Form_Unload(Cancel As Integer)
     '卸载窗体
     
+    On Error Resume Next
+    
     mblnHide = False
     mblnCheckStart = False
     mblnUpdateFinish = False
     
     Me.Winsock1.Item(1).Close
     gArr(1) = gArr(0)
+    
     Close
     
 End Sub
@@ -344,14 +346,14 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
                 If Not mblnHide Then
                     MsgBox "客户端与服务端连接数受限，请其他用户退出后再试！", vbCritical, "连接数已满警告"
                 End If
-                Call Unload(Me)
+                mblnUnload = True ' Call Unload(Me)
                 
             ElseIf InStr(strGet, gVar.PTConnectTimeOut) > 0 Then '服务端发来连接时间到
                 Me.Timer1.Enabled = False
                 If Not mblnHide Then
                     MsgBox "与服务器连续连接时间已到！", vbExclamation, "连接时间限制提示"
                 End If
-                Call Unload(Me)
+                mblnUnload = True 'Call Unload(Me)
                 
             ElseIf InStr(strGet, gVar.PTVersionNeedUpdate) > 0 Then '需要更新
                 Dim strVer As String
@@ -425,7 +427,7 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
     End With
     
     Exit Sub
-LineErr:
+LineERR:
     mblnFTErr = True
     mblnUnload = True
 End Sub
@@ -437,6 +439,6 @@ Private Sub Winsock1_Error(Index As Integer, ByVal Number As Integer, Descriptio
             Close #gArr(Index).FileNumber
             gArr(Index) = gArr(0)
         End If
-        If mblnHide Then Unload Me  '异常时卸载
+        If mblnHide Then mblnUnload = True  '异常时卸载
     End If
 End Sub

@@ -1,74 +1,146 @@
 VERSION 5.00
-Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.1#0"; "MSCOMCTL.OCX"
+Object = "{F9043C88-F6F2-101A-A3C9-08002B2F49FB}#1.2#0"; "ComDlg32.OCX"
+Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.2#0"; "mscomctl.ocx"
 Begin VB.Form frmSysUser 
    Caption         =   "用户管理"
    ClientHeight    =   7290
    ClientLeft      =   120
    ClientTop       =   450
-   ClientWidth     =   15870
+   ClientWidth     =   16185
    LinkTopic       =   "Form1"
    MDIChild        =   -1  'True
    ScaleHeight     =   7290
-   ScaleWidth      =   15870
+   ScaleWidth      =   16185
    Begin VB.HScrollBar Hsb 
       Height          =   255
       Left            =   14520
-      TabIndex        =   26
+      TabIndex        =   23
       Top             =   6720
       Width           =   1455
    End
    Begin VB.VScrollBar Vsb 
       Height          =   1935
       Left            =   15600
-      TabIndex        =   25
+      TabIndex        =   22
       Top             =   4680
       Width           =   255
    End
    Begin VB.Frame ctlMove 
       BorderStyle     =   0  'None
       Caption         =   "Frame2"
-      Height          =   6135
+      Height          =   6855
       Left            =   120
-      TabIndex        =   12
+      TabIndex        =   10
       Top             =   240
       Width           =   15615
       Begin VB.Frame Frame1 
          Caption         =   "用户角色指定"
          ForeColor       =   &H00FF0000&
-         Height          =   5895
+         Height          =   6375
          Index           =   1
          Left            =   7680
-         TabIndex        =   23
+         TabIndex        =   21
          Top             =   0
-         Width           =   7695
-         Begin VB.CommandButton Command3 
-            Caption         =   "用户角色指定结果保存"
-            Height          =   495
-            Left            =   4680
-            TabIndex        =   11
-            Top             =   1920
-            Width           =   2415
-         End
-         Begin VB.TextBox Text1 
-            BackColor       =   &H80000003&
-            BeginProperty Font 
-               Name            =   "宋体"
-               Size            =   10.5
-               Charset         =   134
-               Weight          =   400
-               Underline       =   0   'False
-               Italic          =   0   'False
-               Strikethrough   =   0   'False
-            EndProperty
-            ForeColor       =   &H000000FF&
-            Height          =   330
+         Width           =   7815
+         Begin VB.Frame Frame1 
+            Caption         =   "用户头像"
+            ForeColor       =   &H00FF00FF&
+            Height          =   2895
             Index           =   5
-            Left            =   5040
-            Locked          =   -1  'True
-            TabIndex        =   10
-            Text            =   "Text1"
-            Top             =   720
-            Width           =   2500
+            Left            =   4000
+            TabIndex        =   32
+            Top             =   2880
+            Width           =   3720
+            Begin MSComDlg.CommonDialog CommonDialog1 
+               Left            =   120
+               Top             =   2160
+               _ExtentX        =   847
+               _ExtentY        =   847
+               _Version        =   393216
+            End
+            Begin VB.CommandButton Command4 
+               Caption         =   "选择照片"
+               Height          =   495
+               Left            =   720
+               TabIndex        =   36
+               Top             =   2160
+               Width           =   1095
+            End
+            Begin VB.Label Label1 
+               Caption         =   "*格式为jpg|png|bmp *文件小于5MB"
+               ForeColor       =   &H000000FF&
+               Height          =   420
+               Index           =   32
+               Left            =   1845
+               TabIndex        =   37
+               Top             =   2200
+               Width           =   1710
+            End
+            Begin VB.Image Image1 
+               Appearance      =   0  'Flat
+               BorderStyle     =   1  'Fixed Single
+               Height          =   1815
+               Left            =   600
+               Top             =   240
+               Width           =   1305
+            End
+         End
+         Begin VB.Frame Frame1 
+            Height          =   2415
+            Index           =   4
+            Left            =   4000
+            TabIndex        =   31
+            Top             =   150
+            Width           =   3720
+            Begin VB.TextBox Text1 
+               BackColor       =   &H80000003&
+               BeginProperty Font 
+                  Name            =   "宋体"
+                  Size            =   10.5
+                  Charset         =   134
+                  Weight          =   400
+                  Underline       =   0   'False
+                  Italic          =   0   'False
+                  Strikethrough   =   0   'False
+               EndProperty
+               ForeColor       =   &H000000FF&
+               Height          =   330
+               Index           =   5
+               Left            =   1080
+               Locked          =   -1  'True
+               TabIndex        =   34
+               Text            =   "Text1"
+               Top             =   360
+               Width           =   2500
+            End
+            Begin VB.CommandButton Command3 
+               Caption         =   "用户角色指定结果保存"
+               Height          =   495
+               Left            =   720
+               TabIndex        =   33
+               Top             =   1560
+               Width           =   2415
+            End
+            Begin VB.Label Label1 
+               AutoSize        =   -1  'True
+               Caption         =   "已选用户"
+               BeginProperty Font 
+                  Name            =   "宋体"
+                  Size            =   10.5
+                  Charset         =   134
+                  Weight          =   700
+                  Underline       =   0   'False
+                  Italic          =   0   'False
+                  Strikethrough   =   0   'False
+               EndProperty
+               ForeColor       =   &H00FF0000&
+               Height          =   210
+               Index           =   31
+               Left            =   120
+               TabIndex        =   35
+               Top             =   390
+               Width           =   900
+            End
          End
          Begin MSComctlLib.TreeView TreeView2 
             Height          =   4095
@@ -95,41 +167,25 @@ Begin VB.Form frmSysUser
                Strikethrough   =   0   'False
             EndProperty
          End
-         Begin VB.Label Label1 
-            AutoSize        =   -1  'True
-            Caption         =   "已选用户"
-            BeginProperty Font 
-               Name            =   "宋体"
-               Size            =   10.5
-               Charset         =   134
-               Weight          =   700
-               Underline       =   0   'False
-               Italic          =   0   'False
-               Strikethrough   =   0   'False
-            EndProperty
-            ForeColor       =   &H00FF0000&
-            Height          =   210
-            Index           =   31
-            Left            =   4080
-            TabIndex        =   24
-            Top             =   750
-            Width           =   900
-         End
       End
       Begin VB.Frame Frame1 
          Caption         =   "用户"
          ForeColor       =   &H00FF0000&
-         Height          =   5895
+         Height          =   6375
          Index           =   0
          Left            =   0
-         TabIndex        =   13
+         TabIndex        =   11
          Top             =   0
          Width           =   7455
+         Begin VB.Timer Timer1 
+            Left            =   4800
+            Top             =   1920
+         End
          Begin VB.Frame Frame1 
             Height          =   405
             Index           =   3
             Left            =   675
-            TabIndex        =   30
+            TabIndex        =   27
             Top             =   4080
             Width           =   2500
             Begin VB.OptionButton Option1 
@@ -147,7 +203,7 @@ Begin VB.Form frmSysUser
                Height          =   210
                Index           =   2
                Left            =   120
-               TabIndex        =   32
+               TabIndex        =   29
                Top             =   150
                Width           =   855
             End
@@ -166,7 +222,7 @@ Begin VB.Form frmSysUser
                Height          =   210
                Index           =   3
                Left            =   1200
-               TabIndex        =   31
+               TabIndex        =   28
                Top             =   150
                Width           =   855
             End
@@ -175,7 +231,7 @@ Begin VB.Form frmSysUser
             Height          =   405
             Index           =   2
             Left            =   720
-            TabIndex        =   27
+            TabIndex        =   24
             Top             =   2100
             Width           =   2500
             Begin VB.OptionButton Option1 
@@ -193,7 +249,7 @@ Begin VB.Form frmSysUser
                Height          =   210
                Index           =   1
                Left            =   1200
-               TabIndex        =   29
+               TabIndex        =   26
                Top             =   150
                Width           =   855
             End
@@ -212,7 +268,7 @@ Begin VB.Form frmSysUser
                Height          =   210
                Index           =   0
                Left            =   120
-               TabIndex        =   28
+               TabIndex        =   25
                Top             =   150
                Width           =   855
             End
@@ -255,7 +311,7 @@ Begin VB.Form frmSysUser
             Height          =   300
             Index           =   1
             Left            =   1320
-            TabIndex        =   14
+            TabIndex        =   12
             Text            =   "Combo2"
             Top             =   3240
             Visible         =   0   'False
@@ -396,7 +452,7 @@ Begin VB.Form frmSysUser
             Height          =   210
             Index           =   7
             Left            =   120
-            TabIndex        =   33
+            TabIndex        =   30
             Top             =   4200
             Width           =   450
          End
@@ -415,7 +471,7 @@ Begin VB.Form frmSysUser
             Height          =   210
             Index           =   2
             Left            =   165
-            TabIndex        =   22
+            TabIndex        =   20
             Top             =   1260
             Width           =   450
          End
@@ -434,7 +490,7 @@ Begin VB.Form frmSysUser
             Height          =   210
             Index           =   1
             Left            =   165
-            TabIndex        =   21
+            TabIndex        =   19
             Top             =   780
             Width           =   450
          End
@@ -453,7 +509,7 @@ Begin VB.Form frmSysUser
             Height          =   210
             Index           =   0
             Left            =   165
-            TabIndex        =   20
+            TabIndex        =   18
             Top             =   300
             Width           =   450
          End
@@ -472,7 +528,7 @@ Begin VB.Form frmSysUser
             Height          =   210
             Index           =   3
             Left            =   165
-            TabIndex        =   19
+            TabIndex        =   17
             Top             =   1740
             Width           =   450
          End
@@ -491,7 +547,7 @@ Begin VB.Form frmSysUser
             Height          =   210
             Index           =   4
             Left            =   165
-            TabIndex        =   18
+            TabIndex        =   16
             Top             =   2220
             Width           =   450
          End
@@ -510,7 +566,7 @@ Begin VB.Form frmSysUser
             Height          =   210
             Index           =   5
             Left            =   165
-            TabIndex        =   17
+            TabIndex        =   15
             Top             =   2700
             Width           =   450
          End
@@ -529,7 +585,7 @@ Begin VB.Form frmSysUser
             Height          =   210
             Index           =   6
             Left            =   165
-            TabIndex        =   16
+            TabIndex        =   14
             Top             =   3180
             Width           =   450
          End
@@ -539,7 +595,7 @@ Begin VB.Form frmSysUser
             Height          =   420
             Index           =   21
             Left            =   240
-            TabIndex        =   15
+            TabIndex        =   13
             Top             =   5640
             Width           =   3060
          End
@@ -553,8 +609,7 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Option Explicit
 
-Dim mlngID As Long
-
+Dim mlngID As Long  '循环变量
 Private Const mKeyDept As String = "k"
 Private Const mKeyUser As String = "u"
 Private Const mOtherKey As String = "kOther"
@@ -564,6 +619,59 @@ Private Const mOtherKeyRole As String = "kOtherRole"
 Private Const mOtherTextRole As String = "其他角色"
 Private Const mTwoBar As String = "--"
 
+
+Private Function mfCheckPhoto(ByVal strPhoPath As String) As Boolean
+    '检查图片是否正常
+    
+    gVar.FTUploadFilePath = Trim(strPhoPath)    '获取照片路径
+    If Len(gVar.FTUploadFilePath) = 0 Then Exit Function
+    
+    If Not gfFileExist(gVar.FTUploadFilePath) Then    '原文件不存在
+        MsgBox "头像照片的原文件已丢失，不进行保存！", vbCritical, "照片警报"
+        Exit Function
+    End If
+    
+    gVar.FTUploadFileNameOld = Mid(gVar.FTUploadFilePath, InStrRev(gVar.FTUploadFilePath, "\") + 1)    '获取旧文件名
+    If Len(gVar.FTUploadFileNameOld) > 50 Then
+        MsgBox "照片文件名不能超过50个字符 ，请重命名！", vbExclamation, "旧文件名警告"
+        Exit Function
+    End If
+    
+    gVar.FTUploadFileExtension = Mid(gVar.FTUploadFileNameOld, InStrRev(gVar.FTUploadFileNameOld, ".") + 1)      '获取旧文件的扩展名
+    If Len(gVar.FTUploadFileExtension) > 20 Then
+        MsgBox "照片文件的扩展名不能超过20个字符 ，请重命名！", vbExclamation, "扩展名警告"
+        Exit Function
+    End If
+    
+    gVar.FTUploadFileSize = FileLen(gVar.FTUploadFilePath)     '获取文件大小
+    If gVar.FTUploadFileSize > 5242880 Then
+        MsgBox "照片大小不能超过5MB！", vbExclamation, "文件大小警告"
+        Exit Function
+    End If
+    
+    gVar.FTUploadFileNameNew = gfBackFileName(udUpperCase, 30)   '获取新文件名（30个随机大写字母）
+    gVar.FTUploadFileFolder = gVar.FolderStore  '服务端存储位置。注意不含路径，仅文件夹名称
+    gVar.FTUploadFileClassify = "个人头像"      '文件存储类别
+    
+    mfCheckPhoto = True '返回真值
+End Function
+
+Private Function mfSavePhoto(Optional ByVal blnPho As Boolean) As Boolean
+    '上传个人头像照片文件至服务器
+    Dim sckPho As MSWinsockLib.Winsock
+    
+    Set sckPho = gWind.Winsock1.Item(1)
+    If gfFileExist(gVar.FTUploadFilePath) Then
+        Call gsLoadFileInfo(sckPho.Index, True) '设置文件传输数组信息
+        If gWind.Winsock1.Item(1).State = 7 Then    '使用MDI窗体上的Winsock控件发送文件信息
+            If gfSendInfo(gfFileInfoJoin(gWind.Winsock1.Item(1).Index, ftSend), gWind.Winsock1.Item(1)) Then
+                Debug.Print "Client：已发送[头像照片]的文件信息给服务端," & Now
+                Timer1.Enabled = True
+            End If
+        End If
+    End If
+    Set sckPho = Nothing
+End Function
 
 Private Sub msLoadDept(ByRef tvwDept As MSComctlLib.TreeView)
     '加载部门至TreeView控件中
@@ -575,8 +683,7 @@ Private Sub msLoadDept(ByRef tvwDept As MSComctlLib.TreeView)
     Dim arrDept() As String '注意下标要从0开始
     Dim I As Long, lngCount As Long, lngOneCompany As Long
     Dim blnLoop As Boolean
-    
-    
+        
     strSQL = "SELECT t1.DeptID ,t1.DeptName ,t1.ParentID ,t2.DeptName AS [ParentName] " & _
              "FROM tb_FT_Sys_Department AS [t1] " & _
              "LEFT JOIN tb_FT_Sys_Department AS [t2] " & _
@@ -815,9 +922,9 @@ Private Sub Command1_Click()
     
     Dim strLoginName As String, strPWD As String, strFullName As String
     Dim strSex As String, strMemo As String, strState As String
-    Dim strDept As Variant
+    Dim strDept As Variant, strPho As String, strPhotoID As String
     Dim strSQL As String, strMsg As String
-    Dim rsUser As ADODB.Recordset
+    Dim rsUser As ADODB.Recordset, rsPhoto As ADODB.Recordset
     
     strLoginName = Trim(Text1.Item(1).Text)
     strPWD = Trim(Text1.Item(2).Text)
@@ -893,10 +1000,17 @@ Private Sub Command1_Click()
     
     If Len(strDept) = 0 Then strDept = Null
     
+    strPho = Trim(CommonDialog1.FileName)
+    If Len(strPho) > 0 Then
+        If Not mfCheckPhoto(strPho) Then Exit Sub
+    End If
+    
     If MsgBox("是否添加用户【" & strLoginName & "】【" & strFullName & "】？", vbQuestion + vbYesNo) = vbNo Then Exit Sub
     
+    On Error GoTo LineERR
+    
     strSQL = "SELECT UserAutoID ,UserLoginName ,UserPassword ," & _
-             "UserFullName ,UserSex ,UserState ,DeptID ,UserMemo " & _
+             "UserFullName ,UserSex ,UserState ,DeptID ,UserMemo ,FileID " & _
              "From tb_FT_Sys_User " & _
              "WHERE UserLoginName = '" & strLoginName & "'"
     Set rsUser = gfBackRecordset(strSQL, adOpenStatic, adLockOptimistic)
@@ -905,8 +1019,36 @@ Private Sub Command1_Click()
         strMsg = "账号已存在，请更换！"
         GoTo LineBrk
     Else
-        On Error GoTo LineErr
+        '先获取头像信息ID
+        If mfCheckPhoto(strPho) Then   '如果有上传图像照片，则进行保存(获取图片ID)
+            strSQL = "SELECT FileID ,FileClassify ,FileExtension ,FileOldName ,FileSaveName ,FileSize ," & _
+                     "FileSaveLocation ,FileUploadMen ,FileUploadTime FROM tb_FT_Lib_File   " & _
+                     "WHERE FileSaveName ='" & gVar.FTUploadFileNameNew & "' AND FileSaveLocation ='" & gVar.FTUploadFileFolder & "' "
+            Set rsPhoto = gfBackRecordset(strSQL, adOpenStatic, adLockOptimistic)
+            If rsPhoto.State = adStateClosed Then GoTo LineEnd
+            If rsPhoto.RecordCount > 0 Then
+                strMsg = "头像照片信息在库中已存在，请再次上传！"
+                GoTo LineBrk
+            Else
+                rsPhoto.AddNew
+                rsPhoto.Fields("FileClassify") = gVar.FTUploadFileClassify
+                rsPhoto.Fields("FileExtension") = gVar.FTUploadFileExtension
+                rsPhoto.Fields("FileOldName") = gVar.FTUploadFileNameOld
+                rsPhoto.Fields("FileSaveName") = gVar.FTUploadFileNameNew
+                rsPhoto.Fields("FileSize") = gVar.FTUploadFileSize
+                rsPhoto.Fields("FileSaveLocation") = gVar.FTUploadFileFolder
+                rsPhoto.Fields("FileUploadMen") = gVar.UserFullName
+                rsPhoto.Fields("FileUploadTime") = Now
+                rsPhoto.Update
+                strPhotoID = rsPhoto.Fields("FileID")    '获取ID
+                rsPhoto.Close
+                strMsg = "为用户【" & strLoginName & "】【" & strFullName & "】插入头像照片[" & strPhotoID & "][" & gVar.FTUploadFileNameNew & "]"
+                Call gsLogAdd(Me, udInsert, "tb_FT_Lib_File", strMsg)
+                Call mfSavePhoto(True)  '上传图片
+            End If
+        End If
         
+        '然后添加用户信息
         rsUser.AddNew
         rsUser.Fields("UserLoginName") = strLoginName
         rsUser.Fields("UserPassword") = EncryptString(strPWD, gVar.EncryptKey)
@@ -915,6 +1057,7 @@ Private Sub Command1_Click()
         rsUser.Fields("UserState") = strState
         rsUser.Fields("DeptID") = strDept
         rsUser.Fields("UserMemo") = strMemo
+        rsUser.Fields("FileID") = strPhotoID
         rsUser.Update
         strMsg = rsUser.Fields("UserAutoID").Value
         Text1.Item(0).Text = strMsg
@@ -929,13 +1072,16 @@ Private Sub Command1_Click()
     GoTo LineEnd
     
 LineBrk:
-    rsUser.Close
+    If Not rsPhoto Is Nothing Then If rsPhoto.State = adStateOpen Then rsPhoto.Close
+    If Not rsUser Is Nothing Then If rsUser.State = adStateOpen Then rsUser.Close
     MsgBox strMsg, vbExclamation
     GoTo LineEnd
-LineErr:
+LineERR:
     Call gsAlarmAndLog("添加用户异常")
 LineEnd:
-    If rsUser.State = adStateOpen Then rsUser.Close
+    If Not rsPhoto Is Nothing Then If rsPhoto.State = adStateOpen Then rsPhoto.Close
+    If Not rsUser Is Nothing Then If rsUser.State = adStateOpen Then rsUser.Close
+    Set rsPhoto = Nothing
     Set rsUser = Nothing
 End Sub
 
@@ -944,16 +1090,17 @@ Private Sub Command2_Click()
     
     Dim strUID As String, strLoginName As String, strPWD As String, strState As String
     Dim strFullName As String, strSex As String, strDept As String, strMemo As String
-    Dim blnLoginName As Boolean, blnPwd As Boolean, blnFullName As Boolean
+    Dim blnLoginName As Boolean, blnPwd As Boolean, blnFullName As Boolean, blnPhoto As Boolean, blnNewPho As Boolean
     Dim blnSex As Boolean, blnDept As Boolean, blnMemo As Boolean, blnState As Boolean
-    Dim strSQL As String, strMsg As String
-    Dim rsUser As ADODB.Recordset
+    Dim strSQL As String, strMsg As String, strPho As String, strPhotoID As String, strWhrPho As String
+    Dim rsUser As ADODB.Recordset, rsPhoto As ADODB.Recordset
     
     strUID = Trim(Text1.Item(0).Text)
     strLoginName = Trim(Text1.Item(1).Text)
     strPWD = Trim(Text1.Item(2).Text)
     strFullName = Trim(Text1.Item(3).Text)
     strMemo = Trim(Text1.Item(4).Text)
+    strPho = Trim(CommonDialog1.FileName)
     
     strLoginName = Left(strLoginName, 50)
     strPWD = Left(strPWD, 20)
@@ -1019,6 +1166,8 @@ Private Sub Command2_Click()
         Exit Sub
     End If
     
+    If Not mfCheckPhoto(strPho) Then Exit Sub
+    
     If Len(strSex) = 0 Then
         Option1.Item(0).Value = True
         strSex = Option1.Item(0).Caption
@@ -1029,7 +1178,7 @@ Private Sub Command2_Click()
     End If
     
     strSQL = "SELECT UserAutoID ,UserLoginName ,UserPassword ," & _
-             "UserFullName ,UserSex ,UserState ,DeptID ,UserMemo " & _
+             "UserFullName ,UserSex ,UserState ,DeptID ,UserMemo ,FileID " & _
              "From tb_FT_Sys_User " & _
              "WHERE UserAutoID = '" & strUID & "'"
     Set rsUser = gfBackRecordset(strSQL, adOpenStatic, adLockOptimistic)
@@ -1048,8 +1197,8 @@ Private Sub Command2_Click()
         If IsNull(rsUser.Fields("DeptID")) Or strDept <> rsUser.Fields("DeptID") Then blnDept = True
         If IsNull(rsUser.Fields("UserMemo")) Or strMemo <> rsUser.Fields("UserMemo") Then blnMemo = True
         If IsNull(rsUser.Fields("UserState")) Or strState <> rsUser.Fields("UserState") Then blnState = True
-        
-        If Not (blnLoginName Or blnPwd Or blnFullName Or blnSex Or blnState Or blnDept Or blnMemo) Then
+        If Len(strPho) > 0 Then blnPhoto = True
+        If Not (blnLoginName Or blnPwd Or blnFullName Or blnSex Or blnState Or blnDept Or blnMemo Or blnPhoto) Then
             strMsg = "没有实质性的改动，不进行修改！"
             GoTo LineBrk
         End If
@@ -1057,7 +1206,7 @@ Private Sub Command2_Click()
         strMsg = "确定要修改" & Label1.Item(0).Caption & "【" & strUID & "】的用户信息吗？"
         If MsgBox(strMsg, vbQuestion + vbYesNo) = vbNo Then GoTo LineEnd
         
-        On Error GoTo LineErr
+        On Error GoTo LineERR
         
         If blnLoginName Then rsUser.Fields("UserLoginName") = strLoginName
         If blnPwd Then rsUser.Fields("UserPassword") = EncryptString(strPWD, gVar.EncryptKey)
@@ -1066,6 +1215,41 @@ Private Sub Command2_Click()
         If blnDept Then rsUser.Fields("DeptID") = strDept
         If blnMemo Then rsUser.Fields("UserMemo") = strMemo
         If blnState Then rsUser.Fields("UserState") = strState
+        
+        If blnPhoto And mfCheckPhoto(strPho) Then   '如果有上传图像照片，则进行保存(获取图片ID)
+            strPhotoID = "" & rsUser.Fields("FileID")
+            blnNewPho = IIf(Len(strPhotoID) > 0, False, True)
+            strWhrPho = IIf(blnNewPho, _
+                " FileSaveName ='" & gVar.FTUploadFileNameNew & "' AND FileSaveLocation ='" & gVar.FTUploadFileFolder & "' ", _
+                " FileID='" & strPhotoID & "' ")
+            strSQL = "SELECT FileID ,FileClassify ,FileExtension ,FileOldName ,FileSaveName ,FileSize ," & _
+                     "FileSaveLocation ,FileUploadMen ,FileUploadTime FROM tb_FT_Lib_File   " & _
+                     "WHERE " & strWhrPho
+            Set rsPhoto = gfBackRecordset(strSQL, adOpenStatic, adLockOptimistic)
+            If rsPhoto.State = adStateClosed Then GoTo LineEnd
+            If rsPhoto.RecordCount > 1 Then
+                strMsg = "头像照片信息在库中存在多个，请联系管理员！"
+                GoTo LineBrk
+            Else
+                If rsPhoto.RecordCount = 0 Then blnNewPho = True    '防清空了图片库而未清空用户信息中的图片
+                If blnNewPho Then rsPhoto.AddNew
+                If blnNewPho Then rsPhoto.Fields("FileClassify") = gVar.FTUploadFileClassify
+                rsPhoto.Fields("FileExtension") = gVar.FTUploadFileExtension
+                rsPhoto.Fields("FileOldName") = gVar.FTUploadFileNameOld
+                rsPhoto.Fields("FileSaveName") = gVar.FTUploadFileNameNew
+                rsPhoto.Fields("FileSize") = gVar.FTUploadFileSize
+                If blnNewPho Then rsPhoto.Fields("FileSaveLocation") = gVar.FTUploadFileFolder
+                rsPhoto.Fields("FileUploadMen") = gVar.UserFullName
+                rsPhoto.Fields("FileUploadTime") = Now
+                rsPhoto.Update
+                strPhotoID = rsPhoto.Fields("FileID")    '获取ID
+                rsPhoto.Close
+                If blnNewPho Then rsUser.Fields("FileID") = strPhotoID  '如果新增图像则添加到用户信息中
+                strMsg = "为用户【" & strLoginName & "】【" & strFullName & "】" & IIf(blnNewPho, "插入", "修改") & "头像照片[" & strPhotoID & "][" & gVar.FTUploadFileNameNew & "]"
+                Call gsLogAdd(Me, IIf(blnNewPho, udInsert, udUpdate), "tb_FT_Lib_File", strMsg)
+                Call mfSavePhoto(True)  '上传图片
+            End If
+        End If
         
         rsUser.Update
         rsUser.Close
@@ -1078,6 +1262,7 @@ Private Sub Command2_Click()
         If blnDept Then strMsg = strMsg & "【" & Label1.Item(5).Caption & "】"
         If blnMemo Then strMsg = strMsg & "【" & Label1.Item(6).Caption & "】"
         If blnState Then strMsg = strMsg & "【" & Label1.Item(7).Caption & "】"
+        If blnPhoto Then strMsg = strMsg & "【头像照片】"
         Call gsLogAdd(Me, udUpdate, "tb_FT_Sys_User", strMsg)
         
         MsgBox "已成功" & strMsg & "。", vbInformation
@@ -1092,15 +1277,17 @@ Private Sub Command2_Click()
     GoTo LineEnd
     
 LineBrk:
-    rsUser.Close
+    If Not rsPhoto Is Nothing Then If rsPhoto.State = adStateOpen Then rsPhoto.Close
+    If Not rsUser Is Nothing Then If rsUser.State = adStateOpen Then rsUser.Close
     MsgBox strMsg, vbExclamation
     GoTo LineEnd
-LineErr:
+LineERR:
     Call gsAlarmAndLog("用户信息修改异常")
 LineEnd:
-    If rsUser.State = adStateOpen Then rsUser.Close
+    If Not rsPhoto Is Nothing Then If rsPhoto.State = adStateOpen Then rsPhoto.Close
+    If Not rsUser Is Nothing Then If rsUser.State = adStateOpen Then rsUser.Close
+    Set rsPhoto = Nothing
     Set rsUser = Nothing
-    
 End Sub
 
 Private Sub Command3_Click()
@@ -1134,7 +1321,7 @@ Private Sub Command3_Click()
     Set rsUser = New ADODB.Recordset
     cnUser.CursorLocation = adUseClient
     
-    On Error GoTo LineErr
+    On Error GoTo LineERR
     
     cnUser.Open gVar.ConString
     strSQL = "DELETE FROM tb_FT_Sys_UserRole WHERE UserAutoID =" & strUID
@@ -1146,7 +1333,7 @@ Private Sub Command3_Click()
     rsUser.Open strSQL, cnUser, adOpenStatic, adLockBatchOptimistic
     If rsUser.RecordCount > 0 Then
         strMsg = strTemp & " 的后台数据检测异常，请重试或联系管理员！"
-        GoTo LineErr
+        GoTo LineERR
     Else
         With TreeView2.Nodes
             For I = 2 To .Count
@@ -1174,7 +1361,7 @@ Private Sub Command3_Click()
     
     Exit Sub
     
-LineErr:
+LineERR:
     If blnTran Then cnUser.RollbackTrans
     If rsUser.State = adStateOpen Then rsUser.Close
     If cnUser.State = adStateOpen Then cnUser.Close
@@ -1188,11 +1375,51 @@ LineErr:
     
 End Sub
 
+Private Sub Command4_Click()
+    '选择照片
+    Dim strPhoto As String
+    Dim lngFiveMB As Long
+    
+    If Len(Text1.Item(0).Text) = 0 Then
+        MsgBox "请选择一个用户！", vbExclamation, "提示"
+        Exit Sub
+    End If
+    
+    On Error GoTo LineERR
+    
+    With CommonDialog1
+        .DialogTitle = "选择一张照片"
+        .Filter = "图片(*.jpg;*.png;*.bmp)|*.jpg;*.png;*.bmp;*.gif;*.jpeg"
+        .Flags = cdlOFNFileMustExist '文件要存在
+        .ShowOpen   '弹出打开窗口
+        strPhoto = .FileName    '将所选图片路径放到变量中
+    End With
+
+    lngFiveMB = 5242880     ''' 5 * 1024 * 1024 B
+    If FileLen(strPhoto) > lngFiveMB Then   '文件不能大于5MB
+        MsgBox "您选择的图片大于5MB了！", vbExclamation, "文件警告"
+        CommonDialog1.FileName = ""
+        Exit Sub
+    End If
+    Image1.Picture = LoadPicture(strPhoto)  '加载图片
+    
+LineERR:
+    If Err.Number > 0 Then  '有异常发生
+        CommonDialog1.FileName = "" '清空无效图片的路径
+        Image1.Picture = LoadPicture("")
+        MsgBox Err.Number & vbCrLf & Err.Description, vbCritical, "图片加载异常"
+    End If
+End Sub
+
 Private Sub Form_Load()
 
     Set Me.Icon = gWind.ImageList1.ListImages("SysUser").Picture
     Me.Caption = gWind.CommandBars1.Actions(gID.SysAuthUser).Caption
     Frame1.Item(0).Caption = Me.Caption
+    Command4.ToolTipText = "照片请通过【" & Command1.Caption & "】【" & Command2.Caption & "】按钮进行保存"
+    Me.Timer1.Interval = 100   '100ms
+    Me.Timer1.Enabled = False
+    Me.Image1.Stretch = True
     
     For mlngID = Text1.LBound To Text1.UBound
         Text1.Item(mlngID).Text = ""
@@ -1248,6 +1475,27 @@ Private Sub Hsb_Scroll()
     Call Hsb_Change    '当滑动滚动条中的滑块时会同时更新对应内容，以下同。
 End Sub
 
+Private Sub Timer1_Timer()
+    '照片上传或下载完后的动作
+    Dim strNew As String
+    
+    If Not Me.Enabled Then Exit Sub '窗口未解禁说明仍在传输状态
+    If Not (gArr(1).FileTransmitNotOver Or gArr(1).FileTransmitError) Then  '正常传输结束
+        If gVar.FTUploadOrDownload Then '上传状态
+            '此页面无需其它动作
+        Else    '下载状态
+            If gfFileExist(gVar.FTDownloadFilePath) Then  '确认文件存在
+                strNew = Left(gVar.FTDownloadFilePath, InStrRev(gVar.FTDownloadFilePath, "\")) & gVar.FTDownloadFileNameOld
+                If gfFileReNameEx(gVar.FTDownloadFilePath, strNew) Then
+                    gVar.FTDownloadFilePath = strNew
+                    Call gfLoadPicture(Me.Image1, gVar.FTDownloadFilePath)
+                End If
+            End If
+        End If
+        Timer1.Enabled = False  '不再检测上传下载状态
+    End If
+End Sub
+
 Private Sub Vsb_Change()
     ctlMove.Top = -Vsb.Value
 End Sub
@@ -1260,7 +1508,9 @@ Private Sub TreeView1_NodeClick(ByVal Node As MSComctlLib.Node)
     
     Dim lngLen As Long, I As Long
     Dim strKey As String, strUID As String, strSQL As String, strMsg As String
-    Dim rsUser As ADODB.Recordset
+    Dim rsUser As ADODB.Recordset, rsPhoto As ADODB.Recordset
+    Dim strPhotoID As String
+    Dim sckPho As MSWinsockLib.Winsock
     
     strKey = Node.Key
     lngLen = Len(strKey)
@@ -1274,6 +1524,9 @@ Private Sub TreeView1_NodeClick(ByVal Node As MSComctlLib.Node)
         Exit Sub
     End If
     If Left(strKey, Len(mKeyUser)) <> mKeyUser Then Exit Sub
+    
+    CommonDialog1.FileName = ""    '先清空头像图片信息
+    Image1.Picture = LoadPicture("") '先清空头像图片
     
     strUID = Right(Node.Key, lngLen - Len(mKeyUser))
     strSQL = "EXEC sp_FT_Sys_UserInfo '" & strUID & "'"
@@ -1309,24 +1562,64 @@ Private Sub TreeView1_NodeClick(ByVal Node As MSComctlLib.Node)
             Next
             If I = Combo1.Item(1).ListCount Then Combo1.Item(0).ListIndex = -1
         End If
-
+        strPhotoID = rsUser.Fields("FileID") & ""   '取得照片ID
+        
         Node.SelectedImage = "SelectedMen"
-        
         rsUser.Close
+        Call msLoadUserRole(strUID) '加载角色列表
         
-        Call msLoadUserRole(strUID)
-        
+        '加载头像
+        If Len(strPhotoID) > 0 Then
+            strSQL = "SELECT FileID ,FileClassify ,FileExtension ,FileOldName ,FileSaveName ," & _
+                     "FileSize ,FileSaveLocation FROM tb_FT_Lib_File WHERE FileID ='" & strPhotoID & "' "
+            Set rsPhoto = gfBackRecordset(strSQL)
+            If rsPhoto.State = adStateClosed Then GoTo LineEnd
+            If rsPhoto.RecordCount = 0 Then
+                strMsg = "头像照片信息丢失，请联系管理员！"
+                GoTo LineBreak
+            ElseIf rsPhoto.RecordCount > 1 Then
+                strMsg = "头像照片信息异常，请联系管理员！"
+                GoTo LineBreak
+            Else
+                gVar.FTDownloadFileNameNew = rsPhoto.Fields("FileSaveName") & ""   '获取保存服务器中的图片文件名
+                gVar.FTDownloadFileFolder = rsPhoto.Fields("FileSaveLocation") & ""   '获取保存服务器中的文件夹名
+                gVar.FTDownloadFileSize = rsPhoto.Fields("FileSize") & ""             '获取保存服务器中的文件大小
+                gVar.FTDownloadFileNameOld = rsPhoto.Fields("FileOldName") & ""
+                gVar.FTDownloadFileExtension = rsPhoto.Fields("FileExtension") & ""
+                gVar.FTDownloadFileClassify = rsPhoto.Fields("FileClassify") & ""
+                gVar.FTDownloadFilePath = gVar.AppPath & gVar.FTDownloadFileFolder & "\" & gVar.FTDownloadFileNameNew
+            End If
+            rsPhoto.Close
+            If Len(gVar.FTDownloadFileNameNew) > 0 And Len(gVar.FTDownloadFileFolder) > 0 And gVar.FTDownloadFileSize > 0 Then
+                '文件的名称、保存位置、文件大小等信息完整时才能要求下载过来
+                Set sckPho = gWind.Winsock1.Item(1)
+                Call gsLoadFileInfo(sckPho.Index, False)    '加载照片下载信息至gArr()数组中
+                If Not gfFolderRepair(gVar.FolderNameStore) Then GoTo LineEnd
+                If sckPho.State = 7 Then    '使用MDI窗体上的Winsock控件发送文件信息
+                    If gfSendInfo(gfFileInfoJoin(sckPho.Index, ftReceive), sckPho) Then
+                        Debug.Print "Client：已发送需要[头像照片]的请求信息给服务端," & Now
+                        Timer1.Enabled = True
+                    End If
+                End If
+            Else
+                strMsg = "库中头像照片信息异常，请联系管理员！"
+                GoTo LineBreak
+            End If
+        End If
     End If
     
     GoTo LineEnd
     
 LineBreak:
-    rsUser.Close
+    If Not rsPhoto Is Nothing Then If rsPhoto.State = adStateOpen Then rsPhoto.Close
+    If Not rsUser Is Nothing Then If rsUser.State = adStateOpen Then rsUser.Close
     MsgBox strMsg, vbExclamation
 LineEnd:
-    If rsUser.State = adStateOpen Then rsUser.Close
+    If Not rsPhoto Is Nothing Then If rsPhoto.State = adStateOpen Then rsPhoto.Close
+    If Not rsUser Is Nothing Then If rsUser.State = adStateOpen Then rsUser.Close
     Set rsUser = Nothing
-    
+    Set rsPhoto = Nothing
+    Set sckPho = Nothing
 End Sub
 
 Private Sub TreeView2_NodeCheck(ByVal Node As MSComctlLib.Node)

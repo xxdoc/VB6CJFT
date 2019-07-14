@@ -109,12 +109,12 @@ Public Function EncryptString(ByVal str As String, password As String) As String
     Dim byt() As Byte
     Dim HASHALGORITHM As HASHALGORITHM
     Dim ENCALGORITHM As ENCALGORITHM
-On Error GoTo LineErr
+On Error GoTo LineERR
     byt = str
     HASHALGORITHM = MD5
     ENCALGORITHM = RC4
     EncryptString = BytesToHex(Encrypt(byt, password, HASHALGORITHM, ENCALGORITHM))
-LineErr:
+LineERR:
     If Err.Number <> 0 Then
         Call gsAlarmAndLog("加密异常", False)
     End If
@@ -176,12 +176,12 @@ Public Function DecryptString(ByVal str As String, password As String) As String
     Dim byt() As Byte
     Dim HASHALGORITHM As HASHALGORITHM
     Dim ENCALGORITHM As ENCALGORITHM
-On Error GoTo LineErr
+On Error GoTo LineERR
     byt = HexToBytes(str)
     HASHALGORITHM = MD5
     ENCALGORITHM = RC4
     DecryptString = Decrypt(byt, password, HASHALGORITHM, ENCALGORITHM)
-LineErr:
+LineERR:
     If Err.Number <> 0 Then
         Call gsAlarmAndLog("解密异常", False)
     End If
@@ -233,7 +233,7 @@ End Function
 '字节与十六进制字符串的转换
 '================================================
 Public Function BytesToHex(bits() As Byte) As String
-    Dim i As Long
+    Dim I As Long
     Dim b
     Dim s As String
     For Each b In bits
@@ -249,32 +249,32 @@ End Function
 Public Function HexToBytes(sHex As String) As Byte()
     Dim b() As Byte
     Dim rst() As Byte
-    Dim i As Long
+    Dim I As Long
     Dim n As Long
     Dim m1 As Byte
     Dim m2 As Byte
     If HexMatrix(15, 15) = 0 Then Call MatrixInitialize
     b = StrConv(sHex, vbFromUnicode)
-    i = (UBound(b) + 1) / 2 - 1
-    ReDim rst(i)
-    For i = 0 To UBound(b) Step 2
-        If b(i) > 96 Then
-            m1 = b(i) - 87
-        ElseIf b(i) > 64 Then
-            m1 = b(i) - 55
-        ElseIf b(i) > 47 Then
-            m1 = b(i) - 48
+    I = (UBound(b) + 1) / 2 - 1
+    ReDim rst(I)
+    For I = 0 To UBound(b) Step 2
+        If b(I) > 96 Then
+            m1 = b(I) - 87
+        ElseIf b(I) > 64 Then
+            m1 = b(I) - 55
+        ElseIf b(I) > 47 Then
+            m1 = b(I) - 48
         End If
-        If b(i + 1) > 96 Then
-            m2 = b(i + 1) - 87
-        ElseIf b(i + 1) > 64 Then
-            m2 = b(i + 1) - 55
-        ElseIf b(i + 1) > 47 Then
-            m2 = b(i + 1) - 48
+        If b(I + 1) > 96 Then
+            m2 = b(I + 1) - 87
+        ElseIf b(I + 1) > 64 Then
+            m2 = b(I + 1) - 55
+        ElseIf b(I + 1) > 47 Then
+            m2 = b(I + 1) - 48
         End If
         rst(n) = HexMatrix(m1, m2)
         n = n + 1
-    Next i
+    Next I
     HexToBytes = rst
 End Function
 
@@ -325,7 +325,7 @@ Public Function gfAppExist(ByVal strName As String) As Boolean
     Dim colProcessList As Object
     Dim objProcess As Object
     
-    On Error GoTo LineErr
+    On Error GoTo LineERR
     
     Set objWMIService = GetObject("winmgmts:\\.\root\cimv2")
     Set colProcessList = objWMIService.ExecQuery("select * from Win32_Process where Name='" & strName & "' ")
@@ -333,10 +333,21 @@ Public Function gfAppExist(ByVal strName As String) As Boolean
         gfAppExist = True   '存在该进程名时
     Next
     
-LineErr:
+LineERR:
     Set objProcess = Nothing
     Set colProcessList = Nothing
     Set objWMIService = Nothing
+End Function
+
+Public Function gfBackFileName(Optional ByVal enumType As genumCharType = udUpperCase, Optional ByVal lngLen As Long = 30) As String
+    '返回lngLen个随机字符组成的文件名
+    Dim K As Long
+    Dim strName As String
+    
+    For K = 1 To lngLen
+        strName = strName & gfBackOneChar(enumType)
+    Next
+    gfBackFileName = strName
 End Function
 
 Public Function gfBackVersion(ByVal strFile As String) As String
@@ -378,7 +389,7 @@ Public Function gfCloseApp(ByVal strName As String) As Boolean
     Dim colProcessList As Object
     Dim objProcess As Object
     
-    On Error GoTo LineErr
+    On Error GoTo LineERR
     
 ''    winHwnd = FindWindow(vbNullString, strName) '查找窗口，strName内容即任务栏上看到的窗口标题
 ''    If winHwnd <> 0 Then    '不为0表示找到窗口
@@ -394,7 +405,7 @@ Public Function gfCloseApp(ByVal strName As String) As Boolean
     
     gfCloseApp = True   '全部关闭成功或不存在该进程名时
     
-LineErr:
+LineERR:
     Set objWMIService = Nothing
     Set colProcessList = Nothing
     Set objProcess = Nothing
@@ -407,7 +418,7 @@ Public Function gfDirFile(ByVal strFile As String) As Boolean
     strFile = Trim(strFile)
     If Len(strFile) = 0 Then Exit Function
     
-    On Error GoTo LineErr
+    On Error GoTo LineERR
     
     strDir = Dir(strFile, vbHidden + vbReadOnly + vbSystem)
     If Len(strDir) > 0 Then
@@ -416,7 +427,7 @@ Public Function gfDirFile(ByVal strFile As String) As Boolean
     End If
     
     Exit Function
-LineErr:
+LineERR:
     Debug.Print "Error:gfDirFile--" & Err.Number & "  " & Err.Description & ";" & strFile
     Call gsAlarmAndLog("文件路径识别异常", False)
 End Function
@@ -427,7 +438,7 @@ Public Function gfDirFolder(ByVal strFolder As String) As Boolean
     strFolder = Trim(strFolder)
     If Len(strFolder) = 0 Then Exit Function
     
-    On Error GoTo LineErr
+    On Error GoTo LineERR
     
     strDir = Dir(strFolder, vbHidden + vbReadOnly + vbSystem + vbDirectory)
     If Len(strDir) = 0 Then
@@ -438,7 +449,7 @@ Public Function gfDirFolder(ByVal strFolder As String) As Boolean
     gfDirFolder = True
     
     Exit Function
-LineErr:
+LineERR:
     Debug.Print "Error:gfDirFolder--" & Err.Number & "  " & Err.Description & ";" & strFolder
     Call gsAlarmAndLog("文件夹路径识别异常", False)
 End Function
@@ -465,6 +476,19 @@ Public Function gfFileInfoJoin(ByVal intIndex As Integer, Optional ByVal enmType
         gfFileInfoJoin = gVar.PTFileFolder & .FileFolder & gVar.PTFileName & .FileName & gVar.PTFileSize & .FileSizeTotal & strType
     End With
     
+End Function
+
+Public Function gfLoadPicture(ByRef ImageLoad As VB.Image, ByVal strPath As String) As Boolean
+    '加载图片
+    
+    On Error GoTo LineERR
+    
+    ImageLoad.Picture = LoadPicture(strPath)
+    gfLoadPicture = True
+    
+    Exit Function
+LineERR:
+    Call gsAlarmAndLog("加载图片异常")
 End Function
 
 Public Function gfNotifyIconAdd(ByRef frmCur As Form) As Boolean
@@ -587,25 +611,24 @@ End Function
 
 Public Function gfRestoreInfo(ByVal strInfo As String, sckGet As MSWinsockLib.Winsock) As Boolean
     '还原接收到的文件信息
-    
+    Dim lngFod As Long, lngFile As Long, lngSize As Long
+    Dim lngSend As Long, lngReceive As Long, lngType As Long
+    Dim strFod As String, strSize As String, strType As String
+            
     With gArr(sckGet.Index)
-        If InStr(strInfo, gVar.PTFileFolder) > 0 Then
-            '此判断似乎仅适应于客户端向服务端上传文件时，其它情形有待确认
-            
-            Dim lngFod As Long, lngFile As Long, lngSize As Long
-            Dim lngSend As Long, lngReceive As Long, lngType As Long
-            Dim strFod As String, strSize As String, strType As String
-            
+        If InStr(strInfo, gVar.PTFileFolder) > 0 Then   '一、文件夹
             lngFod = InStr(strInfo, gVar.PTFileFolder)
             lngFile = InStr(strInfo, gVar.PTFileName)
             lngSize = InStr(strInfo, gVar.PTFileSize)
             lngSend = InStr(strInfo, gVar.PTFileSend)
             lngReceive = InStr(strInfo, gVar.PTFileReceive)
             
-            If lngFile > 0 Then
+            If lngFile > 0 Then '二、文件名
                 gArr(sckGet.Index) = gArr(0)    '先初始化文件传输变量为空信息
                 
-                If (lngSend > 0 And lngReceive > 0) Or (lngSend = 0 And lngReceive = 0) Then Exit Function
+                If (lngSend > 0 And lngReceive > 0) Or (lngSend = 0 And lngReceive = 0) Then
+                    Exit Function   '接收与发送协议有且仅有其中一个存在
+                End If
                 strType = IIf(lngSend > 0, gVar.PTFileSend, gVar.PTFileReceive)
                 lngType = IIf(lngSend > 0, lngSend, lngReceive)
                 
@@ -620,17 +643,18 @@ Public Function gfRestoreInfo(ByVal strInfo As String, sckGet As MSWinsockLib.Wi
                 
                 If strType <> Mid(strInfo, lngType) Then Exit Function
                 
-                If strType = gVar.PTFileSend Then   '此状态是相对于客户端的。客户端向服务器发送文件。
+                If strType = gVar.PTFileSend Then   '文件【接收端】向【发送端】传递开始发送指令。
                     .FileSizeTotal = CLng(strSize)
                     .FilePath = strFod & .FileName
                     Call gfSendInfo(gVar.PTFileStart, sckGet)
                     .FileTransmitState = True
                     
-                ElseIf strType = gVar.PTFileReceive Then    '客户端要求服务端传送指定文件给客户端。
+                ElseIf strType = gVar.PTFileReceive Then    '文件【发送端】接收到【接收端】传送来的需要指定文件的指令。
                     .FilePath = strFod & .FileName
                     If gfDirFile(.FilePath) Then
                         .FileSizeTotal = FileLen(.FilePath)
-                        Call gfSendInfo(gVar.PTFileExist & gVar.PTFileSize & .FileSizeTotal, sckGet)
+                        Call gfSendInfo(gVar.PTFileExist & gVar.PTFileSize & .FileSizeTotal, sckGet)    '通知接收端文件存在
+                        Call gfSendInfo(gfFileInfoJoin(sckGet.Index, ftSend), sckGet)   '再次重发给接收端需要的文件信息。权宜之计用法。
                     Else
                         gArr(sckGet.Index) = gArr(0)
                         Call gfSendInfo(gVar.PTFileNoExist, sckGet)
@@ -643,6 +667,46 @@ Public Function gfRestoreInfo(ByVal strInfo As String, sckGet As MSWinsockLib.Wi
         End If
     End With
 
+End Function
+
+Public Function gfSaveFile(ByRef frmSave As Form) As String
+    '保存文件信息至数据库中
+    Dim rsFile As ADODB.Recordset
+    Dim strSQL As String, strFileID As String, strMsg As String
+    
+    strSQL = "SELECT FileID ,FileClassify ,FileExtension ,FileOldName ,FileSaveName ,FileSize ," & _
+             "FileSaveLocation ,FileUploadMen ,FileUploadTime FROM tb_FT_Lib_File   " & _
+             "WHERE FileSaveName ='" & gVar.FTUploadFileNameNew & "' AND FileSaveLocation ='" & gVar.FTUploadFileFolder & "' "
+    Set rsFile = gfBackRecordset(strSQL, adOpenStatic, adLockOptimistic)
+    If rsFile.State = adStateOpen Then
+        If rsFile.RecordCount > 0 Then
+            rsFile.Close
+            MsgBox "文件信息在库中已存在，请重新上传！", vbCritical, "警告"
+        Else
+            On Error GoTo LineERR
+            rsFile.AddNew
+            rsFile.Fields("FileClassify") = gVar.FTUploadFileClassify
+            rsFile.Fields("FileExtension") = gVar.FTUploadFileExtension
+            rsFile.Fields("FileOldName") = gVar.FTUploadFileNameOld
+            rsFile.Fields("FileSaveName") = gVar.FTUploadFileNameNew
+            rsFile.Fields("FileSize") = gVar.FTUploadFileSize
+            rsFile.Fields("FileSaveLocation") = gVar.FTUploadFileFolder
+            rsFile.Fields("FileUploadMen") = gVar.UserFullName
+            rsFile.Fields("FileUploadTime") = Now
+            rsFile.Update
+            strFileID = CStr(rsFile.Fields("FileID"))    '获取ID
+            rsFile.Close
+            strMsg = "上传文件【" & strFileID & "】【" & gVar.FTUploadFileNameNew & "】"
+            Call gsLogAdd(frmSave, udInsert, "tb_FT_Lib_File", strMsg)
+            gfSaveFile = strFileID  '将生成的文件ID值设置给函数的返回值
+        End If
+    End If
+LineERR:
+    If Not rsFile Is Nothing Then If rsFile.State = adStateOpen Then rsFile.Close
+    Set rsFile = Nothing
+    If Err.Number > 0 Then
+        Call gsAlarmAndLog("上传文件异常")
+    End If
 End Function
 
 Public Function gfSendClientInfo(ByVal strPC As String, ByVal strLogin As String, _
@@ -686,8 +750,7 @@ End Function
 Public Function gfSendInfo(ByVal strInfo As String, sckSend As MSWinsockLib.Winsock) As Boolean
     If sckSend.State = 7 Then
         sckSend.SendData strInfo
-        DoEvents
-'''        Call Sleep(200)
+        DoEvents    '似乎必需用这个
         gfSendInfo = True
     End If
 End Function
@@ -836,4 +899,25 @@ Public Sub gsFormEnable(frmCur As Form, Optional ByVal blnState As Boolean = Fal
     End With
 End Sub
 
+Public Sub gsLoadFileInfo(Optional ByVal arrIndex As Long = 1, Optional ByVal blnUpload As Boolean = True)
+    '加载上传或下载文件信息
+    
+    With gArr(arrIndex)
+        If blnUpload Then   '上传文件信息
+            .FilePath = gVar.FTUploadFilePath       '【发送端】欲发送的文件路径
+            .FileName = gVar.FTUploadFileNameNew    '【发送端】发送过去的文件在【接收端】保存的文件名
+            .FileFolder = gVar.FTUploadFileFolder   '【发送端】发送过去的文件在【接收端】保存的文件夹名称
+            .FileSizeTotal = gVar.FTUploadFileSize  '【发送端】欲发送的文件大小或【接收端】接收的文件大小
+            .FileTransmitNotOver = True     '【发送端】传输未结束标识
+            gVar.FTUploadOrDownload = True  '【发送端】上传状态
+        Else    '下载文件信息
+            .FilePath = gVar.FTDownloadFilePath
+            .FileName = gVar.FTDownloadFileNameNew
+            .FileFolder = gVar.FTDownloadFileFolder
+            .FileSizeTotal = gVar.FTDownloadFileSize
+            .FileTransmitNotOver = True
+            gVar.FTUploadOrDownload = False '下载状态
+        End If
+    End With
+End Sub
 

@@ -15,7 +15,6 @@ Begin VB.Form frmSysLogin
    StartUpPosition =   2  '屏幕中心
    Begin VB.CommandButton Command3 
       BackColor       =   &H00008000&
-      Cancel          =   -1  'True
       Caption         =   "取消自动登陆(5秒)"
       Height          =   300
       Left            =   1410
@@ -41,6 +40,7 @@ Begin VB.Form frmSysLogin
       Width           =   900
    End
    Begin VB.CommandButton Command2 
+      Cancel          =   -1  'True
       Caption         =   "退出"
       Height          =   375
       Left            =   3240
@@ -81,6 +81,26 @@ Begin VB.Form frmSysLogin
       TabIndex        =   0
       Top             =   840
       Width           =   2295
+   End
+   Begin VB.Label Label4 
+      AutoSize        =   -1  'True
+      BackStyle       =   0  'Transparent
+      Caption         =   "隐藏"
+      BeginProperty Font 
+         Name            =   "幼圆"
+         Size            =   10.5
+         Charset         =   134
+         Weight          =   400
+         Underline       =   0   'False
+         Italic          =   0   'False
+         Strikethrough   =   0   'False
+      EndProperty
+      ForeColor       =   &H00000000&
+      Height          =   210
+      Left            =   4080
+      TabIndex        =   10
+      Top             =   1500
+      Width           =   420
    End
    Begin VB.Label Label2 
       BackStyle       =   0  'Transparent
@@ -200,6 +220,8 @@ Attribute VB_Exposed = False
 Option Explicit
 
 Private Const mconCount As Integer = 5 '自动登陆时的倒计时时间，单位秒
+Private Const mconStrShow As String = "显示"    '显示密码
+Private Const mconStrHide As String = "隐藏"    '隐藏密码
 
 
 Private Function mfInputCheck(ByVal strName As String, strPWD As String) As Boolean
@@ -384,7 +406,12 @@ Private Sub Combo1_Click()
     
     If gVar.ParaBlnRememberUserPassword Then '勾选了记住密码
         strName = Trim(Combo1.Text) '获取用户名
+        If Label4.Caption = mconStrHide Then    '记住密码时应使密码显示为*不可见
+            Label4.Caption = mconStrShow
+        End If
         Call msLoadPassword(strName) '加载密码
+    Else
+        Text1.Text = "" '清空输入的密码
     End If
 End Sub
 
@@ -429,6 +456,7 @@ Private Sub Form_Load()
     Timer2.Enabled = False
     Timer2.Interval = 1000 '只能设1秒
     Command3.Visible = False
+    Label4.Caption = mconStrShow
     
     strFileLoc = gVar.AppPath & gVar.EXENameOfClient
     If gfDirFile(strFileLoc) Then
@@ -469,6 +497,10 @@ Private Sub Image1_MouseMove(Button As Integer, Shift As Integer, X As Single, Y
         Label3.FontUnderline = False '去除下划线
         Label3.ForeColor = vbBlack  '字体黑色
     End If
+    If Label4.FontUnderline Then    '复原样式
+        Label4.FontUnderline = False    '去除密码显示或隐藏提示的下划线
+        Label4.ForeColor = vbBlack  '字体黑色
+    End If
 End Sub
 
 Private Sub Label3_Click()
@@ -483,6 +515,32 @@ Private Sub Label3_MouseMove(Button As Integer, Shift As Integer, X As Single, Y
     
     Label3.FontUnderline = True '显示下划线
     Label3.ForeColor = vbRed '字体红色
+    hHandCursor = LoadCursor(0, IDC_HAND) '调用API载入光标
+    Call SetCursor(hHandCursor) '调用API使指针变手指状
+End Sub
+
+Private Sub Label4_Change()
+    '改变密码是否明文显示或*号显示
+    Text1.PasswordChar = IIf(Label4.Caption = mconStrShow, "*", "")
+End Sub
+
+Private Sub Label4_Click()
+    '改变Label的Caption值
+    If Label4.Caption = mconStrShow Then
+        If gVar.ParaBlnRememberUserPassword Then
+            MsgBox "请先去掉设置参数中的【记住密码】选项！", vbExclamation, "记住密码隐私提示"
+            Exit Sub
+        End If
+        Text1.Text = "" '清空一次，以防看到别的账号的密码
+    End If
+    Label4.Caption = IIf(Label4.Caption = mconStrHide, mconStrShow, mconStrHide)
+End Sub
+
+Private Sub Label4_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
+    Dim hHandCursor As Long
+    
+    Label4.FontUnderline = True '显示下划线
+    Label4.ForeColor = vbRed '字体红色
     hHandCursor = LoadCursor(0, IDC_HAND) '调用API载入光标
     Call SetCursor(hHandCursor) '调用API使指针变手指状
 End Sub

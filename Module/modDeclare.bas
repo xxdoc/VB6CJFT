@@ -196,10 +196,28 @@ End Enum
 
 Public gNotifyIconData As gtypeNOTIFYICONDATA
 
+'''判断文件是否被打开用的API函数与常量
+Public Declare Function CreateFile Lib "kernel32" Alias "CreateFileA" (ByVal lpFileName As String, _
+    ByVal dwDesiredAccess As Long, ByVal dwShareMode As Long, lpSecurityAttributes As String, _
+    ByVal dwCreationDisposition As Long, ByVal dwFlagsAndAttributes As Long, ByVal hTemplateFile As Long) As Long
+Public Declare Function CloseHandle Lib "kernel32" (ByVal hObject As Long) As Long
+Public Const GENERIC_READ = &H80000000
+Public Const GENERIC_WRITE = &H40000000
+Public Const OPEN_EXISTING = 3
+Public Const FILE_ATTRIBUTE_NORMAL = &H80
+Public Const INVALID_HANDLE_VALUE = -1
+
+
 
 Public Enum genumFileTransimitType    '文件传输类型枚举
     ftSend = 1      '发送
     ftReceive = 2   '接收
+End Enum
+
+Public Enum genumFileProgressValue  '文件传输进度设置枚举
+    ftZero  '将进度设置为0
+    ftOver  '将进度设置为100(满了，100%)
+    ftRate  '将进度设置为当前传入的进度值
 End Enum
 
 Public Enum genumSkinResChoose  '窗体风格资源文件选择
@@ -232,6 +250,7 @@ Public Type gtypeCommonVariant
     
     FTChunkSize As Long   '文件传输时的分块大小
     FTWaitTime As Long    '每段文件传输时的等待时间，单位秒
+    FTIsOver As Boolean     '文件传输结束状态：False没传输完,True传输完毕.
     
     EncryptKey As String    '加密解密的密钥
         
@@ -293,13 +312,18 @@ Public Type gtypeCommonVariant
     RegKeyTCPPort As String     '参数key_port值
     
     RegSectionSkin As String    '参数section_Skin
-    RegKeySkinFile As String    '参数Key_SkinFile
+    RegKeySkinRes As String    '参数Key_SkinRes
+    RegKeySkinIni As String    '参数Key_SkinIni
+    RegKeySkinSvrRes As String    '参数Key_SkinSvrRes
+    RegKeySkinSvrIni As String    '参数Key_SkinSvrIni
+    
     
     RegSectionDBServer As String  '数据库服务器信息块
     RegKeyDBServerIP As String    '数据库服务器IP
     RegKeyDBServerDatabase As String    '数据库名
     RegKeyDBServerAccount As String   '数据库服务器连接账号
     RegKeyDBServerPassword As String  '数据库服务器连接密码
+    RegKeyServerBackStore As String     '服务器端资料文件备份路径
         
     RegSectionUser As String    'Section_用户信息
     RegKeyUserLast As String    '最后登陆用户名
@@ -337,6 +361,8 @@ Public Type gtypeCommonVariant
     
     RegKeyParaWindowMinHide As String   '参数Key-窗口最小化隐藏
     RegKeyParaWindowCloseMin As String  '参数Key-窗口点击关闭时默认最小化
+    RegKeyParaWindowStartMinS As String  '软件启动时自动最小化
+    RegKeyParaWindowStartMinC As String  '软件启动时自动最小化
     RegKeyParaAutoReStartServer As String   '服务端是否自动重启服务
     RegKeyParaAutoStartupAtBoot As String   '开机自动启动
     RegKeyParaLimitClientConnect As String  '限制客户端连接
@@ -351,9 +377,14 @@ Public Type gtypeCommonVariant
     FolderNameTemp As String    '文件夹名称：Temp的全路径
     FolderNameData As String    '文件夹名称：Data的全路径
     FolderNameBin As String     '文件夹名称：Bin的全路径
+    FolderNameBackup As String  '文件夹名称：Backup的全路径
+    FolderNameStore As String   '文件夹名称：Store的全路径
     FolderBin As String     '文件夹名称：Bin
     FolderData As String    '文件夹名称：Data
     FolderTemp As String    '文件夹名称：Temp
+    FolderStore As String   '文件夹名称：Store
+    FolderBackup As String  '文件夹名称：Backup
+    
     
     FileNameErrLog As String    '错误记录日志文件的全路径
     FileNameSkin As String      '主题资源文件名
@@ -405,6 +436,8 @@ Public Type gtypeCommonVariant
     ParaBlnWindowStateMaxServer As Boolean
     ParaBlnWindowMinHide As Boolean '主窗口最小化时是否隐藏
     ParaBlnWindowCloseMin As Boolean    '主窗口点击关闭按钮时最小化
+    ParaBlnWindowStartMinS As Boolean    '窗口启动时自动最小化
+    ParaBlnWindowStartMinC As Boolean    '窗口启动时自动最小化
     ParaBlnAutoReStartServer As Boolean '服务端程序断开服务时自动重新开启服务
     ParaBlnAutoStartupAtBoot As Boolean '开机自动启动
     ParaBlnLimitClientConnect As Boolean '限制客户端连接时间
@@ -413,6 +446,25 @@ Public Type gtypeCommonVariant
     ParaBlnRememberUserList As Boolean  '记住用户名
     ParaBlnRememberUserPassword As Boolean  '记住密码
     ParaBlnUserAutoLogin As Boolean '自动登陆
+    
+    ParaBackupStore As String   '备份路径
+    
+    FTUploadOrDownload As Boolean   '上传(True)还是下载(False)状态
+    FTUploadFilePath As String      '上传文件的各项信息
+    FTUploadFileNameOld As String
+    FTUploadFileNameNew As String
+    FTUploadFileSize As Long
+    FTUploadFileFolder As String
+    FTUploadFileClassify As String
+    FTUploadFileExtension As String
+    
+    FTDownloadFilePath As String      '下载文件的各项信息
+    FTDownloadFileNameOld As String
+    FTDownloadFileNameNew As String
+    FTDownloadFileSize As Long
+    FTDownloadFileFolder As String
+    FTDownloadFileClassify As String
+    FTDownloadFileExtension As String
     
 End Type
 
@@ -425,6 +477,11 @@ Public Type gtypeFileTransmitVariant    '自定义文件传输变量
     FileSizeTotal As Long       '文件总大小
     FileSizeCompleted As Long   '文件已传输大小
     FileTransmitState As Boolean    '是否在传输文件
+    FileClassify As String      '传送文件的存放类别
+    FileOldName As String       '原文件名
+    FileExtension As String     '原文件名的扩展名
+    FileTransmitNotOver As Boolean  '文件传输结束标识
+    FileTransmitError As Boolean    '传输是否异常结束
 End Type
 
 Public gVar As gtypeCommonVariant
@@ -443,6 +500,8 @@ Public Type gtypeCommandBarID
     SysAuthLog As Long      '日志管理
     SysAuthRole As Long     '角色管理
     SysAuthFunc As Long     '功能管理
+    
+    SysFileManage As Long   '文件管理
     
     SysPrintMain As Long
     SysPrint As Long        '打印
@@ -537,6 +596,8 @@ Public Type gtypeCommandBarID
     
     Tool As Long    '模块--工具
     
+    toolErrorLog As Long  '错误日志查看
+    toolLoginLog As Long '登陆日志查看
     toolOptions As Long  '选项
     
     

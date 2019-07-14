@@ -18,6 +18,7 @@ Public Sub Main(Optional ByVal blnLoad As Boolean = True)
         .SysAuthRole = 1106
         .SysAuthFunc = 1107
         .SysAuthLog = 1108
+        .SysFileManage = 1121
         
         .SysExportMain = 1200
         .SysExportToCSV = 1201
@@ -113,7 +114,9 @@ Public Sub Main(Optional ByVal blnLoad As Boolean = True)
         
         
         .Tool = 4000
-        .toolOptions = 4101
+        .toolErrorLog = 4101
+        .toolLoginLog = 4102
+        .toolOptions = 4103
         
         
         '''***请将所有菜单栏中的【菜单】的CommandBrs的ID值设置在20000以下*******************
@@ -222,13 +225,17 @@ Public Sub Main(Optional ByVal blnLoad As Boolean = True)
         .RegSectionTCP = "TCP"
         
         .RegSectionSkin = "SkinFile"
-        .RegKeySkinFile = "SkinRes"
+        .RegKeySkinRes = "SkinRes"
+        .RegKeySkinIni = "SkinIni"
+        .RegKeySkinSvrRes = "SkinSvrRes"
+        .RegKeySkinSvrIni = "SkinSvrIni"
         
         .RegSectionDBServer = "Server"
         .RegKeyDBServerAccount = "ServerAccount"
         .RegKeyDBServerDatabase = "ServerDatabase"
         .RegKeyDBServerIP = "ServerIP"
         .RegKeyDBServerPassword = "ServerPassword"
+        .RegKeyServerBackStore = "BackStore"
         
         .RegSectionUser = "UserInfo"
         .RegKeyUserLast = "LastLoginUser"
@@ -264,6 +271,8 @@ Public Sub Main(Optional ByVal blnLoad As Boolean = True)
         
         .RegKeyParaWindowMinHide = "WindowMinHide"
         .RegKeyParaWindowCloseMin = "WindowCloseMin"
+        .RegKeyParaWindowStartMinS = "WindowStartMinS"
+        .RegKeyParaWindowStartMinC = "WindowStartMinC"
         .RegKeyParaAutoReStartServer = "AutoReStartServer"
         .RegKeyParaAutoStartupAtBoot = "AutoStartupAtBoot"
         .RegKeyParaLimitClientConnect = "LimitClientConnect"
@@ -279,9 +288,13 @@ Public Sub Main(Optional ByVal blnLoad As Boolean = True)
         .FolderBin = "Bin"
         .FolderData = "Data"
         .FolderTemp = "Temp"
+        .FolderBackup = "Backup"
+        .FolderStore = "Store"
         .FolderNameBin = .AppPath & .FolderBin & "\"
         .FolderNameData = .AppPath & .FolderData & "\"
         .FolderNameTemp = .AppPath & .FolderTemp & "\"
+        .FolderNameBackup = "D:\Backup\Store\"
+        .FolderNameStore = .AppPath & "Store\"
         
         .FileNameErrLog = .FolderNameData & "ErrorRecord.LOG"
         .FileNameSkin = ""
@@ -321,11 +334,12 @@ Public Sub gsAlarmAndLog(Optional ByVal strErr As String, Optional ByVal blnMsgB
         Optional ByVal MsgButton As VbMsgBoxStyle = vbCritical)
     '系统异常提示并写下异常日志
     
-    Dim strMsg As String
+    Dim strMsg As String, strWrt As String
     
     strMsg = "异常代号：" & Err.Number & vbCrLf & "异常描述：" & Err.Description
     If blnMsgBox Then MsgBox strMsg, MsgButton, strErr
-    Call gsFileWrite(gVar.FileNameErrLog, strErr & vbTab & Replace(strMsg, vbCrLf, vbTab))
+    strWrt = Err.Number & vbTab & vbTab & Err.Description
+    Call gsFileWrite(gVar.FileNameErrLog, strErr & vbTab & vbTab & strWrt)
     
 End Sub
 
@@ -348,6 +362,33 @@ Public Sub gsDeleteSetting(ByVal AppName As String, ByVal Section As String, ByV
     If Err.Number <> 0 Then
         Call gsAlarmAndLog(strMsg, False)
     End If
+End Sub
+
+Public Sub gsFileProgress(ByRef ProgressBar As XtremeCommandBars.StatusBarProgressPane, _
+                          ByRef ProgressTxt As XtremeCommandBars.StatusBarPane, _
+                          Optional ByVal pType As genumFileProgressValue = ftZero, _
+                          Optional ByVal pValue As Long = 0, _
+                          Optional ByVal pMax As Long = 100, Optional ByVal pMin As Long = 0)
+    '主窗口状态栏上的文件传输进度条与比率设置
+    ''调用模式:Call gsFileProgress(gWind.CommandBars1.StatusBar.FindPane(gID.StatusBarPaneProgress), _
+    '                            gWind.CommandBars1.StatusBar.FindPane(gID.StatusBarPaneProgressText), _
+    '                            ftZero, 0, lngFileLen, 0)
+    With ProgressBar
+        If pType = ftZero Then
+            .Max = pMax  '设置最大值
+            .Min = pMin  '设置最小值
+            .Value = pMin   '当前值为最小值
+        ElseIf pType = ftOver Then
+            .Value = pMax
+        Else
+            If pValue > .Max Then
+                .Value = .Max   '当前值不能大于进度条的最大值
+            Else
+                .Value = pValue '正常进度值
+            End If
+        End If
+        ProgressTxt.Text = CStr(Int(.Value / (.Max - .Min) * 100)) & "%"   '数值百分比
+    End With
 End Sub
 
 Public Sub gsFileWrite(ByVal strFile As String, ByVal strContent As String, _
@@ -381,7 +422,7 @@ Public Sub gsFileWrite(ByVal strFile As String, ByVal strContent As String, _
         Case udPut
             Put #intNum, , strTime & vbTab & strContent
         Case Else   '其余皆当作udPrint
-            Print #intNum, strTime, strContent
+            Print #intNum, strTime & vbTab & vbTab & strContent
     End Select
     
     Close #intNum
@@ -481,22 +522,30 @@ Public Sub gsFormSizeLoad(ByRef frmLoad As Form, Optional blnServer As Boolean =
     Else
         If blnServer Then
             Left = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerWindowLeft, 0))
-            If Left < 0 Or Left > Screen.Width Then Left = 0
             Top = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerWindowTop, 0))
-            If Top < 0 Or Left > Screen.Height Then Top = 0
             Width = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerWindowWidth, gVar.WindowWidth))
-            If Width <= 0 Or Width > Screen.Width Then Width = gVar.WindowWidth
             Height = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyServerWindowHeight, gVar.WindowHeight))
-            If Height <= 0 Or Height > Screen.Height Then Height = gVar.WindowHeight
         Else
             Left = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientWindowLeft, 0))
-            If Left < 0 Or Left > Screen.Width Then Left = 0
             Top = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientWindowTop, 0))
-            If Top < 0 Or Left > Screen.Height Then Top = 0
             Width = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientWindowWidth, gVar.WindowWidth))
-            If Width <= 0 Or Width > Screen.Width Then Width = gVar.WindowWidth
             Height = Val(GetSetting(gVar.RegAppName, gVar.RegSectionSettings, gVar.RegKeyClientWindowHeight, gVar.WindowHeight))
-            If Height <= 0 Or Height > Screen.Height Then Height = gVar.WindowHeight
+        End If
+        If Width <= 0 Or Width > Screen.Width Then Width = gVar.WindowWidth
+        If Height <= 0 Or Height > Screen.Height Then Height = gVar.WindowHeight
+        If Left <= 0 Or Left > Screen.Width Then
+            If Width < Screen.Width Then
+                Left = (Screen.Width - Width) / 2
+            Else
+                Left = 0
+            End If
+        End If
+        If Top <= 0 Or Left > Screen.Height Then
+            If Height < Screen.Height Then
+                Top = (Screen.Height - Height) / 2
+            Else
+                Top = 0
+            End If
         End If
         If frmLoad.WindowState = vbNormal Then frmLoad.Move Left, Top, Width, Height
     End If
@@ -648,7 +697,7 @@ Public Sub gsGridToExcel(ByRef gridControl As Control, Optional ByVal TimeCol As
         .Range(.Cells(1, 1), .Cells(R, C)).HorizontalAlignment = -4108  'xlCenter= -4108(&HFFFFEFF4)   '居中显示
         .Range(.Cells(1, 1), .Cells(R, C)).Borders.Weight = 2   'xlThin=2  '单元格显示黑色线宽
         .Columns.EntireColumn.AutoFit   '自动列宽
-        .Rows(1).rowHeight = 23 '第一行行高
+        .Rows(1).RowHeight = 23 '第一行行高
     End With
     
     xlsOut.Visible = True   '显示Excel文档
@@ -826,28 +875,37 @@ Public Sub gsGridToWord(ByRef gridControl As Control)
 End Sub
 
 Public Sub gsLoadSkin(ByRef frmCur As Form, ByRef skFRM As XtremeSkinFramework.SkinFramework, _
-    Optional ByVal lngResource As genumSkinResChoose, Optional ByVal blnFromReg As Boolean = False)
+    Optional ByVal lngResource As genumSkinResChoose = -1, Optional ByVal blnFromReg As Boolean = False, _
+    Optional ByVal strRes As String = "", Optional ByVal strIni As String = "", _
+    Optional ByVal blnServer As Boolean = False)
     '加载主题
-    Dim lngReg As Long, strRes As String, strIni As String
     
-    lngReg = GetSetting(gVar.RegAppName, gVar.RegSectionSkin, gVar.RegKeySkinFile, 0)
     If blnFromReg Then  '如果从注册表中获取资源文件，则按注册表中值修改lngResource的值
-        If lngReg > sMSO10 Or lngReg < sNone Then lngReg = sNone
-        lngResource = lngReg
+        If blnServer Then   '服务端程序主题设置
+            strRes = GetSetting(gVar.RegAppName, gVar.RegSectionSkin, gVar.RegKeySkinSvrRes, "")
+            strIni = GetSetting(gVar.RegAppName, gVar.RegSectionSkin, gVar.RegKeySkinSvrIni, "")
+        Else    '客户端程序主题设置
+            strRes = GetSetting(gVar.RegAppName, gVar.RegSectionSkin, gVar.RegKeySkinRes, "")
+            strIni = GetSetting(gVar.RegAppName, gVar.RegSectionSkin, gVar.RegKeySkinIni, "")
+        End If
+    Else
+        If lngResource >= sNone And lngResource <= sMSO10 Then
+            Select Case lngResource '选择窗口风格资源文件
+                Case sMSO7
+                    strRes = gVar.FolderNameBin & "cjstylesO7.cjstyles"
+                    strIni = "NormalBlue.ini"   'NormalBlue LightBlue NormalBlack NormalSilver NormalAqua
+                Case sMSO10
+                    strRes = gVar.FolderNameBin & "cjstylesO10.cjstyles"
+                    strIni = "NormalBlue.ini"   'NormalBlue NormalBlack NormalSilver
+                Case sMSVst
+                    strRes = gVar.FolderNameBin & "cjstylesOvst.cjstyles"
+                    strIni = "NormalBlue.ini"   'NormalBlue NormalBlack NormalSilver NormalBlack2
+                Case Else
+                    strRes = gVar.FolderNameBin & "cjstyles.cjstyles"
+                    strIni = "NormalBlue.ini"
+            End Select
+        End If
     End If
-    
-    Select Case lngResource '选择窗口风格资源文件
-        Case sMSO7
-            strRes = gVar.FolderNameBin & "cjstylesO7.dll"
-            strIni = "NormalBlue.ini"   'NormalBlue LightBlue NormalBlack NormalSilver NormalAqua
-        Case sMSO10
-            strRes = gVar.FolderNameBin & "cjstylesO10.dll"
-            strIni = "NormalBlue.ini"   'NormalBlue NormalBlack NormalSilver
-        Case sMSVst
-            strRes = gVar.FolderNameBin & "cjstylesOvst.dll"
-            strIni = "NormalBlue.ini"   'NormalBlue NormalBlack NormalSilver NormalBlack2
-        Case Else
-    End Select
     
     With skFRM
         .LoadSkin strRes, strIni
@@ -856,8 +914,13 @@ Public Sub gsLoadSkin(ByRef frmCur As Form, ByRef skFRM As XtremeSkinFramework.S
         .ApplyWindow frmCur.hwnd
     End With
     
-    If lngReg <> lngResource Then Call SaveSetting(gVar.RegAppName, gVar.RegSectionSkin, gVar.RegKeySkinFile, lngResource)
-    
+    If blnServer Then   '将设置的主题信息保存进注册表
+        Call SaveSetting(gVar.RegAppName, gVar.RegSectionSkin, gVar.RegKeySkinSvrRes, strRes)
+        Call SaveSetting(gVar.RegAppName, gVar.RegSectionSkin, gVar.RegKeySkinSvrIni, strIni)
+    Else
+        Call SaveSetting(gVar.RegAppName, gVar.RegSectionSkin, gVar.RegKeySkinRes, strRes)
+        Call SaveSetting(gVar.RegAppName, gVar.RegSectionSkin, gVar.RegKeySkinIni, strIni)
+    End If
 End Sub
 
 Public Sub gsLogAdd(ByRef frmCur As Form, Optional ByVal LogType As genumLogType = udSelect, _
@@ -1032,11 +1095,11 @@ Public Sub gsThemeCommandBar(ByVal CID As Long, ByRef cbsBars As XtremeCommandBa
     Next
     cbsBars.Actions(CID).Checked = True
     
-    If blnChangeSkin Then   '更改对应窗口主题使颜色统一
-        Call gsLoadSkin(gWind, gWind.SkinFramework1, sMSO7)
-    Else
-        Call gsLoadSkin(gWind, gWind.SkinFramework1, sMSVst)
-    End If
+'''    If blnChangeSkin Then   '更改对应窗口主题使颜色统一。注释于2019.5.28会影响加载主题
+'''        Call gsLoadSkin(gWind, gWind.SkinFramework1, sMSO7)
+'''    Else
+'''        Call gsLoadSkin(gWind, gWind.SkinFramework1, sMSVst)
+'''    End If
     
 End Sub
 

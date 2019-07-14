@@ -212,6 +212,7 @@ CREATE TABLE [dbo].[tb_FT_Sys_User](
 	[UserState] [nvarchar](50) NULL,
 	[DeptID] [int] NULL,
 	[UserMemo] [nvarchar](500) NULL,
+	[FileID] [bigint] NULL,
  CONSTRAINT [PK_tb_FT_Sys_User] PRIMARY KEY CLUSTERED 
 (
 	[UserAutoID] ASC
@@ -331,6 +332,64 @@ INSERT INTO [dbo].[tb_FT_Sys_Func]([FuncName] ,[FuncCaption] ,[FuncType] ,[FuncP
 VALUES('Command1' ,'查询' ,'按钮' ,'1009')
 GO
 
+-- --软件导出插入数据脚本
+-- USE [db_FT]
+-- GO
+-- SET IDENTITY_INSERT [dbo].[tb_FT_Sys_Func] ON 
+
+-- GO
+-- INSERT [dbo].[tb_FT_Sys_Func] ([FuncAutoID], [FuncName], [FuncCaption], [FuncType], [FuncParentID]) VALUES (1000, N'frmSysDepartment', N'部门管理', N'窗口', 1010)
+-- GO
+-- INSERT [dbo].[tb_FT_Sys_Func] ([FuncAutoID], [FuncName], [FuncCaption], [FuncType], [FuncParentID]) VALUES (1001, N'Command1', N'添加部门', N'按钮', 1000)
+-- GO
+-- INSERT [dbo].[tb_FT_Sys_Func] ([FuncAutoID], [FuncName], [FuncCaption], [FuncType], [FuncParentID]) VALUES (1002, N'Command2', N'修改部门信息', N'按钮', 1000)
+-- GO
+-- INSERT [dbo].[tb_FT_Sys_Func] ([FuncAutoID], [FuncName], [FuncCaption], [FuncType], [FuncParentID]) VALUES (1003, N'frmSysUser', N'用户管理', N'窗口', 1010)
+-- GO
+-- INSERT [dbo].[tb_FT_Sys_Func] ([FuncAutoID], [FuncName], [FuncCaption], [FuncType], [FuncParentID]) VALUES (1004, N'Command1', N'添加用户', N'按钮', 1003)
+-- GO
+-- INSERT [dbo].[tb_FT_Sys_Func] ([FuncAutoID], [FuncName], [FuncCaption], [FuncType], [FuncParentID]) VALUES (1005, N'Command2', N'修改用户信息', N'按钮', 1003)
+-- GO
+-- INSERT [dbo].[tb_FT_Sys_Func] ([FuncAutoID], [FuncName], [FuncCaption], [FuncType], [FuncParentID]) VALUES (1006, N'TreeView1', N'用户列表', N'其它', 1003)
+-- GO
+-- INSERT [dbo].[tb_FT_Sys_Func] ([FuncAutoID], [FuncName], [FuncCaption], [FuncType], [FuncParentID]) VALUES (1007, N'frmSysFunc', N'功能设置', N'窗口', 1010)
+-- GO
+-- INSERT [dbo].[tb_FT_Sys_Func] ([FuncAutoID], [FuncName], [FuncCaption], [FuncType], [FuncParentID]) VALUES (1008, N'frmSysRole', N'角色设置', N'窗口', 1010)
+-- GO
+-- INSERT [dbo].[tb_FT_Sys_Func] ([FuncAutoID], [FuncName], [FuncCaption], [FuncType], [FuncParentID]) VALUES (1009, N'frmSysLog', N'日志管理', N'窗口', 1010)
+-- GO
+-- INSERT [dbo].[tb_FT_Sys_Func] ([FuncAutoID], [FuncName], [FuncCaption], [FuncType], [FuncParentID]) VALUES (1010, N'Sys', N'系统', N'主菜单', 0)
+-- GO
+-- INSERT [dbo].[tb_FT_Sys_Func] ([FuncAutoID], [FuncName], [FuncCaption], [FuncType], [FuncParentID]) VALUES (1011, N'Command1', N'添加功能', N'按钮', 1007)
+-- GO
+-- INSERT [dbo].[tb_FT_Sys_Func] ([FuncAutoID], [FuncName], [FuncCaption], [FuncType], [FuncParentID]) VALUES (1012, N'Command2', N'修改功能信息', N'按钮', 1007)
+-- GO
+-- INSERT [dbo].[tb_FT_Sys_Func] ([FuncAutoID], [FuncName], [FuncCaption], [FuncType], [FuncParentID]) VALUES (1013, N'Command3', N'分配给指定角色结果保存', N'按钮', 1007)
+-- GO
+-- INSERT [dbo].[tb_FT_Sys_Func] ([FuncAutoID], [FuncName], [FuncCaption], [FuncType], [FuncParentID]) VALUES (1014, N'TreeView1', N'控制功能列表', N'其它', 1007)
+-- GO
+-- INSERT [dbo].[tb_FT_Sys_Func] ([FuncAutoID], [FuncName], [FuncCaption], [FuncType], [FuncParentID]) VALUES (1015, N'TreeView1', N'部门列表', N'其它', 1000)
+-- GO
+-- INSERT [dbo].[tb_FT_Sys_Func] ([FuncAutoID], [FuncName], [FuncCaption], [FuncType], [FuncParentID]) VALUES (1016, N'Command3', N'用户角色指定结果保存', N'按钮', 1003)
+-- GO
+-- INSERT [dbo].[tb_FT_Sys_Func] ([FuncAutoID], [FuncName], [FuncCaption], [FuncType], [FuncParentID]) VALUES (1017, N'Command1', N'添加角色', N'按钮', 1008)
+-- GO
+-- INSERT [dbo].[tb_FT_Sys_Func] ([FuncAutoID], [FuncName], [FuncCaption], [FuncType], [FuncParentID]) VALUES (1018, N'Command2', N'修改角色信息', N'按钮', 1008)
+-- GO
+-- INSERT [dbo].[tb_FT_Sys_Func] ([FuncAutoID], [FuncName], [FuncCaption], [FuncType], [FuncParentID]) VALUES (1019, N'TreeView1', N'角色列表', N'其它', 1008)
+-- GO
+-- INSERT [dbo].[tb_FT_Sys_Func] ([FuncAutoID], [FuncName], [FuncCaption], [FuncType], [FuncParentID]) VALUES (1020, N'Combo1', N'导入其它角色权限', N'其它', 1008)
+-- GO
+-- INSERT [dbo].[tb_FT_Sys_Func] ([FuncAutoID], [FuncName], [FuncCaption], [FuncType], [FuncParentID]) VALUES (1021, N'Command3', N'保存角色权限分配结果', N'按钮', 1008)
+-- GO
+-- INSERT [dbo].[tb_FT_Sys_Func] ([FuncAutoID], [FuncName], [FuncCaption], [FuncType], [FuncParentID]) VALUES (1022, N'Command1', N'查询', N'按钮', 1009)
+-- GO
+-- INSERT [dbo].[tb_FT_Sys_Func] ([FuncAutoID], [FuncName], [FuncCaption], [FuncType], [FuncParentID]) VALUES (1023, N'Grid1', N'显示表名', N'其它', 1009)
+-- GO
+-- SET IDENTITY_INSERT [dbo].[tb_FT_Sys_Func] OFF
+-- GO
+-- --
+
 --===========================================================================
 --↓↓↓创建表[tb_FT_Sys_OperationLog]
 --===========================================================================
@@ -411,6 +470,34 @@ GO
 CREATE TABLE [dbo].[tb_FT_Sys_UserRole](
 	[UserAutoID] [int] NOT NULL,
 	[RoleAutoID] [int] NOT NULL
+) ON [PRIMARY]
+
+GO
+
+
+--===========================================================================
+--↓↓↓创建表[tb_FT_Lib_File]
+--===========================================================================
+USE [db_FT]
+GO
+
+/****** Object:  Table [dbo].[tb_FT_Lib_File]    Script Date: 2019/6/10 20:40:30 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[tb_FT_Lib_File](
+	[FileID] [bigint] IDENTITY(1,1) NOT NULL,
+	[FileClassify] [nvarchar](20) NOT NULL,
+	[FileExtension] [nvarchar](20) NULL,
+	[FileOldName] [nvarchar](50) NOT NULL,
+	[FileSaveName] [nvarchar](50) NOT NULL,
+	[FileSize] [money] NOT NULL,
+	[FileSaveLocation] [nvarchar](20) NOT NULL,
+	[FileUploadMen] [nvarchar](20) NULL,
+	[FileUploadTime] [datetime] NULL
 ) ON [PRIMARY]
 
 GO
